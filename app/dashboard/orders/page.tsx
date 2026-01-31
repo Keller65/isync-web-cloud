@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { AlertCircle, Loader2, RefreshCw, TrendingUp } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, User } from 'lucide-react';
 import { useAuthStore } from '@/app/lib/store';
+import { useCustomerStore } from '@/app/lib/store.customer';
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger, } from "@/components/ui/drawer"
+import { CustomerType, CustomerResponseType } from '@/types/customers';
+import { Input } from "@/components/ui/input";
 
 interface OrderDataType {
   docEntry: number;
@@ -31,9 +35,17 @@ export default function OrdersPage() {
   const [isLastPage, setIsLastPage] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Estados para Clientes (Drawer)
+  const [customers, setCustomers] = useState<CustomerType[]>([]);
+  const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const PAGE_SIZE = 20;
   const { salesPersonCode, token } = useAuthStore()
-  const FETCH_URL = '/api-proxy/Quotations/open';
+  const { setSelectedCustomer } = useCustomerStore();
+  const FETCH_URL = '/api-proxy/api/Quotations/open';
+  const CUSTOMERS_URL = '/api-proxy/api/Customers/by-sales-emp';
 
   // Debug: Log cuando cambian los valores
   useEffect(() => {
@@ -90,6 +102,28 @@ export default function OrdersPage() {
     }
   }, [FETCH_URL, token, isLastPage, isLoading, salesPersonCode]);
 
+  const fetchCustomers = useCallback(async () => {
+    if (!salesPersonCode || !token) return;
+    
+    setIsLoadingCustomers(true);
+    try {
+      const res = await axios.get<CustomerResponseType>(
+        `${CUSTOMERS_URL}?slpCode=${salesPersonCode}&page=1&pageSize=1000`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setCustomers(res.data.items);
+    } catch (err) {
+      console.error('Error al cargar clientes:', err);
+    } finally {
+      setIsLoadingCustomers(false);
+    }
+  }, [CUSTOMERS_URL, salesPersonCode, token]);
+
   const handleRefresh = useCallback(() => {
     setPage(1);
     setIsLastPage(false);
@@ -102,11 +136,23 @@ export default function OrdersPage() {
     }
   }, [fetchOrders, page, isRefreshing, isLoading, isLastPage]);
 
+  // Efecto para cargar clientes cuando se abre el drawer
+  useEffect(() => {
+    if (isDrawerOpen && customers.length === 0) {
+      fetchCustomers();
+    }
+  }, [isDrawerOpen, customers.length, fetchCustomers]);
+
   useEffect(() => {
     if (salesPersonCode && token) {
       fetchOrders(1, true);
     }
   }, [salesPersonCode, token, fetchOrders]);
+
+  const filteredCustomers = customers.filter(c => 
+    c.cardName.toLowerCase().includes(customerSearch.toLowerCase()) || 
+    c.cardCode.toLowerCase().includes(customerSearch.toLowerCase())
+  );
 
   return (
     <div className="flex-1 bg-white min-h-screen">
@@ -117,16 +163,89 @@ export default function OrdersPage() {
             <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
             <p className="text-gray-600 mt-1">Gestiona tus pedidos abiertos</p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <RefreshCw
-              size={24}
-              className={`text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`}
-            />
-          </button>
+
+          <div className='flex gap-2'>
+            <Drawer direction="right" open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+              <DrawerTrigger className="p-2 bg-gray-200 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <Plus size={24} color="#4a5565" />
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle className="text-2xl font-bold">Seleccionar Cliente</DrawerTitle>
+                  <DrawerDescription>Busca un cliente para iniciar un nuevo pedido.</DrawerDescription>
+                </DrawerHeader>
+                
+                <div className="p-4 border-b border-gray-100">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Input 
+                      placeholder="Buscar por nombre o código..." 
+                      className="pl-10"
+                      value={customerSearch}
+                      onChange={(e) => setCustomerSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                  {isLoadingCustomers ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-3">
+                      <Loader2 size={30} className="text-[#1A3D59] animate-spin" />
+                      <p className="text-gray-500 text-sm">Cargando clientes...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredCustomers.map((customer) => (
+                        <div 
+                          key={customer.cardCode}
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setIsDrawerOpen(false);
+                          }}
+                          className="p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all cursor-pointer group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="bg-[#1A3D59] p-2.5 rounded-full">
+                              <User size={20} color="white" />
+                            </div>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 group-hover:text-[#1A3D59]">{customer.cardName}</h3>
+                              <p className="text-xs text-gray-500 mt-0.5">Código: {customer.cardCode}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">RTN: {customer.federalTaxID}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {filteredCustomers.length === 0 && !isLoadingCustomers && (
+                        <div className="text-center py-10 text-gray-500">
+                          No se encontraron clientes.
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <DrawerFooter className="border-t border-gray-100">
+                  <DrawerClose asChild>
+                    <button className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors">
+                      Cancelar
+                    </button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="p-2 bg-gray-200 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw
+                size={24}
+                className={`text-gray-600 ${isRefreshing ? 'animate-spin' : ''}`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 

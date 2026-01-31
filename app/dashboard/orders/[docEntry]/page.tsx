@@ -26,7 +26,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
 
   const { token } = useAuthStore();
-  const FETCH_URL = '/api-proxy/Quotations';
+  const FETCH_URL = '/api-proxy/api/Quotations';
 
   const fetchOrderDetail = useCallback(async () => {
     if (!token) {

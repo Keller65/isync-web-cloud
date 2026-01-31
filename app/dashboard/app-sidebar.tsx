@@ -1,12 +1,11 @@
 "use client"
 
-import { Calendar, Home, Inbox, Search, Settings, ShoppingCart, MapPin, FileText, CreditCard } from "lucide-react"
+import { Home, Settings, ShoppingCart, MapPin, FileText, CreditCard } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,

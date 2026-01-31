@@ -1,4 +1,9 @@
 // Tipos para la autenticación
+export interface Category {
+  code: string;
+  name: string;
+}
+
 export interface LoginRequest {
   employeeCode: number;
   password: string;

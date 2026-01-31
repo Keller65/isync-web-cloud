@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState, useEffect } from "react"
 import { authenticate } from "@/app/lib/actions"
 import {
   Drawer,
@@ -14,9 +14,24 @@ import {
 } from "@/components/ui/drawer"
 
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { useCustomerStore } from "@/app/lib/store.customer"
 
 export default function LoginForm() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined)
+  const { hostUrl, cloudflareUrl, setUrls } = useCustomerStore()
+  
+  const [tempHost, setTempHost] = useState(hostUrl)
+  const [tempCloudflare, setTempCloudflare] = useState(cloudflareUrl)
+
+  useEffect(() => {
+    setTempHost(hostUrl)
+    setTempCloudflare(cloudflareUrl)
+  }, [hostUrl, cloudflareUrl])
+
+  const handleSaveConfig = () => {
+    setUrls(tempHost, tempCloudflare)
+  }
 
   return (
     <div className="w-full mx-auto">
@@ -85,16 +100,41 @@ export default function LoginForm() {
       </form>
 
       <Drawer direction="right">
-        <DrawerTrigger>Open</DrawerTrigger>
-        <DrawerContent>
+        <DrawerTrigger asChild>
+          <Button variant="outline" className="mt-4 w-full">Configuración de Red</Button>
+        </DrawerTrigger>
+        <DrawerContent className="h-full">
           <DrawerHeader>
-            <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-            <DrawerDescription>This action cannot be undone.</DrawerDescription>
+            <DrawerTitle>Configuración de Conexión</DrawerTitle>
+            <DrawerDescription>Ajusta las direcciones de los servidores.</DrawerDescription>
           </DrawerHeader>
+          
+          <div className="p-4 space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="hostUrl" className="text-sm font-medium">URL del Host</label>
+              <Input 
+                id="hostUrl" 
+                placeholder="https://tu-servidor.com" 
+                value={tempHost}
+                onChange={(e) => setTempHost(e.target.value)}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="cloudflareUrl" className="text-sm font-medium">URL de Cloudflare</label>
+              <Input 
+                id="cloudflareUrl" 
+                placeholder="https://tu-app.workers.dev" 
+                value={tempCloudflare}
+                onChange={(e) => setTempCloudflare(e.target.value)}
+              />
+            </div>
+          </div>
+
           <DrawerFooter>
-            <Button>Guardar</Button>
-            <DrawerClose>
-              <Button className="flex-1" variant="outline">Cancel</Button>
+            <Button className="w-full" onClick={handleSaveConfig}>Guardar Configuración</Button>
+            <DrawerClose asChild>
+              <Button className="w-full" variant="outline">Cancelar</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
