@@ -35,7 +35,7 @@ export default function KPICardApi() {
         setLoading(true)
         // Usamos el Proxy definido en next.config.ts para evitar CORS
         const response = await axios.get<KpiApiResponse>(
-          `/api-proxy/Kpi/sales-vs-collections/${salesPersonCode}`,
+          `/api-proxy/api/Kpi/sales-vs-collections/${salesPersonCode}`,
           {
             headers: {
               Authorization: `Bearer ${token}`

@@ -10,7 +10,7 @@ export type WarehouseStock = {
   inStock: number;
 };
 
-export type ProductDiscount = {
+export type Product = {
   itemCode: string;
   itemName: string;
   groupCode: number | string;

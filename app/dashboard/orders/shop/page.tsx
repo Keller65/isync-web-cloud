@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuthStore } from '@/app/lib/store'
 import { useCustomerStore } from '@/app/lib/store.customer'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Product } from '@/types/products'
 
 interface Category {
   code: string
@@ -17,17 +18,6 @@ interface Tier {
   price: number
   percent: number
   expiry: string
-}
-
-interface Product {
-  itemCode: string
-  itemName: string
-  inStock: number
-  price: number
-  hasDiscount: boolean
-  tiers?: Tier[]
-  salesUnit: string
-  image?: string
 }
 
 function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?: string | number }) {
@@ -172,17 +162,12 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <>
       <div className="h-40 bg-muted rounded-md flex items-center justify-center relative overflow-hidden">
-        {product.image ? (
-          <img
-            src={product.image}
-            alt={product.itemName}
-            className="h-full w-full object-contain"
-          />
-        ) : (
-          <span className="text-[10px] uppercase font-bold text-center px-2">
-            {product.itemName}
-          </span>
-        )}
+        <img
+          src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
+          onError={() => "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"}
+          alt={product.itemName}
+          className="h-full w-full object-contain"
+        />
 
         {product.inStock <= 0 && (
           <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
@@ -215,6 +200,10 @@ function ProductCard({ product }: { product: Product }) {
           </span>
         )}
       </div>
+
+      <button className="text-sm p-2 rounded-full flex items-center justify-center bg-[#1A3D59] text-white text-center">
+        Ver Detalles
+      </button>
     </>
   )
 }
