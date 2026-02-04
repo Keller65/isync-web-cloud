@@ -15,6 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Coins } from '@phosphor-icons/react';
+import Avvvatars from 'avvvatars-react'
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -124,7 +126,7 @@ export default function OrderDetailPage() {
           {/* Cliente */}
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
             <div className="flex items-center gap-3 mb-4">
-              <div className="bg-[#1A3D59] p-3 rounded-full">
+              <div className="bg-brand-primary size-12 grid place-items-center rounded-full">
                 <User size={24} color="white" />
               </div>
               <h2 className="text-xl font-bold text-gray-900">Cliente</h2>
@@ -154,7 +156,7 @@ export default function OrderDetailPage() {
             {/* Fecha */}
             <div className="bg-white rounded-2xl p-6 border border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="bg-[#1A3D59] p-3 rounded-full">
+                <div className="bg-brand-primary size-12 grid place-items-center rounded-full">
                   <Calendar size={24} color="white" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Fecha</h2>
@@ -182,8 +184,8 @@ export default function OrderDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="bg-[#1A3D59] p-3 rounded-full">
-                <DollarSign size={24} color="white" />
+              <div className="bg-brand-primary p-3 rounded-full">
+                <Coins size={20} color="white" />
               </div>
               <div>
                 <p className="text-xs text-gray-500">Subtotal</p>
@@ -199,8 +201,8 @@ export default function OrderDetailPage() {
 
           <div className="bg-white rounded-2xl p-6 border border-gray-200">
             <div className="flex items-center gap-3">
-              <div className="bg-[#1A3D59] p-3 rounded-full">
-                <DollarSign size={24} color="white" />
+              <div className="bg-brand-primary p-3 rounded-full">
+                <Coins size={20} color="white" />
               </div>
               <div>
                 <p className="text-xs text-gray-500">Impuesto (ISV)</p>
@@ -214,10 +216,10 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="bg-[#1A3D59] rounded-2xl p-6">
+          <div className="bg-brand-primary rounded-2xl p-6">
             <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-3 rounded-full">
-                <DollarSign size={24} color="white" />
+              <div className="bg-white/20 p-3 rounded-full">
+                <Coins size={20} color="white" />
               </div>
               <div>
                 <p className="text-xs text-blue-100">Total</p>
@@ -235,7 +237,7 @@ export default function OrderDetailPage() {
         {/* Líneas del Pedido */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
           <div className="flex items-center gap-3 px-6 py-3 border-b border-gray-200">
-            <div className="bg-[#1A3D59] p-3 rounded-full">
+            <div className="bg-brand-primary p-3 rounded-full">
               <Package size={24} color="white" />
             </div>
             <h2 className="text-xl font-bold text-gray-900">Productos ({orderDetail.lines.length})</h2>
@@ -303,7 +305,7 @@ export default function OrderDetailPage() {
             <button className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold rounded-full transition-colors">
               Descargar PDF
             </button>
-            <button className="px-6 py-3 bg-[#1A3D59] text-white font-semibold rounded-full transition-colors">
+            <button className="px-6 py-3 bg-brand-primary text-white font-semibold rounded-full transition-colors">
               Editar Pedido
             </button>
           </div>

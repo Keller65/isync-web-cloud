@@ -27,33 +27,33 @@ const items = [
     url: "/dashboard/orders",
     icon: ShoppingCart,
   },
-  {
-    title: "Payments",
-    url: "/dashboard/payments",
-    icon: CreditCard,
-  },
-  {
-    title: "Catalog",
-    url: "/dashboard/catalog",
-    icon: FileText,
-  },
-  {
-    title: "Locations",
-    url: "/dashboard/locations",
-    icon: MapPin,
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
+  // {
+  //   title: "Payments",
+  //   url: "/dashboard/payments",
+  //   icon: CreditCard,
+  // },
+  // {
+  //   title: "Catalog",
+  //   url: "/dashboard/catalog",
+  //   icon: FileText,
+  // },
+  // {
+  //   title: "Locations",
+  //   url: "/dashboard/locations",
+  //   icon: MapPin,
+  // },
+  // {
+  //   title: "Settings",
+  //   url: "/dashboard/settings",
+  //   icon: Settings,
+  // },
 ]
 
 export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="flex-row items-center">
-        <div className="p-1.5 size-9 bg-[#1A3D59] rounded-lg">
+        <div className="p-1.5 size-9 bg-brand-primary rounded-lg">
           <Image 
             alt="logo isync web cloud" 
             src="/assets/iSync_logo.png" 

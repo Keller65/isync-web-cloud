@@ -9,6 +9,8 @@ import { useCustomerStore } from '@/app/lib/store.customer';
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger, } from "@/components/ui/drawer"
 import { CustomerType, CustomerResponseType } from '@/types/customers';
 import { Input } from "@/components/ui/input";
+import { CalendarDots, Coins } from '@phosphor-icons/react';
+import Avvvatars from 'avvvatars-react'
 
 interface OrderDataType {
   docEntry: number;
@@ -104,7 +106,7 @@ export default function OrdersPage() {
 
   const fetchCustomers = useCallback(async () => {
     if (!salesPersonCode || !token) return;
-    
+
     setIsLoadingCustomers(true);
     try {
       const res = await axios.get<CustomerResponseType>(
@@ -149,8 +151,8 @@ export default function OrdersPage() {
     }
   }, [salesPersonCode, token, fetchOrders]);
 
-  const filteredCustomers = customers.filter(c => 
-    c.cardName.toLowerCase().includes(customerSearch.toLowerCase()) || 
+  const filteredCustomers = customers.filter(c =>
+    c.cardName.toLowerCase().includes(customerSearch.toLowerCase()) ||
     c.cardCode.toLowerCase().includes(customerSearch.toLowerCase())
   );
 
@@ -174,12 +176,12 @@ export default function OrdersPage() {
                   <DrawerTitle className="text-2xl font-bold">Seleccionar Cliente</DrawerTitle>
                   <DrawerDescription>Busca un cliente para iniciar un nuevo pedido.</DrawerDescription>
                 </DrawerHeader>
-                
+
                 <div className="p-4 border-b border-gray-100">
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <Input 
-                      placeholder="Buscar por nombre o código..." 
+                    <Input
+                      placeholder="Buscar por nombre o código..."
                       className="pl-10"
                       value={customerSearch}
                       onChange={(e) => setCustomerSearch(e.target.value)}
@@ -190,13 +192,13 @@ export default function OrdersPage() {
                 <div className="flex-1 overflow-y-auto p-4">
                   {isLoadingCustomers ? (
                     <div className="flex flex-col items-center justify-center py-10 gap-3">
-                      <Loader2 size={30} className="text-[#1A3D59] animate-spin" />
+                      <Loader2 size={30} className="text-brand-primary animate-spin" />
                       <p className="text-gray-500 text-sm">Cargando clientes...</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {filteredCustomers.map((customer) => (
-                        <div 
+                        <div
                           key={customer.cardCode}
                           onClick={() => {
                             setSelectedCustomer(customer);
@@ -205,18 +207,18 @@ export default function OrdersPage() {
                           className="p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50 transition-all cursor-pointer group"
                         >
                           <div className="flex items-start gap-3">
-                            <div className="bg-[#1A3D59] p-2.5 rounded-full">
+                            <div className="bg-brand-primary p-2.5 rounded-full">
                               <User size={20} color="white" />
                             </div>
                             <div>
-                              <h3 className="font-semibold text-gray-900 group-hover:text-[#1A3D59]">{customer.cardName}</h3>
+                              <h3 className="font-semibold text-gray-900 group-hover:text-brand-primary">{customer.cardName}</h3>
                               <p className="text-xs text-gray-500 mt-0.5">Código: {customer.cardCode}</p>
                               <p className="text-xs text-gray-400 mt-0.5">RTN: {customer.federalTaxID}</p>
                             </div>
                           </div>
                         </div>
                       ))}
-                      
+
                       {filteredCustomers.length === 0 && !isLoadingCustomers && (
                         <div className="text-center py-10 text-gray-500">
                           No se encontraron clientes.
@@ -290,10 +292,8 @@ export default function OrdersPage() {
 
                   {/* Cliente */}
                   <div className="flex items-start gap-3 mb-4">
-                    <div className="bg-gray-100 p-2 rounded-full shrink-0">
-                      <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                        {item.cardName.charAt(0).toUpperCase()}
-                      </div>
+                    <div className="bg-white size-10 rounded-full shrink-0">
+                      <Avvvatars size={40} value={item.cardName} style="character" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-gray-500">Cliente</p>
@@ -304,9 +304,7 @@ export default function OrdersPage() {
                   {/* Fecha */}
                   <div className="flex items-start gap-3 mb-4">
                     <div className="bg-gray-100 p-2 rounded-full shrink-0">
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
+                      <CalendarDots size={24} color="#6a7282" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-gray-500">Fecha</p>
@@ -319,9 +317,7 @@ export default function OrdersPage() {
                   {/* Total */}
                   <div className="flex items-start gap-3 mb-6">
                     <div className="bg-gray-100 p-2 rounded-full shrink-0">
-                      <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                      <Coins size={24} color="#6a7282" />
                     </div>
                     <div className="flex-1">
                       <p className="text-xs text-gray-500">Total</p>
@@ -334,7 +330,7 @@ export default function OrdersPage() {
                   {/* Button */}
                   <button
                     onClick={() => router.push(`/dashboard/orders/${item.docEntry}`)}
-                    className="w-full bg-[#1A3D59] text-white font-semibold py-3 px-4 rounded-full transition-colors"
+                    className="w-full bg-brand-primary text-white font-semibold py-3 px-4 rounded-full transition-colors"
                   >
                     Ver más detalles
                   </button>
@@ -376,7 +372,7 @@ export default function OrdersPage() {
             <p className="text-lg text-gray-500 font-medium">No hay pedidos cargados.</p>
             <button
               onClick={handleRefresh}
-              className="mt-2 px-4 py-2 bg-[#1A3D59] text-white font-medium rounded-lg transition-colors"
+              className="mt-2 px-4 py-2 bg-brand-primary text-white font-medium rounded-lg transition-colors"
             >
               Intentar nuevamente
             </button>
