@@ -3,6 +3,7 @@ export interface CustomerType {
   cardName: string;
   federalTaxID: string;
   priceListNum: number;
+  address?: string | [];
 }
 
 export interface CustomerResponseType {

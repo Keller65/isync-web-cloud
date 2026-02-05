@@ -16,7 +16,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Coins } from '@phosphor-icons/react';
-import Avvvatars from 'avvvatars-react'
 
 export default function OrderDetailPage() {
   const router = useRouter();
