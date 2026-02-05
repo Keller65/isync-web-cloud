@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, User, ArrowRight } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, User, ArrowRight, MapPin } from 'lucide-react';
 import { useAuthStore } from '@/app/lib/store';
 import { useCustomerStore } from '@/app/lib/store.customer';
 import {
@@ -14,10 +14,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CustomerType, CustomerResponseType } from '@/types/customers';
+import { CustomerType, CustomerResponseType, CustomerAddress } from '@/types/customers';
 import { Input } from "@/components/ui/input";
 import { CalendarDots, Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
+import { useCartStore } from '@/app/lib/store.cart';
 
 interface OrderDataType {
   docEntry: number;
@@ -43,6 +44,7 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [isLastPage, setIsLastPage] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { productsInCart, removeProduct } = useCartStore();
 
   const [customers, setCustomers] = useState<CustomerType[]>([]);
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
@@ -51,10 +53,20 @@ export default function OrdersPage() {
 
   const PAGE_SIZE = 20;
   const { salesPersonCode, token } = useAuthStore();
-  const { setSelectedCustomer, selectedCustomer } = useCustomerStore();
+  const {
+    setSelectedCustomer,
+    selectedCustomer,
+    addresses,
+    setAddresses,
+    selectedAddress,
+    setSelectedAddress
+  } = useCustomerStore();
 
   const FETCH_URL = '/api-proxy/api/Quotations/open';
   const CUSTOMERS_URL = '/api-proxy/api/Customers/by-sales-emp';
+  const ADDRESSES_URL = '/api-proxy/api/Customers';
+
+  const [isLoadingAddresses, setIsLoadingAddresses] = useState(false);
 
   const fetchOrders = useCallback(async (pageToFetch: number, isRefresh = false) => {
     if (!salesPersonCode || !token) {
@@ -126,6 +138,32 @@ export default function OrdersPage() {
     }
   }, [CUSTOMERS_URL, salesPersonCode, token]);
 
+  const fetchAddresses = useCallback(async (cardCode: string) => {
+    if (!token) return;
+
+    setIsLoadingAddresses(true);
+    try {
+      const res = await axios.get<CustomerAddress[]>(
+        `${ADDRESSES_URL}/${cardCode}/addresses`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      setAddresses(res.data);
+      if (res.data.length > 0) {
+        setSelectedAddress(res.data[0]);
+      }
+    } catch (err) {
+      console.error('Error al cargar direcciones:', err);
+      setAddresses([]);
+    } finally {
+      setIsLoadingAddresses(false);
+    }
+  }, [ADDRESSES_URL, token, setAddresses, setSelectedAddress]);
+
   const handleRefresh = useCallback(() => {
     setPage(1);
     setIsLastPage(false);
@@ -150,15 +188,21 @@ export default function OrdersPage() {
     }
   }, [salesPersonCode, token, fetchOrders]);
 
+  useEffect(() => {
+    if (selectedCustomer) {
+      fetchAddresses(selectedCustomer.cardCode);
+    }
+  }, [selectedCustomer, fetchAddresses]);
+
   const filteredCustomers = customers.filter(c =>
     c.cardName.toLowerCase().includes(customerSearch.toLowerCase()) ||
     c.cardCode.toLowerCase().includes(customerSearch.toLowerCase())
   );
 
   return (
-    <div className="flex-1 bg-white min-h-screen">
+    <div className="flex-1 min-h-screen">
       <div className="border-b border-gray-200">
-        <div className="flex items-center justify-between p-6">
+        <div className="flex items-center justify-between py-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
             <p className="text-gray-600 mt-1">Gestiona tus pedidos abiertos</p>
@@ -166,11 +210,13 @@ export default function OrdersPage() {
 
           <div className='flex gap-2'>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <button className="p-2 bg-gray-200 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
-                  <Plus size={24} color="#4a5565" />
-                </button>
-              </DialogTrigger>
+              {productsInCart.length === 0 && (
+                <DialogTrigger asChild>
+                  <button className="p-2 bg-gray-200 cursor-pointer hover:bg-gray-100 rounded-lg transition-colors">
+                    <Plus size={24} color="#4a5565" />
+                  </button>
+                </DialogTrigger>
+              )}
               <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden">
                 <div className="flex h-full divide-x divide-gray-100">
 
@@ -198,12 +244,52 @@ export default function OrdersPage() {
                             </div>
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Dirección</p>
-                              <p className="text-sm font-medium text-gray-700 line-clamp-3">{selectedCustomer.address || 'Sin dirección registrada'}</p>
+                              <p className="text-sm font-medium text-gray-700 line-clamp-3">{selectedAddress?.street || 'Sin dirección registrada'}</p>
                             </div>
                             <div>
                               <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Lista de Precios</p>
                               <p className="text-sm font-medium text-gray-700">Lista #{selectedCustomer.priceListNum}</p>
                             </div>
+                          </div>
+
+                          <div className="space-y-3 pt-6 border-t border-gray-200">
+                            <h4 className="text-xs uppercase tracking-wider text-gray-400 font-bold">
+                              Direcciones de Entrega
+                            </h4>
+                            {isLoadingAddresses ? (
+                              <div className="flex items-center gap-2 text-gray-500">
+                                <Loader2 size={16} className="animate-spin" />
+                                <span className="text-sm">Cargando...</span>
+                              </div>
+                            ) : (
+                              <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+                                {addresses.map((addr) => (
+                                  <div
+                                    key={addr.rowNum}
+                                    onClick={() => setSelectedAddress(addr)}
+                                    className={`p-2.5 rounded-lg border cursor-pointer transition-all ${selectedAddress?.rowNum === addr.rowNum
+                                        ? 'bg-blue-50 border-brand-primary'
+                                        : 'bg-white hover:bg-gray-100 border-gray-200'
+                                      }`}
+                                  >
+                                    <div className="flex items-start gap-2.5">
+                                      <MapPin size={16} className="text-gray-400 mt-0.5 shrink-0" />
+                                      <div>
+                                        <p className="text-xs font-bold text-gray-800 leading-tight">
+                                          {addr.addressName}
+                                        </p>
+                                        <p className="text-[11px] text-gray-500">{addr.street}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {addresses.length === 0 && (
+                                  <p className="text-xs text-gray-500 italic">
+                                    No hay direcciones de entrega.
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       ) : (
@@ -222,7 +308,8 @@ export default function OrdersPage() {
                           setIsDialogOpen(false);
                           router.push('/dashboard/orders/shop');
                         }}
-                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 rounded-full transition-all flex items-center justify-center gap-2"
+                        disabled={!selectedAddress}
+                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Realizar un Pedido
                         <ArrowRight size={18} />
@@ -316,7 +403,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Grid de Órdenes */}
-      <div className="p-6">
+      <div className="py-4">
         {error && (
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />

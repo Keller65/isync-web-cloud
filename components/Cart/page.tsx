@@ -176,8 +176,8 @@ function CartISync() {
               </ScrollArea>
             </div>
 
-            <div className="p-8 bg-[#fcfcfc] border-t border-gray-100">
-              <div className="space-y-3 mb-8">
+            <div className="px-8 py-4 bg-[#fcfcfc] border-t border-gray-100">
+              <div className="space-y-3 mb-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Cliente</span>
                   <span className="font-medium">{selectedCustomer?.cardName || "N/D"}</span>

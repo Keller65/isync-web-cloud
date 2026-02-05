@@ -6,6 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group"
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/app/lib/store'
 import { useCustomerStore } from '@/app/lib/store.customer'
@@ -15,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '
 import { Product } from '@/types/products'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { MagnifyingGlass } from '@phosphor-icons/react'
 
 interface Category {
   code: string
@@ -152,10 +158,6 @@ function CategoryProducts({ groupCode }: { groupCode: string }) {
   return <ProductList endpoint="/api/Catalog/products/search" groupCode={groupCode} />
 }
 
-/* =======================
-   PRODUCT CARD
-======================= */
-
 function ProductCard({ product }: { product: Product }) {
   const { addProduct, updateQuantity, productsInCart } = useCartStore()
   const [quantity, setQuantity] = useState(1)
@@ -281,25 +283,27 @@ function ProductCard({ product }: { product: Product }) {
         showCancel: true,
         onConfirm: () => {
           updateQuantity(product.itemCode, totalQuantity, finalPriceForCart, product.inStock)
-          toast(<div className="flex flex-row items-center gap-2">
-            <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
-            <span className="flex flex-col">
-              <p className="font-bold">{product.itemName}</p>
-              <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
-            </span>
-          </div>)
+          toast(
+            <div className="flex flex-row items-center gap-2">
+              <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
+              <span className="flex flex-col">
+                <p className="font-bold">{product.itemName}</p>
+                <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
+              </span>
+            </div>, { position: "top-center", duration: 1200 })
           setOpen(false)
         }
       });
     } else {
       addProduct(productData)
-      toast(<div className="flex flex-row items-center gap-2">
-        <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
-        <span className="flex flex-col">
-          <p className="font-bold">{product.itemName}</p>
-          <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
-        </span>
-      </div>)
+      toast(
+        <div className="flex flex-row items-center gap-2">
+          <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
+          <span className="flex flex-col">
+            <p className="font-bold">{product.itemName}</p>
+            <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
+          </span>
+        </div>, { position: "top-center", duration: 1200 })
       setOpen(false)
     }
   }, [addProduct, productsInCart, quantity, product, editablePrice, isPriceValid, updateQuantity])
@@ -585,10 +589,6 @@ function ProductCard({ product }: { product: Product }) {
   )
 }
 
-/* =======================
-   PAGE
-======================= */
-
 export default function Page() {
   const { token } = useAuthStore()
   const [categories, setCategories] = useState<Category[]>([])
@@ -618,6 +618,13 @@ export default function Page() {
 
   return (
     <Tabs defaultValue="ofertas" className="w-full">
+      <InputGroup className="rounded-full h-12.5 mb-4 px-2">
+        <InputGroupInput placeholder="Search..." />
+        <InputGroupAddon>
+          <MagnifyingGlass size={32} />
+        </InputGroupAddon>
+      </InputGroup>
+
       <TabsList className="w-full justify-start overflow-x-auto">
         <TabsTrigger value="ofertas">Ofertas</TabsTrigger>
 

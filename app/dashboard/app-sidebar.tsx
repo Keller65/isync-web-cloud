@@ -18,12 +18,12 @@ import Image from "next/image"
 // Items del menú
 const items = [
   {
-    title: "Analytics",
+    title: "Analiticas",
     url: "/dashboard",
     icon: Home,
   },
   {
-    title: "Orders",
+    title: "Pedidos",
     url: "/dashboard/orders",
     icon: ShoppingCart,
   },
@@ -42,11 +42,11 @@ const items = [
   //   url: "/dashboard/locations",
   //   icon: MapPin,
   // },
-  // {
-  //   title: "Settings",
-  //   url: "/dashboard/settings",
-  //   icon: Settings,
-  // },
+  {
+    title: "Ajustes",
+    url: "/dashboard/settings",
+    icon: Settings,
+  },
 ]
 
 export function AppSidebar() {

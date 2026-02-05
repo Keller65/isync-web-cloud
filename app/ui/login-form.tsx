@@ -20,7 +20,7 @@ import { useCustomerStore } from "@/app/lib/store.customer"
 export default function LoginForm() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined)
   const { hostUrl, cloudflareUrl, setUrls } = useCustomerStore()
-  
+
   const [tempHost, setTempHost] = useState(hostUrl)
   const [tempCloudflare, setTempCloudflare] = useState(cloudflareUrl)
 
@@ -43,7 +43,6 @@ export default function LoginForm() {
       </div>
 
       <form action={dispatch} className="space-y-6">
-
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="employeeCode">
             Employee Code
@@ -63,8 +62,6 @@ export default function LoginForm() {
             <label className="block text-sm font-semibold text-gray-700" htmlFor="password">
               Password
             </label>
-            {/* Opcional: Link de recuperar contraseña */}
-            {/* <a href="#" className="text-sm text-gray-400 hover:text-gray-600">Forgot?</a> */}
           </div>
           <input
             className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-gray-50 hover:bg-white"
@@ -87,7 +84,7 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          className="w-full bg-[#1A3D59] cursor-pointer text-white font-semibold py-3 px-4 rounded-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+          className="w-full bg-brand-primary cursor-pointer text-white font-semibold py-3 px-4 rounded-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           disabled={isPending}
         >
           {isPending ? "Iniciando Sesion..." : "Iniciar Sesion"}
@@ -108,23 +105,23 @@ export default function LoginForm() {
             <DrawerTitle>Configuración de Conexión</DrawerTitle>
             <DrawerDescription>Ajusta las direcciones de los servidores.</DrawerDescription>
           </DrawerHeader>
-          
+
           <div className="p-4 space-y-4">
             <div className="space-y-2">
               <label htmlFor="hostUrl" className="text-sm font-medium">URL del Host</label>
-              <Input 
-                id="hostUrl" 
-                placeholder="https://tu-servidor.com" 
+              <Input
+                id="hostUrl"
+                placeholder="https://tu-servidor.com"
                 value={tempHost}
                 onChange={(e) => setTempHost(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label htmlFor="cloudflareUrl" className="text-sm font-medium">URL de Cloudflare</label>
-              <Input 
-                id="cloudflareUrl" 
-                placeholder="https://tu-app.workers.dev" 
+              <Input
+                id="cloudflareUrl"
+                placeholder="https://tu-app.workers.dev"
                 value={tempCloudflare}
                 onChange={(e) => setTempCloudflare(e.target.value)}
               />

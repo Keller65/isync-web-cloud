@@ -1,7 +1,7 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
 import axios from "axios"
-import { LoginRequest, LoginResponse } from "@/app/lib/api-types"
+import { LoginRequest, LoginResponse } from "@/app/types/api-types"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [

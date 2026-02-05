@@ -3,20 +3,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
-import {
-  AlertCircle, ArrowLeft, Loader2, Package, User,
-  Calendar, FileText, Download, Edit3, Hash, Printer
-} from 'lucide-react';
+import { ArrowLeft, Loader2, Package, User, Calendar, FileText, Download, Edit3, Hash, Printer } from 'lucide-react';
+import { PDFDownloadLink, PDFViewer, pdf } from '@react-pdf/renderer';
+import OrderPDF from '@/components/pdf/OrderPDF';
 import { useAuthStore } from '@/app/lib/store';
+import { useCartStore } from '@/app/lib/store.cart';
+import { useCustomerStore } from '@/app/lib/store.customer';
 import { OrderDetailType } from '@/types/orders';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
 
@@ -28,6 +22,10 @@ export default function OrderDetailPage() {
   const [orderDetail, setOrderDetail] = useState<OrderDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  const { setSelectedCustomer } = useCustomerStore();
+  const { loadCartWithProducts, clearCart } = useCartStore();
 
   const { token } = useAuthStore();
   const FETCH_URL = '/api-proxy/api/Quotations';
@@ -60,6 +58,10 @@ export default function OrderDetailPage() {
     fetchOrderDetail();
   }, [fetchOrderDetail]);
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white">
@@ -71,12 +73,12 @@ export default function OrderDetailPage() {
 
   if (error || !orderDetail) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-6">
+      <div className="min-h-lvh flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
           <p className="text-gray-600 mb-6">{error || 'Pedido no encontrado.'}</p>
-          <button onClick={() => router.back()} className="bg-brand-primary text-white px-6 py-2 rounded-xl font-bold">
-            Volver
+          <button onClick={() => router.back()} className="bg-brand-primary text-white px-6 py-2 rounded-full font-semibold">
+            Volver a Despues
           </button>
         </div>
       </div>
@@ -84,6 +86,48 @@ export default function OrderDetailPage() {
   }
 
   const subtotal = orderDetail.docTotal - orderDetail.vatSum;
+
+  function handleEditOrder() {
+    if (!orderDetail) return;
+
+    // 1. Establecer el cliente
+    setSelectedCustomer({
+      cardCode: orderDetail.cardCode,
+      cardName: orderDetail.cardName,
+      federalTaxID: orderDetail.federalTaxID,
+      address: orderDetail.address,
+      priceListNum: orderDetail.priceListNum,
+    });
+
+    // 2. Limpiar el carrito actual
+    clearCart();
+
+    // 3. Mapear las líneas del pedido a productos del carrito
+    const productsToLoad = orderDetail.lines.map(line => ({
+      ...line,
+      itemName: line.itemDescription,
+      price: line.price,
+      unitPrice: line.priceAfterVAT,
+      inStock: line.stock,
+      // Propiedades faltantes de `Product` con valores por defecto
+      groupCode: '',
+      groupName: '',
+      committed: 0,
+      ordered: 0,
+      hasDiscount: false,
+      taxType: '',
+      salesUnit: null,
+      salesItemsPerUnit: 0,
+      tiers: [],
+      ws: [],
+    }));
+
+    // 4. Cargar los nuevos productos
+    loadCartWithProducts(productsToLoad);
+
+    // 5. Redirigir a la tienda
+    // router.push('/dashboard/orders/shop');
+  }
 
   return (
     <div className="min-h-fit">
@@ -101,16 +145,44 @@ export default function OrderDetailPage() {
                   <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Borrador</span>
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
-                  <Hash size={12} /> SAP DocEntry: {orderDetail.docEntry}
+                  <Hash size={12} /> Documento SAP: {orderDetail.docNum}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all">
-                <Download size={18} /> PDF
-              </button>
-              <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-brand-primary rounded-xl hover:opacity-95 transition-all">
+              {isClient && orderDetail && (
+                <>
+                  <PDFDownloadLink
+                    document={<OrderPDF order={orderDetail} />}
+                    fileName={`COTIZACION-${orderDetail.docNum}.pdf`}
+                  >
+                    {({ loading }) => (
+                      <button
+                        disabled={loading}
+                        className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all disabled:opacity-50"
+                      >
+                        <Download size={18} />
+                        {loading ? 'Generando...' : 'Generar PDF'}
+                      </button>
+                    )}
+                  </PDFDownloadLink>
+                  <button
+                    onClick={async () => {
+                      const blob = await pdf(<OrderPDF order={orderDetail} />).toBlob();
+                      const url = URL.createObjectURL(blob);
+                      window.open(url, '_blank');
+                    }}
+                    className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
+                  >
+                    <Printer size={18} /> Imprimir
+                  </button>
+                </>
+              )}
+              <button
+                onClick={handleEditOrder}
+                className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-white bg-brand-primary rounded-xl hover:opacity-95 transition-all"
+              >
                 <Edit3 size={18} /> Editar
               </button>
             </div>
@@ -237,12 +309,7 @@ export default function OrderDetailPage() {
                 </div>
               </div>
             </div>
-
-            <button className="w-full cursor-pointer flex items-center justify-center gap-2 py-4 bg-white border border-gray-200 text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-all text-sm">
-              <Printer size={18} /> Imprimir Pedido
-            </button>
           </div>
-
         </div>
       </main>
     </div>

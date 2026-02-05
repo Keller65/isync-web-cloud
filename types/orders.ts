@@ -6,6 +6,8 @@ export interface OrderLineType {
   priceAfterVAT: number;
   priceList: number;
   taxCode: string;
+  stock: number;
+  price: number;
 }
 
 export interface OrderDetailType {
