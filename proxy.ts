@@ -2,31 +2,24 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 
 export default auth((req) => {
-  // req.auth contiene la sesión del usuario si está logueado
-  const isLoggedIn = !!req.auth
-  
-  // Definir rutas
-  const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard")
-  const isOnHome = req.nextUrl.pathname === "/"
+  const isLoggedIn = !!req.auth?.user
 
-  // 1. Si está en una ruta protegida (dashboard) y NO está logueado -> Redirigir a Login (Home)
-  if (isOnDashboard) {
-    if (isLoggedIn) return NextResponse.next()
+  const { pathname } = req.nextUrl
+
+  const isOnDashboard = pathname.startsWith("/dashboard")
+  const isOnHome = pathname === "/"
+
+  if (isOnDashboard && !isLoggedIn) {
     return NextResponse.redirect(new URL("/", req.nextUrl))
   }
 
-  // 2. Si está en la Home (Login) y YA está logueado -> Redirigir al Dashboard
-  if (isOnHome) {
-    if (isLoggedIn) {
-      return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
-    }
-    return NextResponse.next()
+  if (isOnHome && isLoggedIn) {
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl))
   }
 
   return NextResponse.next()
 })
 
-// Configuración del matcher para que el middleware no se ejecute en archivos estáticos o API pública innecesaria
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next|favicon.ico).*)"],
 }

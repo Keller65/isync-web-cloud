@@ -7,7 +7,7 @@ export default function LoginPage() {
       <div className="w-full bg-white overflow-hidden flex h-full">
 
         {/* Lado Izquierdo: Visual / Branding */}
-        <div className="hidden lg:flex w-1/2 bg-linear-to-br from-[#1e517b] via-[#1A3D59] to-[#16334b] p-16 flex-col justify-between text-white relative">
+        <div className="hidden lg:flex w-1/2 bg-linear-to-br from-[#1e517b] via-brand-primary to-[#16334b] p-16 flex-col justify-between text-white relative">
 
           {/* Logo */}
           <div className="size-9">
