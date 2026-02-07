@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const apiHost = process.env.API_HOST
+    const apiHost = process.env.NEXT_PUBLIC_API_HOST
     return [
       {
         source: "/api-proxy/:path*",
