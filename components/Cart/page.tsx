@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import {
   AlertDialog,
@@ -36,7 +36,17 @@ function CartISync() {
   const [orderInfo, setOrderInfo] = useState<{ docEntry?: string }>({});
   const [comments, setComments] = useState('');
 
+  const [orderId, setOrderId] = useState<string | null>(null);
+
   const isProcessing = useRef(false);
+
+  useEffect(() => {
+    if (productsInCart.length > 0 && !orderId) {
+      setOrderId(uuidv4());
+    } else if (productsInCart.length === 0 && orderId) {
+      setOrderId(null);
+    }
+  }, [productsInCart, orderId]);
 
   const subtotal = productsInCart.reduce((acc, item) => acc + (item.priceAfterVAT * item.quantity), 0);
   const tax = subtotal * 0.15;
@@ -45,8 +55,8 @@ function CartISync() {
   const handleSubmitOrder = async () => {
     if (isProcessing.current) return;
 
-    if (!selectedCustomer || !selectedAddress || productsInCart.length === 0) {
-      toast.error("Faltan datos para procesar el pedido. Asegúrese de seleccionar un cliente y una dirección de entrega.");
+    if (!selectedCustomer || !selectedAddress || productsInCart.length === 0 || !orderId) {
+      toast.error("Faltan datos para procesar el pedido.");
       return;
     }
 
@@ -55,7 +65,7 @@ function CartISync() {
       setIsLoading(true);
 
       const payload = {
-        requestId: uuidv4(),
+        requestId: orderId,
         cardCode: selectedCustomer.cardCode,
         payToCode: selectedAddress.addressName,
         comments: comments || "",
@@ -69,8 +79,6 @@ function CartISync() {
         })),
       };
 
-      console.log('📤 Enviando pedido:', payload);
-
       const response = await axios.post(`/api-proxy/api/Quotations/Order`, payload, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -80,20 +88,16 @@ function CartISync() {
         timeout: 60000,
       });
 
-      console.log('✅ Respuesta de la API:', response.data);
-
       setOrderInfo({
         docEntry: response.data?.docEntry || response.data?.DocEntry
       });
 
+      setOrderId(null);
       clearCart();
-      
       clearSelectedCustomer();
-
       setShowSuccessAlert(true);
 
     } catch (error: any) {
-      console.error('❌ Error en petición:', error);
       toast.error(error.response?.data?.message || "Ocurrió un error al procesar el pedido");
     } finally {
       setIsLoading(false);
@@ -105,22 +109,29 @@ function CartISync() {
     <>
       <Drawer direction="right">
         <DrawerTrigger asChild>
-          <span className='relative mr-3'>
-            <CartIcon />
-            <Badge
-              className='absolute -top-2 -right-4 text-[10px] rounded-full size-5 grid place-content-center'
-              variant="default">
-              {productsInCart.length}
-            </Badge>
+          <span className='relative mr-3 cursor-pointer'>
+            {productsInCart.length !== 0 && <CartIcon />}
+            {productsInCart.length > 0 && (
+              <Badge
+                className='absolute -top-2 -right-4 text-[10px] rounded-full size-5 grid place-content-center'
+                variant="default">
+                {productsInCart.length}
+              </Badge>
+            )}
           </span>
         </DrawerTrigger>
         <DrawerContent className="h-screen min-w-[80vw] top-0 right-0 left-auto mt-0 w-full rounded-none border-l">
           <div className="flex flex-col h-full bg-white">
 
             <DrawerHeader className="flex flex-row items-center justify-between px-8 py-6 border-none">
-              <DrawerTitle className="text-2xl font-semibold uppercase tracking-tight">
-                Carrito de Compras
-              </DrawerTitle>
+              <div className="flex flex-col">
+                <DrawerTitle className="text-2xl font-semibold uppercase tracking-tight">
+                  Carrito de Compras
+                </DrawerTitle>
+                {orderId && (
+                  <span className="text-[10px] text-gray-400 font-mono">ID: {orderId}</span>
+                )}
+              </div>
               <DrawerClose className="opacity-50 hover:opacity-100 transition-opacity">
                 <X className="h-5 w-5" />
               </DrawerClose>
@@ -213,7 +224,7 @@ function CartISync() {
               <div className="flex flex-1 flex-row gap-3">
                 <Button
                   onClick={handleSubmitOrder}
-                  className="flex-1 bg-brand-primary text-white h-14 text-md tracking-[0.2em] rounded-full hover:bg-zinc-800"
+                  className="flex-1 bg-brand-primary text-white h-14 text-md tracking-[0.2em] rounded-full hover:bg-zinc-800 disabled:bg-gray-300 disabled:text-gray-500 transition-colors"
                   disabled={productsInCart.length === 0 || isLoading}
                 >
                   {isLoading ? "Procesando..." : "Realizar Pedido"}
@@ -262,4 +273,4 @@ function CartISync() {
   )
 }
 
-export default CartISync
+export default CartISync;

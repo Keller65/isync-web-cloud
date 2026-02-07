@@ -91,14 +91,14 @@ export function AppSidebar() {
       <SidebarFooter>
         <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center gap-x-3 w-full" asChild>
-            <div className="flex items-center gap-x-3 w-full">
+            <span className="flex items-center gap-x-3 w-full">
               <Avvvatars value={session?.user?.email ?? ''} style="shape" size={40} />
               <div className="text-left">
                 <p className="text-sm font-semibold">{session?.user?.name}</p>
                 <p className="text-xs text-gray-500">{session?.user?.email}</p>
               </div>
               <CaretUpDown className="ml-auto w-4 h-4" />
-            </div>
+            </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56">
             <DropdownMenuItem onClick={() => signOut()}>
