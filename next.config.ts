@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const apiHost = process.env.API_HOST || "http://200.115.188.54:4325"
+    const apiHost = process.env.API_HOST
     return [
       {
         source: "/api-proxy/:path*",
