@@ -1,146 +1,123 @@
-
 'use client';
 
 import React from 'react';
 import { Page, Text, View, Document, StyleSheet, Font } from '@react-pdf/renderer';
 import { OrderDetailType } from '@/types/orders';
 
-// Registrar fuentes (asegúrate de que las rutas a las fuentes sean correctas)
-// Font.register({
-//   family: 'Poppoins',
-//   fonts: [
-//     { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Poppoins/poppoins-regular-webfont.ttf', fontWeight: 'normal' },
-//     { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Poppoins/poppoins-bold-webfont.ttf', fontWeight: 'bold' },
-//   ],
-// });
+Font.register({
+  family: 'Poppins',
+  fonts: [
+    {
+      src: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Regular.ttf',
+      fontWeight: 'normal',
+    },
+    {
+      src: 'https://raw.githubusercontent.com/google/fonts/main/ofl/poppins/Poppins-Bold.ttf',
+      fontWeight: 'bold',
+    },
+  ],
+});
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: 'Helvetica',
+    fontFamily: 'Poppins',
     fontSize: 10,
-    paddingTop: 30,
-    paddingLeft: 40,
-    paddingRight: 40,
-    paddingBottom: 30,
-    backgroundColor: '#fff',
-    color: '#333',
+    padding: 40,
+    backgroundColor: '#ffffff',
+    color: '#1f2937',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingBottom: 12,
     borderBottomWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#eaeaea',
-    paddingBottom: 10,
+    borderColor: '#e5e7eb',
   },
-  headerInfo: {
-    flexDirection: 'column',
-  },
-  companyName: {
-    fontSize: 24,
+  company: {
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1a1a1a',
   },
-  documentTitle: {
+  subtitle: {
+    fontSize: 9,
+    color: '#6b7280',
+    marginTop: 2,
+  },
+  docTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#1a1a1a',
     textAlign: 'right',
   },
-  documentSubtitle: {
-    fontSize: 10,
-    color: '#666',
+  docNumber: {
+    fontSize: 9,
     textAlign: 'right',
+    color: '#6b7280',
+    marginTop: 2,
   },
-  customerInfo: {
+  infoBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    borderRadius: 5,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#eaeaea',
+    gap: 12,
+    marginBottom: 24,
   },
-  customerCol: {
-    flexDirection: 'column',
-    width: '48%',
+  infoCard: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 6,
+    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   label: {
     fontSize: 8,
-    fontWeight: 'bold',
-    color: '#888',
+    color: '#6b7280',
+    marginBottom: 4,
     textTransform: 'uppercase',
-    marginBottom: 2,
   },
-  text: {
+  value: {
     fontSize: 10,
-    color: '#333',
   },
   table: {
-    width: '100%',
-    display: "flex",
-    flexDirection: "column",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   tableHeader: {
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#d1d1d1',
-    alignItems: 'center',
-    height: 24,
-    // fontStyle: 'bold',
+    backgroundColor: '#111827',
+    color: '#ffffff',
     fontSize: 8,
-    color: '#333',
+    height: 26,
+    alignItems: 'center',
   },
-  tableRow: {
+  row: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#eaeaea',
+    borderColor: '#e5e7eb',
+    minHeight: 30,
     alignItems: 'center',
-    height: 32,
   },
-  tableColDesc: { width: '40%' },
-  tableCol: { width: '15%' },
-  tableCell: {
-    paddingHorizontal: 8,
-  },
-  textRight: {
-    textAlign: 'right',
-  },
-  textCenter: {
-    textAlign: 'center',
-  },
+  colCode: { width: '15%', paddingHorizontal: 8 },
+  colDesc: { width: '40%', paddingHorizontal: 8 },
+  colQty: { width: '15%', paddingHorizontal: 8, textAlign: 'center' },
+  colPrice: { width: '15%', paddingHorizontal: 8, textAlign: 'right' },
+  colTotal: { width: '15%', paddingHorizontal: 8, textAlign: 'right' },
   totals: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-  },
-  totalsContainer: {
+    alignSelf: 'flex-end',
     width: '40%',
+    borderTopWidth: 1,
+    borderColor: '#111827',
+    paddingTop: 8,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 4,
+    marginBottom: 6,
   },
   totalLabel: {
-    fontSize: 10,
+    fontSize: 9,
+    color: '#374151',
   },
   totalValue: {
     fontSize: 10,
     fontWeight: 'bold',
-  },
-  grandTotal: {
-    borderTopWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#333',
-    marginTop: 5,
   },
   footer: {
     position: 'absolute',
@@ -149,11 +126,10 @@ const styles = StyleSheet.create({
     right: 40,
     textAlign: 'center',
     fontSize: 8,
-    color: '#999',
+    color: '#9ca3af',
     borderTopWidth: 1,
-    borderStyle: 'solid',
-    borderColor: '#eaeaea',
-    paddingTop: 10,
+    borderColor: '#e5e7eb',
+    paddingTop: 8,
   },
 });
 
@@ -168,76 +144,75 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order }) => {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <View style={styles.headerInfo}>
-            <Text style={styles.companyName}>iSync</Text>
-            <Text style={styles.text}>isync.com</Text>
+          <View>
+            <Text style={styles.company}>iSync</Text>
+            <Text style={styles.subtitle}>isynchn.com</Text>
           </View>
-          <View style={styles.headerInfo}>
-            <Text style={styles.documentTitle}>Pedido / Cotización</Text>
-            <Text style={styles.documentSubtitle}>#{order.docNum}</Text>
+          <View>
+            <Text style={styles.docTitle}>Cotización</Text>
+            <Text style={styles.docNumber}>#{order.docNum}</Text>
           </View>
         </View>
 
-        <View style={styles.customerInfo}>
-          <View style={styles.customerCol}>
+        <View style={styles.infoBox}>
+          <View style={styles.infoCard}>
             <Text style={styles.label}>Cliente</Text>
-            <Text style={styles.text}>{order.cardName}</Text>
-            <Text style={styles.text}>{order.federalTaxID || 'N/D'}</Text>
+            <Text style={styles.value}>{order.cardName}</Text>
+            <Text style={styles.value}>{order.federalTaxID || 'N/D'}</Text>
           </View>
-          <View style={styles.customerCol}>
-            <Text style={styles.label}>Dirección de Entrega</Text>
-            <Text style={styles.text}>{order.address}</Text>
+          <View style={styles.infoCard}>
+            <Text style={styles.label}>Dirección</Text>
+            <Text style={styles.value}>{order.address}</Text>
           </View>
         </View>
 
         <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <View style={[styles.tableCol, styles.tableCell]}><Text>Código</Text></View>
-            <View style={[styles.tableColDesc, styles.tableCell]}><Text>Descripción</Text></View>
-            <View style={[styles.tableCol, styles.tableCell, styles.textCenter]}><Text>Cant.</Text></View>
-            <View style={[styles.tableCol, styles.tableCell, styles.textRight]}><Text>Precio</Text></View>
-            <View style={[styles.tableCol, styles.tableCell, styles.textRight]}><Text>Total</Text></View>
+            <Text style={styles.colCode}>Código</Text>
+            <Text style={styles.colDesc}>Descripción</Text>
+            <Text style={styles.colQty}>Cant.</Text>
+            <Text style={styles.colPrice}>Precio</Text>
+            <Text style={styles.colTotal}>Total</Text>
           </View>
 
-          {order.lines.map((line) => (
-            <View key={line.itemCode} style={styles.tableRow}>
-              <View style={[styles.tableCol, styles.tableCell]}>
-                <Text>{line.itemCode}</Text>
-              </View>
-              <View style={[styles.tableColDesc, styles.tableCell]}>
-                <Text>{line.itemDescription}</Text>
-              </View>
-              <View style={[styles.tableCol, styles.tableCell, styles.textCenter]}>
-                <Text>{line.quantity}</Text>
-              </View>
-              <View style={[styles.tableCol, styles.tableCell, styles.textRight]}>
-                <Text>{line.priceAfterVAT.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</Text>
-              </View>
-              <View style={[styles.tableCol, styles.tableCell, styles.textRight]}>
-                <Text>{(line.quantity * line.priceAfterVAT).toLocaleString('es-HN', { minimumFractionDigits: 2 })}</Text>
-              </View>
+          {order.lines.map(line => (
+            <View key={line.itemCode} style={styles.row}>
+              <Text style={styles.colCode}>{line.itemCode}</Text>
+              <Text style={styles.colDesc}>{line.itemDescription}</Text>
+              <Text style={styles.colQty}>{line.quantity}</Text>
+              <Text style={styles.colPrice}>
+                {line.priceAfterVAT.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+              </Text>
+              <Text style={styles.colTotal}>
+                {(line.quantity * line.priceAfterVAT).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+              </Text>
             </View>
           ))}
         </View>
 
         <View style={styles.totals}>
-          <View style={styles.totalsContainer}>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Subtotal</Text>
-              <Text style={styles.totalValue}>L. {subtotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</Text>
-            </View>
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>ISV (15%)</Text>
-              <Text style={styles.totalValue}>L. {order.vatSum.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</Text>
-            </View>
-            <View style={[styles.totalRow, styles.grandTotal]}>
-              <Text style={styles.totalValue}>Total</Text>
-              <Text style={styles.totalValue}>L. {order.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</Text>
-            </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>Subtotal</Text>
+            <Text style={styles.totalValue}>
+              L. {subtotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>ISV (15%)</Text>
+            <Text style={styles.totalValue}>
+              L. {order.vatSum.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+            </Text>
+          </View>
+          <View style={styles.totalRow}>
+            <Text style={styles.totalValue}>Total</Text>
+            <Text style={styles.totalValue}>
+              L. {order.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+            </Text>
           </View>
         </View>
+
         <Text style={styles.footer}>
-          Documento generado por iSync - {new Date().toLocaleDateString('es-HN')}
+          Documento generado por iSync · {new Date().toLocaleDateString('es-HN')}
         </Text>
       </Page>
     </Document>

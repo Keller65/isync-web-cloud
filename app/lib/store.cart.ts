@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Product } from '@/types/products'
 
-interface CartItem extends Product {
+export interface CartItem {
+  itemCode: string
+  barCode: string
   quantity: number
-  unitPrice: number
+  priceList: number        // precio base / real
+  priceAfterVAT: number    // precio final con descuento aplicado
+  taxCode: string
 }
 
 interface CartState {
@@ -20,15 +23,15 @@ export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
       productsInCart: [],
-      addProduct: (product) => 
-        set((state) => ({ 
-          productsInCart: [...state.productsInCart, product] 
+      addProduct: (product) =>
+        set((state) => ({
+          productsInCart: [...state.productsInCart, product]
         })),
       updateQuantity: (itemCode, quantity, unitPrice) =>
         set((state) => ({
           productsInCart: state.productsInCart.map((p) =>
-            p.itemCode === itemCode 
-              ? { ...p, quantity, unitPrice } 
+            p.itemCode === itemCode
+              ? { ...p, quantity, unitPrice }
               : p
           ),
         })),

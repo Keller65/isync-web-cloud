@@ -6,11 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@/components/ui/input-group"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/app/lib/store'
 import { useCustomerStore } from '@/app/lib/store.customer'
@@ -244,69 +240,75 @@ function ProductCard({ product }: { product: Product }) {
   }
 
   const handleAddToCart = useCallback(() => {
-    const finalPriceForCart = editablePrice
+    const finalUnitPrice = editablePrice
 
-    if (!product || quantity <= 0 || !isPriceValid || finalPriceForCart <= 0) {
+    if (!product || quantity <= 0 || !isPriceValid || finalUnitPrice <= 0) {
       setAlertInfo({
-        title: 'Datos Inválidos',
-        description: 'Por favor, asegúrate de que la cantidad sea mayor a 0 y el precio sea válido.',
+        title: 'Datos inválidos',
+        description: 'Verifica la cantidad y el precio.',
         showCancel: false,
-      });
-      return;
+      })
+      return
     }
 
     const maxStock = product.inStock || 0
-    const itemInCart = productsInCart.find(p => p.itemCode === product.itemCode)
-    const currentCartQuantity = itemInCart ? itemInCart.quantity : 0
-    const totalQuantity = currentCartQuantity + quantity
+    const itemInCart = productsInCart.find(
+      p => p.itemCode === product.itemCode
+    )
 
-    if (totalQuantity > maxStock) {
+    const currentQty = itemInCart ? itemInCart.quantity : 0
+    const totalQty = currentQty + quantity
+
+    if (totalQty > maxStock) {
       setAlertInfo({
-        title: 'Stock Insuficiente',
-        description: `Solo hay ${maxStock} unidades disponibles en stock. ${itemInCart ? `Ya tienes ${currentCartQuantity} en el carrito.` : ''}`,
+        title: 'Stock insuficiente',
+        description: `Solo hay ${maxStock} unidades disponibles.`,
         showCancel: false,
-      });
-      return;
+      })
+      return
     }
 
-    const productData = {
-      ...product,
+    const cartItem = {
+      itemCode: product.itemCode,
+      itemName: product.itemName,
+      barCode: product.barCode ?? product.itemCode,
       quantity,
-      unitPrice: finalPriceForCart,
-      originalPrice: product.price
+      priceList: product.price,        // PRECIO BASE REAL
+      priceAfterVAT: finalUnitPrice,   // PRECIO FINAL (con descuento)
+      unitPrice: finalUnitPrice,
+      taxCode: product.taxType,
     }
+
+    console.log('🛒 CARRITO → ASÍ SE GUARDA:', cartItem)
 
     if (itemInCart) {
       setAlertInfo({
         title: 'Producto ya en el carrito',
-        description: `${product.itemName} ya está en tu carrito. ¿Deseas actualizar la cantidad y el precio?`,
+        description: `${product.itemName} ya está en el carrito. ¿Actualizar?`,
         showCancel: true,
         onConfirm: () => {
-          updateQuantity(product.itemCode, totalQuantity, finalPriceForCart, product.inStock)
-          toast(
-            <div className="flex flex-row items-center gap-2">
-              <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
-              <span className="flex flex-col">
-                <p className="font-bold">{product.itemName}</p>
-                <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
-              </span>
-            </div>, { position: "top-center", duration: 1200 })
+          updateQuantity(
+            product.itemCode,
+            totalQty,
+            finalUnitPrice,
+            product.inStock
+          )
           setOpen(false)
-        }
-      });
+        },
+      })
     } else {
-      addProduct(productData)
-      toast(
-        <div className="flex flex-row items-center gap-2">
-          <Image src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`} alt={product.itemName} width={48} height={48} className="object-contain rounded-md mb-2" />
-          <span className="flex flex-col">
-            <p className="font-bold">{product.itemName}</p>
-            <p className="text-sm">Cantidad <span className="font-medium">{quantity}</span></p>
-          </span>
-        </div>, { position: "top-center", duration: 1200 })
+      addProduct(cartItem)
       setOpen(false)
     }
-  }, [addProduct, productsInCart, quantity, product, editablePrice, isPriceValid, updateQuantity])
+  }, [
+    product,
+    quantity,
+    editablePrice,
+    isPriceValid,
+    productsInCart,
+    addProduct,
+    updateQuantity,
+  ])
 
   return (
     <>

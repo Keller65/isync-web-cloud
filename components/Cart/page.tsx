@@ -100,14 +100,14 @@ function CartISync() {
     <>
       <Drawer direction="right">
         <DrawerTrigger asChild>
-          <button className="cursor-pointer relative p-2 hover:bg-gray-100 rounded-full transition-colors">
+          {/* <button className="cursor-pointer relative p-2 hover:bg-gray-100 rounded-full transition-colors"> */}
             <CartIcon />
-            {productsInCart.length > 0 && (
+            {/* {productsInCart.length > 0 && (
               <span className="absolute top-0 right-0 bg-black text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
                 {productsInCart.length}
               </span>
-            )}
-          </button>
+            )} */}
+          {/* </button> */}
         </DrawerTrigger>
         <DrawerContent className="h-screen min-w-[80vw] top-0 right-0 left-auto mt-0 w-full rounded-none border-l">
           <div className="flex flex-col h-full bg-white">
