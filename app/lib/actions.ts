@@ -2,6 +2,7 @@
 
 import { signIn } from "@/auth"
 import { AuthError } from "next-auth"
+import { redirect } from "next/navigation"
 
 export async function authenticate(prevState: string | undefined, formData: FormData) {
   try {
@@ -17,4 +18,5 @@ export async function authenticate(prevState: string | undefined, formData: Form
     }
     throw error
   }
+  redirect("/dashboard")
 }

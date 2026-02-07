@@ -43,6 +43,7 @@ export default function LoginForm() {
       </div>
 
       <form action={dispatch} className="space-y-6">
+        <input type="hidden" name="hostUrl" value={hostUrl} />
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="employeeCode">
             Employee Code

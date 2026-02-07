@@ -10,9 +10,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         employeeCode: { label: "Código de Empleado", type: "number" },
         password: { label: "Contraseña", type: "password" },
+        hostUrl: { label: "Host URL", type: "text" },
       },
       authorize: async (credentials) => {
-        if (!credentials?.employeeCode || !credentials?.password) {
+        if (
+          !credentials?.employeeCode ||
+          !credentials?.password ||
+          !credentials?.hostUrl
+        ) {
+          return null
+        }
+
+        const hostUrl = credentials.hostUrl as string
+
+        // Validar que la URL es http o https
+        if (!hostUrl.startsWith("http://") && !hostUrl.startsWith("https://")) {
+          console.error("URL de host inválida:", hostUrl)
           return null
         }
 
@@ -23,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           const response = await axios.post<LoginResponse>(
-            "http://200.115.188.54:4325/auth/employee",
+            `${hostUrl}/auth/employee`,
             payload
           )
 
