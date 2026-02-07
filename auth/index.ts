@@ -10,22 +10,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         employeeCode: { label: "Código de Empleado", type: "number" },
         password: { label: "Contraseña", type: "password" },
-        hostUrl: { label: "Host URL", type: "text" },
       },
       authorize: async (credentials) => {
-        if (
-          !credentials?.employeeCode ||
-          !credentials?.password ||
-          !credentials?.hostUrl
-        ) {
-          return null
-        }
-
-        const hostUrl = credentials.hostUrl as string
-
-        // Validar que la URL es http o https
-        if (!hostUrl.startsWith("http://") && !hostUrl.startsWith("https://")) {
-          console.error("URL de host inválida:", hostUrl)
+        if (!credentials?.employeeCode || !credentials?.password) {
           return null
         }
 
@@ -35,9 +22,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             password: credentials.password as string,
           }
 
+          const apiHost = process.env.NEXT_PUBLIC_API_HOST
+          if (!apiHost) {
+            console.error("La variable de entorno NEXT_PUBLIC_API_HOST no está definida.")
+            return null
+          }
+
           const response = await axios.post<LoginResponse>(
-            `${hostUrl}/auth/employee`,
-            payload
+            `${apiHost}/auth/employee`,
+            payload,
           )
 
           // Asumimos que si la respuesta tiene datos, es un login exitoso.

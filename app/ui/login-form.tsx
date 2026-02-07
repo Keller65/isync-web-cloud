@@ -43,7 +43,11 @@ export default function LoginForm() {
       </div>
 
       <form action={dispatch} className="space-y-6">
-        <input type="hidden" name="hostUrl" value={hostUrl} />
+        <input
+          type="hidden"
+          name="hostUrl"
+          value={process.env.NEXT_PUBLIC_API_HOST || ""}
+        />
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="employeeCode">
             Employee Code
