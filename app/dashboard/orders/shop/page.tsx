@@ -146,6 +146,130 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
   )
 }
 
+function SearchedProducts({ searchTerm }: { searchTerm: string }) {
+  const { token } = useAuthStore()
+  const { selectedCustomer } = useCustomerStore()
+  const [products, setProducts] = useState<Product[]>([])
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const observer = useRef<IntersectionObserver | null>(null)
+
+  const lastItemRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (!node || !hasMore || loading) return
+
+      if (observer.current) observer.current.disconnect()
+
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prev => prev + 1)
+        }
+      })
+
+      observer.current.observe(node)
+    },
+    [hasMore, loading]
+  )
+
+  const fetchProducts = useCallback(async () => {
+    if (!token || !hasMore || loading) return
+
+    setLoading(true)
+
+    try {
+      const cardCode = selectedCustomer?.cardCode ?? '205'
+      const priceList = selectedCustomer?.priceListNum ?? 1
+
+      const res = await axios.get(
+        `/api-proxy/api/Catalog/products/search`,
+        {
+          params: {
+            search: searchTerm,
+            cardCode,
+            priceList,
+            groupCode: 0,
+            page,
+            pageSize: 20,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      const newItems: Product[] = res.data?.items ?? res.data ?? []
+
+      if (newItems.length === 0) {
+        setHasMore(false)
+      } else {
+        setProducts(prev => [...prev, ...newItems])
+        setHasMore(newItems.length === 20)
+      }
+    } catch (err) {
+      console.error(err)
+      setHasMore(false)
+    } finally {
+      setLoading(false)
+    }
+  }, [token, page, selectedCustomer, hasMore, searchTerm])
+
+  /* Reset al cambiar cliente o término de búsqueda */
+  useEffect(() => {
+    setProducts([])
+    setPage(1)
+    setHasMore(true)
+  }, [selectedCustomer?.cardCode, searchTerm])
+
+  useEffect(() => {
+    fetchProducts()
+  }, [page, fetchProducts])
+
+  return (
+    <div className="py-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {products.map((product, i) => {
+          const isLast = i === products.length - 1
+
+          return (
+            <div
+              key={`${product.itemCode}-${i}`}
+              ref={isLast ? lastItemRef : undefined}
+              className="border rounded-lg p-4 flex flex-col gap-2"
+            >
+              <ProductCard product={product} />
+            </div>
+          )
+        })}
+      </div>
+
+      {loading && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-2">
+              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!hasMore && products.length > 0 && (
+        <p className="text-center text-muted-foreground mt-8">
+          No hay más productos disponibles.
+        </p>
+      )}
+
+      {!loading && products.length === 0 && (
+        <p className="text-center text-muted-foreground mt-8">
+          No se encontraron productos para "{searchTerm}".
+        </p>
+      )}
+    </div>
+  )
+}
+
 function DiscountedProducts() {
   return <ProductList endpoint="/api/Catalog/products/discounted-by-customer" groupCode={0} />
 }
@@ -594,6 +718,16 @@ function ProductCard({ product }: { product: Product }) {
 export default function Page() {
   const { token } = useAuthStore()
   const [categories, setCategories] = useState<Category[]>([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
 
   useEffect(() => {
     if (!token) return
@@ -619,33 +753,43 @@ export default function Page() {
   }
 
   return (
-    <Tabs defaultValue="ofertas" className="w-full">
+    <div className="w-full">
       <InputGroup className="rounded-full h-12.5 mb-4 px-2">
-        <InputGroupInput placeholder="Search..." />
+        <InputGroupInput
+          placeholder="Buscar Producto por nombre, codigo, etc..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+        />
         <InputGroupAddon>
           <MagnifyingGlass size={32} />
         </InputGroupAddon>
       </InputGroup>
 
-      <TabsList className="w-full justify-start overflow-x-auto">
-        <TabsTrigger value="ofertas">Ofertas</TabsTrigger>
+      {debouncedSearchTerm ? (
+        <SearchedProducts searchTerm={debouncedSearchTerm} />
+      ) : (
+        <Tabs defaultValue="ofertas">
+          <TabsList className="w-full justify-start overflow-x-auto">
+            <TabsTrigger value="ofertas">Ofertas</TabsTrigger>
 
-        {categories.map(cat => (
-          <TabsTrigger key={cat.code} value={cat.code}>
-            {cat.name}
-          </TabsTrigger>
-        ))}
-      </TabsList>
+            {categories.map(cat => (
+              <TabsTrigger key={cat.code} value={cat.code}>
+                {cat.name}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-      <TabsContent value="ofertas">
-        <DiscountedProducts />
-      </TabsContent>
+          <TabsContent value="ofertas">
+            <DiscountedProducts />
+          </TabsContent>
 
-      {categories.map(cat => (
-        <TabsContent key={cat.code} value={cat.code}>
-          <CategoryProducts groupCode={cat.code} />
-        </TabsContent>
-      ))}
-    </Tabs>
+          {categories.map(cat => (
+            <TabsContent key={cat.code} value={cat.code}>
+              <CategoryProducts groupCode={cat.code} />
+            </TabsContent>
+          ))}
+        </Tabs>
+      )}
+    </div>
   )
 }
