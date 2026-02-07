@@ -23,6 +23,8 @@ import { toast } from 'sonner'
 import axios from 'axios'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuthStore } from '@/app/lib/store'
+import { Textarea } from '@/components/ui/textarea'
+import { Badge } from "@/components/ui/badge"
 
 function CartISync() {
   const { selectedCustomer, selectedAddress, clearSelectedCustomer } = useCustomerStore();
@@ -32,10 +34,11 @@ function CartISync() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [orderInfo, setOrderInfo] = useState<{ docEntry?: string }>({});
+  const [comments, setComments] = useState('');
 
   const isProcessing = useRef(false);
 
-  const subtotal = productsInCart.reduce((acc, item) => acc + (item.unitPrice * item.quantity), 0);
+  const subtotal = productsInCart.reduce((acc, item) => acc + (item.priceAfterVAT * item.quantity), 0);
   const tax = subtotal * 0.15;
   const total = subtotal + tax;
 
@@ -54,16 +57,16 @@ function CartISync() {
       const payload = {
         requestId: uuidv4(),
         cardCode: selectedCustomer.cardCode,
-        comments: "",
+        payToCode: selectedAddress.addressName,
+        comments: comments || "",
         lines: productsInCart.map(p => ({
           itemCode: p.itemCode,
-          barCode: p.barCode || 'N/D',
+          barCode: p.barCode,
           quantity: p.quantity,
-          priceList: p.unitPrice,
-          priceAfterVAT: p.unitPrice,
+          priceList: p.priceList,
+          priceAfterVAT: p.priceAfterVAT,
           taxCode: p.taxCode
         })),
-        payToCode: selectedAddress.addressName,
       };
 
       console.log('📤 Enviando pedido:', payload);
@@ -71,7 +74,8 @@ function CartISync() {
       const response = await axios.post(`/api-proxy/api/Quotations/Order`, payload, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'User-Agent': 'iSync-Web'
         },
         timeout: 60000,
       });
@@ -83,6 +87,7 @@ function CartISync() {
       });
 
       clearCart();
+      
       clearSelectedCustomer();
 
       setShowSuccessAlert(true);
@@ -100,14 +105,14 @@ function CartISync() {
     <>
       <Drawer direction="right">
         <DrawerTrigger asChild>
-          {/* <button className="cursor-pointer relative p-2 hover:bg-gray-100 rounded-full transition-colors"> */}
+          <span className='relative mr-3'>
             <CartIcon />
-            {/* {productsInCart.length > 0 && (
-              <span className="absolute top-0 right-0 bg-black text-white text-[9px] font-bold h-4 w-4 rounded-full flex items-center justify-center">
-                {productsInCart.length}
-              </span>
-            )} */}
-          {/* </button> */}
+            <Badge
+              className='absolute -top-2 -right-4 text-[10px] rounded-full size-5 grid place-content-center'
+              variant="default">
+              {productsInCart.length}
+            </Badge>
+          </span>
         </DrawerTrigger>
         <DrawerContent className="h-screen min-w-[80vw] top-0 right-0 left-auto mt-0 w-full rounded-none border-l">
           <div className="flex flex-col h-full bg-white">
@@ -120,6 +125,15 @@ function CartISync() {
                 <X className="h-5 w-5" />
               </DrawerClose>
             </DrawerHeader>
+
+            <div className="p-4">
+              <Textarea
+                placeholder="Agrega un comentario a tu pedido..."
+                value={comments}
+                onChange={(e) => setComments(e.target.value)}
+                className="bg-white min-h-7.5"
+              />
+            </div>
 
             <div className="px-8 pb-4 flex justify-between text-[10px] uppercase tracking-widest text-gray-400 border-b border-gray-100 mb-4">
               <span>Item</span>
@@ -140,7 +154,7 @@ function CartISync() {
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
                           }}
-                          alt={item.itemName}
+                          alt={item.itemCode}
                           className="h-full w-full object-contain mix-blend-multiply p-2"
                           height={80}
                           width={80}
@@ -159,7 +173,7 @@ function CartISync() {
 
                         <div className="w-16 text-right">
                           <span className="text-sm font-medium">
-                            {item.unitPrice.toLocaleString('es-HN')} L
+                            {item.priceAfterVAT.toLocaleString('es-HN')} L
                           </span>
                         </div>
 

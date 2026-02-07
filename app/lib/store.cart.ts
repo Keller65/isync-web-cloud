@@ -3,11 +3,13 @@ import { persist } from 'zustand/middleware'
 
 export interface CartItem {
   itemCode: string
+  itemName?: string
   barCode: string
   quantity: number
   priceList: number        // precio base / real
   priceAfterVAT: number    // precio final con descuento aplicado
   taxCode: string
+  // unitPrice?: number           // precio unitario sin descuento
 }
 
 interface CartState {
