@@ -23,10 +23,8 @@ export default function OrderDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
-
   const { setSelectedCustomer } = useCustomerStore();
-  const { loadCartWithProducts, clearCart } = useCartStore();
-
+  const { loadCartWithProducts, clearCart, setEditMode } = useCartStore();
   const { token } = useAuthStore();
   const FETCH_URL = '/api-proxy/api/Quotations';
 
@@ -101,38 +99,29 @@ export default function OrderDetailPage() {
 
     // 2. Limpiar el carrito actual
     clearCart();
+    setEditMode(true);
 
     // 3. Mapear las líneas del pedido a productos del carrito
     const productsToLoad = orderDetail.lines.map(line => ({
       ...line,
+      barCode: line.barCode,
       itemName: line.itemDescription,
-      price: line.price,
-      unitPrice: line.priceAfterVAT,
-      inStock: line.stock,
-      // Propiedades faltantes de `Product` con valores por defecto
-      groupCode: '',
-      groupName: '',
-      committed: 0,
-      ordered: 0,
-      hasDiscount: false,
-      taxType: '',
-      salesUnit: null,
-      salesItemsPerUnit: 0,
-      tiers: [],
-      ws: [],
+      quantity: line.quantity,
+      priceList: line.priceList,
+      priceAfterVAT: line.priceAfterVAT,
+      taxCode: line.taxCode,
     }));
+
+    console.log('Productos a cargar en el carrito:', productsToLoad);
 
     // 4. Cargar los nuevos productos
     loadCartWithProducts(productsToLoad);
-
-    // 5. Redirigir a la tienda
-    // router.push('/dashboard/orders/shop');
   }
 
   return (
     <div className="min-h-fit">
       {/* Header sin sombras, con borde sutil */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <div className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -142,7 +131,7 @@ export default function OrderDetailPage() {
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <h1 className="text-xl font-bold text-gray-900">Pedido #{orderDetail.docNum}</h1>
-                  <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Borrador</span>
+                  <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">En Proceso</span>
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Hash size={12} /> Documento SAP: {orderDetail.docNum}

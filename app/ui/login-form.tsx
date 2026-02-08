@@ -16,13 +16,14 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCustomerStore } from "@/app/lib/store.customer"
+import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginForm() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined)
   const { hostUrl, cloudflareUrl, setUrls } = useCustomerStore()
-
   const [tempHost, setTempHost] = useState(hostUrl)
   const [tempCloudflare, setTempCloudflare] = useState(cloudflareUrl)
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     setTempHost(hostUrl)
@@ -35,11 +36,9 @@ export default function LoginForm() {
 
   return (
     <div className="w-full mx-auto">
-      {/* Header del formulario */}
       <div className="mb-8">
-        <div className="text-3xl font-bold text-blue-600 mb-2">*</div>
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Login to your account</h2>
-        <p className="text-gray-500">Access your tasks, notes, and projects anytime.</p>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Inicia sesión</h2>
+        <p className="text-gray-500">Ahora accede a tu cuenta iSycn mas facil</p>
       </div>
 
       <form action={dispatch} className="space-y-6">
@@ -50,14 +49,14 @@ export default function LoginForm() {
         />
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2" htmlFor="employeeCode">
-            Employee Code
+            Código de Empleado
           </label>
           <input
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-gray-50 hover:bg-white"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all bg-gray-50 hover:bg-white"
             id="employeeCode"
             type="number"
             name="employeeCode"
-            placeholder="Ex: 1234"
+            placeholder="Ej: 1234"
             required
           />
         </div>
@@ -65,18 +64,31 @@ export default function LoginForm() {
         <div>
           <div className="flex justify-between items-center mb-2">
             <label className="block text-sm font-semibold text-gray-700" htmlFor="password">
-              Password
+              Contraseña
             </label>
           </div>
-          <input
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-gray-50 hover:bg-white"
-            id="password"
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            required
-            minLength={6}
-          />
+          <div className="relative">
+            <input
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand focus:border-transparent outline-none transition-all bg-gray-50 hover:bg-white"
+              id="password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="••••••••"
+              required
+              minLength={6}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
         </div>
 
         <div aria-live="polite" aria-atomic="true">
@@ -92,13 +104,8 @@ export default function LoginForm() {
           className="w-full bg-brand-primary cursor-pointer text-white font-semibold py-3 px-4 rounded-lg active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
           disabled={isPending}
         >
-          {isPending ? "Iniciando Sesion..." : "Iniciar Sesion"}
+          {isPending ? "Iniciando Sesión..." : "Iniciar Sesión"}
         </button>
-
-        {/* Footer opcional */}
-        <p className="mt-8 text-center text-sm text-gray-500">
-          Don&apos;t have an account? <span className="text-blue-600 font-medium cursor-pointer hover:underline">Sign up</span>
-        </p>
       </form>
 
       <Drawer direction="right">
