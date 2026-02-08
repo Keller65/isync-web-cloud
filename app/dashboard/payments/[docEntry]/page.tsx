@@ -6,15 +6,7 @@ import axios from "axios"
 import Link from "next/link"
 import { useAuthStore } from "@/app/lib/store"
 import { Payment } from "@/types/general"
-
-import {
-  ArrowLeft,
-  CalendarDots,
-  Coins,
-  CreditCard,
-  Info,
-} from "@phosphor-icons/react"
-
+import { ArrowLeft, CalendarDots, Coins, CreditCard, FileText, Receipt, Bank, Hash, Info, } from "@phosphor-icons/react"
 import Avvvatars from "avvvatars-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -23,11 +15,12 @@ import { Separator } from "@/components/ui/separator"
 export default function PaymentPage() {
   const [payment, setPayment] = useState<Payment | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
   const { token } = useAuthStore()
   const { docEntry } = useParams()
 
   useEffect(() => {
-    if (!docEntry) return
+    if (!docEntry || !token) return
 
     const fetchPayment = async () => {
       setIsLoading(true)
@@ -50,7 +43,7 @@ export default function PaymentPage() {
       <div className="max-w-5xl mx-auto space-y-6">
         <Skeleton className="h-6 w-1/3" />
         <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
       </div>
     )
   }
@@ -58,7 +51,9 @@ export default function PaymentPage() {
   if (!payment) {
     return (
       <div className="text-center py-16">
-        <p className="text-sm text-gray-500 mb-2">No se encontró el pago</p>
+        <p className="text-sm text-gray-500 mb-2">
+          No se encontró el pago
+        </p>
         <Link
           href="/dashboard/payments"
           className="text-brand-primary text-sm font-medium"
@@ -71,7 +66,6 @@ export default function PaymentPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Back */}
       <Link
         href="/dashboard/payments"
         className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6"
@@ -83,7 +77,7 @@ export default function PaymentPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-semibold text-gray-900">
             Pago #{payment.docNum}
           </h1>
           <Badge variant="secondary">Recibido</Badge>
@@ -99,38 +93,49 @@ export default function PaymentPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Facturas */}
-        <div className="lg:col-span-2 w-120">
-          <div className="bg-white rounded-2xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* FACTURAS */}
+        <section className="lg:col-span-1">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <Receipt size={18} />
               Facturas aplicadas
             </h3>
 
             {payment.invoices.length > 0 ? (
-              <div className="space-y-3">
+              <div className="divide-y divide-gray-100">
                 {payment.invoices.map((invoice) => (
                   <div
                     key={invoice.invoiceDocEntry}
-                    className="flex items-center justify-between p-4 rounded-xl border border-gray-100"
+                    className="flex items-center justify-between py-4"
                   >
-                    <div>
-                      <p className="font-semibold text-gray-900">
-                        Factura #{invoice.invoiceDocNum}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Total factura: L.{" "}
-                        {invoice.docTotal.toLocaleString("es-HN")}
-                      </p>
+                    <div className="flex items-start gap-3">
+                      <div className="bg-gray-100 rounded-lg p-2">
+                        <FileText size={18} />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">
+                          Factura #{invoice.invoiceDocNum}
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <Coins size={12} />
+                          Total: L.{" "}
+                          {invoice.docTotal.toLocaleString("es-HN")}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-[10px] text-gray-500">Aplicado</p>
-                      <p className="font-bold text-gray-900">
+                      <p className="text-[10px] text-gray-500">
+                        Aplicado
+                      </p>
+                      <p className="text-sm font-semibold text-gray-900">
                         L.{" "}
-                        {invoice.appliedAmount.toLocaleString("es-HN", {
-                          minimumFractionDigits: 2,
-                        })}
+                        {invoice.appliedAmount.toLocaleString(
+                          "es-HN",
+                          { minimumFractionDigits: 2 }
+                        )}
                       </p>
                     </div>
                   </div>
@@ -142,20 +147,20 @@ export default function PaymentPage() {
               </p>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
+        {/* SIDEBAR */}
+        <aside className="space-y-6">
           {/* Cliente */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 w-100">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-4">
               Cliente
             </h3>
 
             <div className="flex items-center gap-3">
               <Avvvatars value={payment.cardName} size={40} />
               <div>
-                <p className="font-semibold text-gray-900">
+                <p className="font-medium text-gray-900">
                   {payment.cardName}
                 </p>
                 <p className="text-xs text-gray-500">
@@ -166,8 +171,8 @@ export default function PaymentPage() {
           </div>
 
           {/* Resumen */}
-          <div className="bg-white w-100 border border-gray-200 rounded-2xl p-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase mb-4">
               Resumen del pago
             </h3>
 
@@ -201,24 +206,28 @@ export default function PaymentPage() {
             </div>
           </div>
 
-          {/* Detalle transferencia */}
+          {/* DETALLE TRANSFERENCIA */}
           {payment.paymentMeans === "Transfer" &&
             payment.payment?.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-6 w-100">
-                <h3 className="text-sm font-semibold text-gray-700 mb-4">
+              <div className="bg-white border border-gray-200 rounded-xl p-6">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase mb-4 flex items-center gap-2">
+                  <Bank size={14} />
                   Detalle de transferencia
                 </h3>
 
                 <div className="space-y-3 text-sm">
                   <Detail
+                    icon={<Hash size={14} />}
                     label="Referencia"
                     value={payment.payment[0].transferReference}
                   />
                   <Detail
+                    icon={<Bank size={14} />}
                     label="Cuenta destino"
                     value={payment.payment[0].transferAccountName}
                   />
                   <Detail
+                    icon={<CalendarDots size={14} />}
                     label="Fecha"
                     value={new Date(
                       payment.payment[0].transferDate
@@ -228,16 +237,16 @@ export default function PaymentPage() {
               </div>
             )}
 
-          {/* Cancelado */}
+          {/* CANCELADO */}
           {payment.cancelled === "Y" && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex gap-3">
-              <Info size={20} className="text-red-600 mt-0.5" />
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex gap-3">
+              <Info size={18} className="text-red-600 mt-0.5" />
               <p className="text-sm font-medium text-red-700">
                 Este pago fue cancelado y no tiene efecto contable
               </p>
             </div>
           )}
-        </div>
+        </aside>
       </div>
     </div>
   )
@@ -257,10 +266,21 @@ function Row({ label, value }: { label: string; value: number }) {
   )
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: string
+}) {
   return (
-    <div className="flex justify-between gap-4">
-      <span className="text-gray-500">{label}</span>
+    <div className="flex justify-between items-start gap-4">
+      <div className="flex items-center gap-2 text-gray-500">
+        {icon}
+        <span>{label}</span>
+      </div>
       <span className="font-medium text-gray-900 text-right">
         {value}
       </span>

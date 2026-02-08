@@ -15,7 +15,9 @@ export interface CartItem {
 interface CartState {
   productsInCart: CartItem[]
   editMode: boolean
+  docEntry?: number | string
   setEditMode: (mode: boolean) => void
+  setDocEntry: (docEntry: number | string) => void
   addProduct: (product: CartItem) => void
   updateQuantity: (itemCode: string, quantity: number, unitPrice: number, inStock: number) => void
   removeProduct: (itemCode: string) => void
@@ -28,6 +30,8 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       productsInCart: [],
       editMode: false,
+      docEntry: undefined,
+      setDocEntry: (docEntry) => set({ docEntry }),
       setEditMode: (mode) => set({ editMode: mode }),
       addProduct: (product) =>
         set((state) => ({

@@ -16,6 +16,7 @@ import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown } from "@ph
 import Image from "next/image"
 import Avvvatars from "avvvatars-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Link from "next/link"
 
 // Items del menú
 const items = [
@@ -77,10 +78,10 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       <item.icon size={40} />
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

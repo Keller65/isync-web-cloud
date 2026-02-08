@@ -24,7 +24,7 @@ export default function OrderDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const { setSelectedCustomer } = useCustomerStore();
-  const { loadCartWithProducts, clearCart, setEditMode } = useCartStore();
+  const { loadCartWithProducts, clearCart, setEditMode, setDocEntry } = useCartStore();
   const { token } = useAuthStore();
   const FETCH_URL = '/api-proxy/api/Quotations';
 
@@ -116,6 +116,9 @@ export default function OrderDetailPage() {
 
     // 4. Cargar los nuevos productos
     loadCartWithProducts(productsToLoad);
+
+    // 5. Guardar el docEntry para referencia futura
+    setDocEntry(orderDetail.docEntry);
   }
 
   return (
