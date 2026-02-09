@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge"
 import { useCustomerStore } from "@/app/lib/store.customer"
 import { useCartStore } from "@/app/lib/store.cart"
 import { useAuthStore } from "@/app/lib/store"
-import { X, Plus, Edit3, Trash2, AlertCircle } from "lucide-react"
-import { Pen, ShoppingCart } from "@phosphor-icons/react"
+import { X, Plus, Edit3, AlertCircle } from "lucide-react"
+import { Pen, ShoppingCart, MapPinLine } from "@phosphor-icons/react"
 import Image from "next/image"
 import Link from "next/link"
 import axios from "axios"
@@ -33,7 +33,7 @@ function CartISync() {
   const [errorMessage, setErrorMessage] = useState("")
 
   const [addresses, setAddresses] = useState<CustomerAddress[]>([])
-  const [loadingAddresses, setLoadingAddresses] = useState(false)
+  const [, setLoadingAddresses] = useState(false)
   const [orderInfo, setOrderInfo] = useState<{ docEntry?: string }>({})
   const [comments, setComments] = useState("")
   const [orderId, setOrderId] = useState<string | null>(null)
@@ -178,25 +178,34 @@ function CartISync() {
                     variant="outline"
                     className="border-amber-500 text-amber-600 animate-pulse flex gap-1 items-center py-1"
                   >
-                    <Edit3 size={12} /> Editando Pedido #{docEntry}
+                    <Edit3 size={12} /> Editando Pedido # {docEntry}
                   </Badge>
                 )}
               </DrawerTitle>
-              <DrawerClose>
+              <DrawerClose className="cursor-pointer">
                 <X />
               </DrawerClose>
             </DrawerHeader>
 
-            <div className="px-8 pb-4">
+            <div className="px-8 pb-4 flex gap-4">
               <Textarea
                 placeholder="Instrucciones especiales, referencias o notas..."
                 value={comments}
                 onChange={e => setComments(e.target.value)}
                 className="bg-gray-50 border-gray-200 rounded-2xl focus:border-black min-h-10 max-h-10 resize-none"
               />
+
+              {editMode && (
+                <Button
+                  onClick={() => setShowCancelOrderAlert(true)}
+                  variant="destructive"
+                  className="rounded-full cursor-pointer min-h-10">
+                  Cancelar Edicion de Pedido
+                </Button>
+              )}
             </div>
 
-            <ScrollArea className="flex-1 max-h-100 min-h-100">
+            <ScrollArea className="flex-1 max-h-100 min-h-100 px-6">
               <div className="space-y-8 py-4">
                 {productsInCart.map(item => (
                   <div key={item.itemCode} className="flex gap-6 items-center">
@@ -229,16 +238,7 @@ function CartISync() {
               <div className="space-y-3 mb-2">
                 <div className="flex justify-between text-sm items-center">
                   <span className="text-gray-500">Ubicación</span>
-                  <Button
-                    variant="ghost"
-                    className="px-0 h-auto underline text-xs"
-                    onClick={() => {
-                      fetchAddresses()
-                      setShowAddressDialog(true)
-                    }}
-                  >
-                    {selectedAddress?.addressName ?? "Seleccionar"}
-                  </Button>
+                  <p>{selectedAddress?.addressName ?? ""}</p>
                 </div>
 
                 <div className="flex justify-between text-sm">
@@ -276,17 +276,9 @@ function CartISync() {
 
               <div className="flex flex-row gap-3">
                 <Button
-                  onClick={() => setShowCancelOrderAlert(true)}
-                  className="bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-500 size-13 rounded-full"
-                  disabled={productsInCart.length === 0 || isLoading}
-                >
-                  <Trash2 size={18} />
-                </Button>
-
-                <Button
                   onClick={() => setShowConfirmAlert(true)}
-                  className="flex-1 bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.2em] rounded-full"
-                  disabled={productsInCart.length === 0 || isLoading}
+                  className="flex-1 bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.2em] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
+                  disabled={productsInCart.length === 0 || isLoading || !selectedAddress}
                 >
                   {isLoading
                     ? "Procesando..."
@@ -295,12 +287,22 @@ function CartISync() {
                       : "Realizar Pedido"}
                 </Button>
 
+                <Button
+                  onClick={() => {
+                    fetchAddresses()
+                    setShowAddressDialog(true)
+                  }}
+                  disabled={false}
+                  className="size-13 rounded-full bg-brand-primary hover:bg-brand-primary p-0 grid place-content-center cursor-pointer disabled:bg-gray-300 disabled:text-gray-600">
+                  <MapPinLine size={68} />
+                </Button>
+
                 <DrawerClose asChild>
                   <Link
                     href="/dashboard/orders/shop"
-                    className="w-75 flex items-center bg-gray-200 rounded-full justify-center gap-2 text-xs uppercase text-gray-400 py-3 hover:text-black px-6"
+                    className="w-75 flex items-center bg-brand-primary rounded-full justify-center gap-2 text-xs uppercase text-white py-3 px-6"
                   >
-                    <Plus size={14} /> Continuar
+                    <Plus size={14} /> Agregar Mas
                   </Link>
                 </DrawerClose>
               </div>
