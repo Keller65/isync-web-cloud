@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "iSync Web - Todo Sincrnizado",
+  title: "iSync Web - Todo Sincronizado",
   description: "iSync Web es una aplicacin de tareas que se sincroniza con iSync, permitiendo gestionar tus cotizaciones de manera eficiente y sin complicaciones.",
 };
 
