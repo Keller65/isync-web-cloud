@@ -14,7 +14,6 @@ import { useCartStore } from '@/app/lib/store.cart'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import { Product } from '@/types/products'
-import { toast } from 'sonner'
 import Image from 'next/image'
 import { MagnifyingGlass } from '@phosphor-icons/react'
 
@@ -79,7 +78,10 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
       if (newItems.length === 0) {
         setHasMore(false)
       } else {
-        setProducts(prev => [...prev, ...newItems])
+        setProducts(prev => {
+          const combined = [...prev, ...newItems]
+          return Array.from(new Map(combined.map(p => [p.itemCode, p])).values())
+        })
         setHasMore(newItems.length === 20)
       }
     } catch (err) {
@@ -109,7 +111,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
 
           return (
             <div
-              key={`${product.itemCode}-${i}`}
+              key={product.itemCode}
               ref={isLast ? lastItemRef : undefined}
               className="border rounded-lg p-4 flex flex-col gap-2"
             >
@@ -203,7 +205,10 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
       if (newItems.length === 0) {
         setHasMore(false)
       } else {
-        setProducts(prev => [...prev, ...newItems])
+        setProducts(prev => {
+          const combined = [...prev, ...newItems]
+          return Array.from(new Map(combined.map(p => [p.itemCode, p])).values())
+        })
         setHasMore(newItems.length === 20)
       }
     } catch (err) {
@@ -233,7 +238,7 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
 
           return (
             <div
-              key={`${product.itemCode}-${i}`}
+              key={product.itemCode}
               ref={isLast ? lastItemRef : undefined}
               className="border rounded-lg p-4 flex flex-col gap-2"
             >
