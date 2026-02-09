@@ -14,7 +14,7 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <SessionSync />
-      <SidebarProvider>
+      <SidebarProvider defaultOpen={true}>
         <AppSidebar />
         <main className="flex-1 w-full bg-gray-50">
           <div className="p-4 border-b bg-white justify-between flex items-center gap-4">

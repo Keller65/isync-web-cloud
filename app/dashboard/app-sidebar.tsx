@@ -35,16 +35,6 @@ const items = [
     url: "/dashboard/payments",
     icon: Cardholder,
   },
-  // {
-  //   title: "Catalog",
-  //   url: "/dashboard/catalog",
-  //   icon: FileText,
-  // },
-  // {
-  //   title: "Locations",
-  //   url: "/dashboard/locations",
-  //   icon: MapPin,
-  // },
   {
     title: "Ajustes",
     url: "/dashboard/settings",

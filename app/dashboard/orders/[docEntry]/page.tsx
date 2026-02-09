@@ -44,6 +44,7 @@ export default function OrderDetailPage() {
         },
       });
       setOrderDetail(res.data);
+      console.log(res.data)
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'No se pudieron obtener los detalles.');
