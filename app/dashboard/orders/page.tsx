@@ -155,10 +155,13 @@ export default function OrdersPage() {
       setAddresses(res.data);
       if (res.data.length > 0) {
         setSelectedAddress(res.data[0]);
+      } else {
+        setSelectedAddress(null);
       }
     } catch (err) {
       console.error('Error al cargar direcciones:', err);
       setAddresses([]);
+      setSelectedAddress(null);
     } finally {
       setIsLoadingAddresses(false);
     }
@@ -308,10 +311,9 @@ export default function OrdersPage() {
                           setIsDialogOpen(false);
                           router.push('/dashboard/orders/shop');
                         }}
-                        disabled={!selectedAddress}
-                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 rounded-full transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 rounded-full transition-all flex items-center justify-center gap-2"
                       >
-                        Realizar un Pedido
+                        {addresses.length > 0 ? 'Realizar un Pedido' : 'Continuar sin Ubicación'}
                         <ArrowRight size={18} />
                       </button>
                     )}
@@ -349,7 +351,11 @@ export default function OrdersPage() {
                           {filteredCustomers.map((customer) => (
                             <div
                               key={customer.cardCode}
-                              onClick={() => setSelectedCustomer(customer)}
+                              onClick={() => {
+                                if (selectedCustomer?.cardCode !== customer.cardCode) {
+                                  setSelectedCustomer(customer);
+                                }
+                              }}
                               className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${selectedCustomer?.cardCode === customer.cardCode
                                 ? 'border-brand-primary bg-blue-50 ring-1 ring-brand-primary'
                                 : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'
