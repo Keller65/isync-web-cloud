@@ -385,10 +385,7 @@ function ProductCard({ product }: { product: Product }) {
       p => p.itemCode === product.itemCode
     )
 
-    const currentQty = itemInCart ? itemInCart.quantity : 0
-    const totalQty = currentQty + quantity
-
-    if (totalQty > maxStock) {
+    if (quantity > maxStock) {
       setAlertInfo({
         title: 'Stock insuficiente',
         description: `Solo hay ${maxStock} unidades disponibles.`,
@@ -408,8 +405,6 @@ function ProductCard({ product }: { product: Product }) {
       taxCode: product.taxType,
     }
 
-    console.log('🛒 CARRITO → ASÍ SE GUARDA:', cartItem)
-
     if (itemInCart) {
       setAlertInfo({
         title: 'Producto ya en el carrito',
@@ -418,7 +413,7 @@ function ProductCard({ product }: { product: Product }) {
         onConfirm: () => {
           updateQuantity(
             product.itemCode,
-            totalQty,
+            quantity,
             finalUnitPrice,
             product.inStock
           )
@@ -426,6 +421,7 @@ function ProductCard({ product }: { product: Product }) {
         },
       })
     } else {
+      console.log('🛒 CARRITO → ASÍ SE GUARDA:', cartItem)
       addProduct(cartItem)
       setOpen(false)
     }
