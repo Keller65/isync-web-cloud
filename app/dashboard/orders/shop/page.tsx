@@ -503,7 +503,7 @@ function ProductCard({ product }: { product: Product }) {
             </section>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto px-6">
             <div className="flex flex-col md:flex-row gap-8">
               {/* Columna Izquierda: Imagen */}
               <div className="md:w-1/2">

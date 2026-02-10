@@ -31,7 +31,7 @@ const items = [
     icon: ShoppingCart,
   },
   {
-    title: "Payments",
+    title: "Cobros",
     url: "/dashboard/payments",
     icon: Cardholder,
   },
