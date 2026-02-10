@@ -9,8 +9,8 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { RefreshCw, Bell, Database, LogOut, Wifi, Smartphone, Image as ImageIcon } from "lucide-react"
-import { useAuth } from "@/context/auth-context";
 import { signOut } from "next-auth/react";
+import { useAuthStore } from "@/app/lib/store"
 
 export default function SettingsPage() {
   const [syncLoading, setSyncLoading] = useState(false)
@@ -166,7 +166,7 @@ function SystemSettings({ syncLoading, handleSync, cacheSize }: any) {
 }
 
 function SecuritySettings() {
-  const { session } = useAuth();
+  const {fullName} = useAuthStore();
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
@@ -182,7 +182,7 @@ function SecuritySettings() {
 
         {/* Estado de sesión */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <InfoItem label="Usuario" value={session?.user?.name || ""} />
+          <InfoItem label="Usuario" value={fullName || ""} />
           <InfoItem label="Rol" value="Vendedor" />
           <InfoItem label="Último acceso" value="09/02/2026 · 12:02 PM" />
         </div>
