@@ -434,60 +434,61 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <div className="h-40 bg-white rounded-md flex items-center justify-center relative overflow-hidden">
-          <Image
-            src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
-            }}
-            alt={product.itemName}
-            className="h-full w-full object-contain"
-            height={400}
-            width={400}
-          />
+        <DialogTrigger asChild>
+          <section className='cursor-pointer relative flex flex-col gap-2 bg-white'>
+            <div className="h-40 bg-white rounded-md flex items-center justify-center overflow-hidden">
+              <Image
+                src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
+                }}
+                alt={product.itemName}
+                className="h-full w-full object-contain"
+                height={400}
+                width={400}
+              />
 
-          {product.hasDiscount && (
-            <span className="absolute top-0 left-0">
-              <SealPercent color={product.pricingSource === "GeneralSpecialPrice" ? "red" : "green"} weight='fill' size={24} />
-            </span>
-          )}
+              {product.hasDiscount && (
+                <span className="absolute top-0 left-0">
+                  <SealPercent color={product.pricingSource === "GeneralSpecialPrice" ? "red" : "green"} weight='fill' size={24} />
+                </span>
+              )}
 
-          {product.inStock <= 0 && (
-            <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-              <span className="text-xs font-bold bg-destructive text-white px-2 py-1 rounded">
-                SIN STOCK
+              {product.inStock <= 0 && (
+                <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+                  <span className="text-xs font-bold bg-destructive text-white px-2 py-1 rounded">
+                    SIN STOCK
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <h3 className="font-medium text-sm line-clamp-2 min-h-10">
+              {product.itemName}
+            </h3>
+
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{product.itemCode}</span>
+              <span className="bg-secondary px-2 rounded">
+                {product.salesUnit}
               </span>
             </div>
-          )}
-        </div>
 
-        <h3 className="font-medium text-sm line-clamp-2 min-h-10">
-          {product.itemName}
-        </h3>
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-primary">
+                L.{finalPrice.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
 
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>{product.itemCode}</span>
-          <span className="bg-secondary px-2 rounded">
-            {product.salesUnit}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-primary">
-            L.{finalPrice.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </span>
-
-          {tier && (
-            <span className="line-through text-xs text-muted-foreground">
-              L.{product.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </span>
-          )}
-        </div>
-
-        <DialogTrigger asChild>
-          <Button className="w-full text-sm rounded-full bg-brand-primary hover:bg-brand-primary/90 text-white shadow-none">
-            Ver Detalles
-          </Button>
+              {tier && (
+                <span className="line-through text-xs text-muted-foreground">
+                  L.{product.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              )}
+            </div>
+            <Button className="w-full text-sm rounded-full bg-brand-primary hover:bg-brand-primary/90 text-white shadow-none">
+              Ver Detalles
+            </Button>
+          </section>
         </DialogTrigger>
 
         <DialogContent className="sm:max-w-250 p-0 overflow-hidden flex flex-col max-h-[90vh]">
@@ -501,7 +502,7 @@ function ProductCard({ product }: { product: Product }) {
 
               <div className='flex flex-row items-center gap-2'>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Unidad: </p>
-                <p className="text-sm font-medium">{product.salesUnit || 'N/A'}x{product.salesItemsPerUnit}</p>
+                <p className="text-sm font-medium">{product.salesUnit || 'N/A'} x {product.salesItemsPerUnit}</p>
               </div>
             </section>
           </DialogHeader>

@@ -98,6 +98,7 @@ function CartISync() {
     setOrderId(null)
     setShowCancelOrderAlert(false)
     setOpen(false)
+    router.replace("/dashboard/orders")
   }
 
   const handleSubmitOrder = async () => {
