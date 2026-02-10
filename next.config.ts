@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   },
   allowedDevOrigins: ["*"],
   images: {
-    unoptimized: true,
+    unoptimized: false,
     qualities: [75, 85, 100],
     remotePatterns: [
       {

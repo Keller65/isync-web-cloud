@@ -293,7 +293,7 @@ function ProductCard({ product }: { product: Product }) {
   const [editablePriceText, setEditablePriceText] = useState(product.price.toFixed(2))
   const [isPriceValid, setIsPriceValid] = useState(true)
   const [isPriceManuallyEdited, setIsPriceManuallyEdited] = useState(false)
-  const [applyTierDiscounts, setApplyTierDiscounts] = useState(true)
+  const [applyTierDiscounts, setApplyTierDiscounts] = useState(false)
 
   const tier = product.tiers?.[0]
   const finalPrice = tier ? tier.price : product.price
@@ -429,15 +429,7 @@ function ProductCard({ product }: { product: Product }) {
       addProduct(cartItem)
       setOpen(false)
     }
-  }, [
-    product,
-    quantity,
-    editablePrice,
-    isPriceValid,
-    productsInCart,
-    addProduct,
-    updateQuantity,
-  ])
+  }, [product, quantity, editablePrice, isPriceValid, productsInCart, addProduct, updateQuantity,])
 
   return (
     <>
@@ -501,6 +493,17 @@ function ProductCard({ product }: { product: Product }) {
         <DialogContent className="sm:max-w-250 p-0 overflow-hidden flex flex-col max-h-[90vh]">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl font-bold">{product.itemName}</DialogTitle>
+            <section className='flex gap-12'>
+              <div className='flex flex-row items-center gap-2'>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Código: </p>
+                <p className="text-sm font-medium">{product.itemCode}</p>
+              </div>
+
+              <div className='flex flex-row items-center gap-2'>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Unidad: </p>
+                <p className="text-sm font-medium">{product.salesUnit || 'N/A'}x{product.salesItemsPerUnit}</p>
+              </div>
+            </section>
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto p-6">
@@ -519,11 +522,126 @@ function ProductCard({ product }: { product: Product }) {
                     width={400}
                   />
                 </div>
+              </div>
+
+              {/* Columna Derecha: Datos */}
+              <div className="md:w-1/2 flex flex-col gap-6">
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase">Categoría</p>
+                      <p className="text-sm font-medium">{product.groupName}</p>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase">Disponibilidad</p>
+                      <p className={`text-sm font-bold ${product.inStock > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                        {product.inStock > 0 ? `${product.inStock} en stock` : 'Agotado'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <section className="pt-4 border-t flex flex-row justify-between">
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Precio de Venta</p>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-lg">L.</span>
+                          <Input
+                            type="text"
+                            className={`w-32 font-bold text-lg h-11 focus-visible:ring-primary ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''
+                              }`}
+                            value={editablePriceText}
+                            onChange={handlePriceChange}
+                            onBlur={handlePriceBlur}
+                          />
+                        </div>
+                        {!isPriceValid && (
+                          <p className="text-[10px] text-destructive font-medium">
+                            El precio no puede ser menor al mínimo permitido.
+                          </p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground">
+                          Precio base original: L. {product.price.toLocaleString('es-HN', { minimumFractionDigits: 2 })} + {product.taxType}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Cantidad a comprar</p>
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center border rounded-lg overflow-hidden">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-none h-10 w-10"
+                            onClick={() => setQuantity(q => Math.max(1, q - 1))}
+                          >
+                            -
+                          </Button>
+                          <Input
+                            type="text"
+                            className="w-12 h-10 border-none rounded-none text-center font-bold text-lg focus-visible:ring-0 p-0"
+                            value={quantity}
+                            onChange={handleQuantityChange}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-none h-10 w-10"
+                            onClick={() => {
+                              const maxStock = product.inStock || 0
+                              setQuantity(q => Math.min(maxStock, q + 1))
+                            }}
+                            disabled={quantity >= (product.inStock || 0)}
+                          >
+                            +
+                          </Button>
+                        </div>
+                        <span className="text-sm text-muted-foreground">
+                          {product.salesUnit}
+                        </span>
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="pt-4 border-t">
+                    <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Inventario General</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="bg-muted/50 p-2 rounded-lg text-start">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Disponible</p>
+                        <p className="text-sm font-bold">{product.inStock.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-muted/50 p-2 rounded-lg text-start">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">En Pedido</p>
+                        <p className="text-sm font-bold">{product.ordered.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-muted/50 p-2 rounded-lg text-start">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Comprometido</p>
+                        <p className="text-sm font-bold">{product.committed.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {product.ws && product.ws.length > 0 && (
+                    <div className="pt-4 border-t">
+                      <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Stock por Almacén</p>
+                      <div className="space-y-1">
+                        {product.ws.map((w, idx) => (
+                          <div key={idx} className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">{w.warehouseName}</span>
+                            <span className="font-medium">{w.inStock.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {product.tiers && product.tiers.length > 0 && (
                   <div className="mt-6">
                     <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Precios por Volumen</p>
+                      <p className="text-xs font-bold text-muted-foreground uppercase">Precios por Cantidad</p>
                       <Button
                         variant="link"
                         size="sm"
@@ -558,126 +676,6 @@ function ProductCard({ product }: { product: Product }) {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Columna Derecha: Datos */}
-              <div className="md:w-1/2 flex flex-col gap-6">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Código</p>
-                      <p className="text-sm font-medium">{product.itemCode}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Categoría</p>
-                      <p className="text-sm font-medium">{product.groupName}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Unidad</p>
-                      <p className="text-sm font-medium">{product.salesUnit || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold text-muted-foreground uppercase">Disponibilidad</p>
-                      <p className={`text-sm font-bold ${product.inStock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-                        {product.inStock > 0 ? `${product.inStock} en stock` : 'Agotado'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Precio de Venta</p>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg">L.</span>
-                        <Input
-                          type="text"
-                          className={`w-32 font-bold text-lg h-11 focus-visible:ring-primary ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''
-                            }`}
-                          value={editablePriceText}
-                          onChange={handlePriceChange}
-                          onBlur={handlePriceBlur}
-                        />
-                      </div>
-                      {!isPriceValid && (
-                        <p className="text-[10px] text-destructive font-medium">
-                          El precio no puede ser menor al mínimo permitido.
-                        </p>
-                      )}
-                      <p className="text-[10px] text-muted-foreground">
-                        Precio base original: L. {product.price.toLocaleString('es-HN', { minimumFractionDigits: 2 })} + {product.taxType}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Inventario General</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      <div className="bg-muted/50 p-2 rounded-lg text-start">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Disponible</p>
-                        <p className="text-sm font-bold">{product.inStock.toLocaleString()}</p>
-                      </div>
-                      <div className="bg-muted/50 p-2 rounded-lg text-start">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">En Pedido</p>
-                        <p className="text-sm font-bold">{product.ordered.toLocaleString()}</p>
-                      </div>
-                      <div className="bg-muted/50 p-2 rounded-lg text-start">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">Comprometido</p>
-                        <p className="text-sm font-bold">{product.committed.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {product.ws && product.ws.length > 0 && (
-                    <div className="pt-4 border-t">
-                      <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Stock por Almacén</p>
-                      <div className="space-y-1">
-                        {product.ws.map((w, idx) => (
-                          <div key={idx} className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{w.warehouseName}</span>
-                            <span className="font-medium">{w.inStock.toLocaleString()}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-4 border-t">
-                    <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Cantidad a comprar</p>
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center border rounded-lg overflow-hidden">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-none h-10 w-10"
-                          onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                        >
-                          -
-                        </Button>
-                        <Input
-                          type="text"
-                          className="w-12 h-10 border-none rounded-none text-center font-bold text-lg focus-visible:ring-0 p-0"
-                          value={quantity}
-                          onChange={handleQuantityChange}
-                        />
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="rounded-none h-10 w-10"
-                          onClick={() => {
-                            const maxStock = product.inStock || 0
-                            setQuantity(q => Math.min(maxStock, q + 1))
-                          }}
-                          disabled={quantity >= (product.inStock || 0)}
-                        >
-                          +
-                        </Button>
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {product.salesUnit}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="mt-auto p-4 bg-muted/30 rounded-lg border border-dashed">
                   <p className="text-xs text-muted-foreground italic">

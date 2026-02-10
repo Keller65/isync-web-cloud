@@ -14,9 +14,11 @@ export interface CartItem {
 
 interface CartState {
   productsInCart: CartItem[]
+  open: boolean
   editMode: boolean
   docEntry?: number | string
   setEditMode: (mode: boolean) => void
+  setOpen: (cartMode: boolean) => void
   setDocEntry: (docEntry: number | string) => void
   addProduct: (product: CartItem) => void
   updateQuantity: (itemCode: string, quantity: number, unitPrice: number, inStock: number) => void
@@ -31,6 +33,8 @@ export const useCartStore = create<CartState>()(
       productsInCart: [],
       editMode: false,
       docEntry: undefined,
+      open: false,
+      setOpen:  (cartMode) => set({ open: cartMode }),
       setDocEntry: (docEntry) => set({ docEntry }),
       setEditMode: (mode) => set({ editMode: mode }),
       addProduct: (product) =>
@@ -54,6 +58,11 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'cart-storage',
+      partialize: (state) => ({
+        productsInCart: state.productsInCart,
+        editMode: state.editMode,
+        docEntry: state.docEntry,
+      }),
     }
   )
 )
