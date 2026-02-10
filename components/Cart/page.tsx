@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -19,8 +20,9 @@ import { v4 as uuidv4 } from "uuid"
 import { CustomerAddress } from "@/types/customers"
 
 function CartISync() {
+  const router = useRouter()
   const { selectedCustomer, selectedAddress, clearSelectedCustomer, setSelectedAddress } = useCustomerStore()
-  const { productsInCart, removeProduct, clearCart, editMode, setEditMode, setDocEntry, docEntry } = useCartStore()
+  const { productsInCart, removeProduct, clearCart, editMode, setEditMode, setDocEntry, docEntry, open, setOpen } = useCartStore()
   const { token } = useAuthStore()
 
   const [isLoading, setIsLoading] = useState(false)
@@ -39,6 +41,12 @@ function CartISync() {
   const [orderId, setOrderId] = useState<string | null>(null)
 
   const isProcessing = useRef(false)
+
+  useEffect(() => {
+    if (productsInCart.length === 0 && open) {
+      setOpen(false)
+    }
+  }, [productsInCart.length, open, setOpen])
 
   useEffect(() => {
     if (editMode) {
@@ -89,6 +97,7 @@ function CartISync() {
     setComments("")
     setOrderId(null)
     setShowCancelOrderAlert(false)
+    setOpen(false)
   }
 
   const handleSubmitOrder = async () => {
@@ -137,12 +146,8 @@ function CartISync() {
       })
 
       setOrderInfo({ docEntry: response.data?.docEntry })
-      clearCart()
-      clearSelectedCustomer()
-      setEditMode(false)
-      setDocEntry("")
-      setComments("")
       setShowSuccessAlert(true)
+      setOpen(false)
     } catch (error: any) {
       const msg = error.response?.data?.message || "Ocurrió un error inesperado al procesar el pedido."
       triggerError(msg)
@@ -153,9 +158,19 @@ function CartISync() {
     }
   }
 
+  const handleSuccess = () => {
+    setShowSuccessAlert(false)
+    clearCart()
+    clearSelectedCustomer()
+    setEditMode(false)
+    setDocEntry("")
+    setComments("")
+    router.push("/dashboard/orders")
+  }
+
   return (
     <>
-      <Drawer direction="right">
+      <Drawer open={open} onOpenChange={setOpen} direction="right">
         <DrawerTrigger asChild>
           <span className="relative mr-3 cursor-pointer">
             {productsInCart.length > 0 &&
@@ -412,15 +427,15 @@ function CartISync() {
       </AlertDialog>
 
       <AlertDialog open={showSuccessAlert} onOpenChange={setShowSuccessAlert}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-green-300">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-green-600">¡Éxito!</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-green-600">
               El pedido ha sido {editMode ? "actualizado" : "creado"} correctamente con el número <strong>#{orderInfo.docEntry}</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowSuccessAlert(false)}>
+            <AlertDialogAction onClick={handleSuccess}>
               Aceptar
             </AlertDialogAction>
           </AlertDialogFooter>
