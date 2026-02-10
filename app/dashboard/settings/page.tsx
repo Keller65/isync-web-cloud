@@ -1,27 +1,16 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
-import {
-  Monitor,
-  Map as MapIcon,
-  Shield,
-  RefreshCw,
-  Bell,
-  Database,
-  Info,
-  LogOut,
-  Wifi,
-  Smartphone,
-  Image as ImageIcon
-} from "lucide-react"
+import { RefreshCw, Bell, Database, LogOut, Wifi, Smartphone, Image as ImageIcon } from "lucide-react"
+import { useAuth } from "@/context/auth-context";
+import { signOut } from "next-auth/react";
 
 export default function SettingsPage() {
   const [syncLoading, setSyncLoading] = useState(false)
@@ -177,6 +166,7 @@ function SystemSettings({ syncLoading, handleSync, cacheSize }: any) {
 }
 
 function SecuritySettings() {
+  const { session } = useAuth();
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
@@ -192,29 +182,15 @@ function SecuritySettings() {
 
         {/* Estado de sesión */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <InfoItem label="Usuario" value="Nuñez Eileen" />
+          <InfoItem label="Usuario" value={session?.user?.name || ""} />
           <InfoItem label="Rol" value="Vendedor" />
           <InfoItem label="Último acceso" value="09/02/2026 · 12:02 PM" />
-        </div>
-
-        {/* MFA */}
-        <div className="flex items-center justify-between p-4 border border-gray-100">
-          <div className="flex gap-3 items-center">
-            <Shield size={18} className="text-gray-400" />
-            <div>
-              <p className="text-sm font-medium">Autenticación MFA</p>
-              <p className="text-xs text-gray-400">
-                Protección adicional para accesos desde la Web
-              </p>
-            </div>
-          </div>
-          <Switch className="data-[state=checked]:bg-black" />
         </div>
 
         {/* Sesiones */}
         <div className="space-y-3">
           <p className="text-[10px] uppercase tracking-widest text-gray-500">
-            Sesiones Activa
+            Sesion Activa
           </p>
 
           <div className="p-4 border border-gray-100 flex justify-between items-center">
@@ -232,6 +208,7 @@ function SecuritySettings() {
 
         {/* Logout */}
         <Button
+          onClick={() => signOut({ callbackUrl: "/" })}
           variant="destructive"
           className="rounded-full text-xs uppercase tracking-widest cursor-pointer bg-red-600 shadow-none"
         >
