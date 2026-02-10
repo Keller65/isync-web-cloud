@@ -18,6 +18,17 @@ import Link from "next/link"
 import axios from "axios"
 import { v4 as uuidv4 } from "uuid"
 import { CustomerAddress } from "@/types/customers"
+import { Howl } from "howler"
+
+const successSound = new Howl({
+  src: ["/sound/success.mp3"],
+  volume: 0.5,
+});
+
+const errorSound = new Howl({
+  src: ["/sound/error.mp3"],
+  volume: 0.5,
+});
 
 function CartISync() {
   const router = useRouter()
@@ -71,6 +82,7 @@ function CartISync() {
   const triggerError = (message: string) => {
     setErrorMessage(message)
     setShowErrorAlert(true)
+    errorSound.play();
   }
 
   const fetchAddresses = async () => {
@@ -148,6 +160,7 @@ function CartISync() {
 
       setOrderInfo({ docEntry: response.data?.docEntry })
       setShowSuccessAlert(true)
+      successSound.play();
       setOpen(false)
     } catch (error: any) {
       const msg = error.response?.data?.message || "Ocurrió un error inesperado al procesar el pedido."
@@ -430,9 +443,9 @@ function CartISync() {
       <AlertDialog open={showSuccessAlert} onOpenChange={setShowSuccessAlert}>
         <AlertDialogContent className="bg-green-300">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-green-600">¡Éxito!</AlertDialogTitle>
+            <AlertDialogTitle className="text-green-600">{editMode ? "¡Pedido Actualizado!" : "¡Pedido Creado!"}</AlertDialogTitle>
             <AlertDialogDescription className="text-green-600">
-              El pedido ha sido {editMode ? "actualizado" : "creado"} correctamente con el número <strong>#{orderInfo.docEntry}</strong>.
+              El pedido ha sido {editMode ? "actualizado correctamente" : <>creado correctamente con el número <strong>#{orderInfo.docEntry}</strong></>}.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
