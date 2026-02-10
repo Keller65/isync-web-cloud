@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import { Product } from '@/types/products'
 import Image from 'next/image'
-import { MagnifyingGlass } from '@phosphor-icons/react'
+import { MagnifyingGlass, SealPercent } from '@phosphor-icons/react'
 
 interface Category {
   code: string
@@ -453,6 +453,12 @@ function ProductCard({ product }: { product: Product }) {
             height={400}
             width={400}
           />
+
+          {product.hasDiscount && (
+            <span className="absolute top-0 left-0">
+              <SealPercent color={product.pricingSource === "GeneralSpecialPrice" ? "red" : "green"} weight='fill' size={24} />
+            </span>
+          )}
 
           {product.inStock <= 0 && (
             <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
