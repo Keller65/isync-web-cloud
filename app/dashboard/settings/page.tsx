@@ -1,123 +1,255 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
-import { Tabs, TabsContent, TabsList, TabsTrigger, } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import {
+  Monitor,
+  Map as MapIcon,
+  Shield,
+  RefreshCw,
+  Bell,
+  Database,
+  Info,
+  LogOut,
+  Wifi,
+  Smartphone,
+  Image as ImageIcon
+} from "lucide-react"
 
 export default function SettingsPage() {
-  const handleSave = () => {
-    toast.success("Cambios guardados correctamente")
+  const [syncLoading, setSyncLoading] = useState(false)
+  const [cacheSize, setCacheSize] = useState("1.2 MB")
+
+  const handleSync = () => {
+    setSyncLoading(true)
+    setTimeout(() => {
+      setSyncLoading(false)
+      toast.success("Sincronización completada: Datos actualizados")
+    }, 2000)
   }
 
   return (
-    <div className="max-w-5xl mx-auto font-poppins">
-      <div className="mb-10">
+    <div className="max-w-5xl mx-auto font-poppins pb-20">
+      <header className="mb-10">
         <h1 className="text-4xl font-light uppercase tracking-tighter text-gray-900">Configuración</h1>
         <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-2">
-          Gestión de cuenta y preferencias del sistema
+          Panel de control del sistema iSync Web
         </p>
-      </div>
+      </header>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="bg-transparent border-b rounded-none w-full justify-start h-auto p-0 mb-8">
-          <TabsTrigger
-            value="general"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent pb-3 px-6 text-[10px] uppercase tracking-widest font-medium transition-all font-poppins"
-          >
-            General
-          </TabsTrigger>
-          <TabsTrigger
-            value="notifications"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent pb-3 px-6 text-[10px] uppercase tracking-widest font-medium transition-all font-poppins"
-          >
-            Notificaciones
-          </TabsTrigger>
-          <TabsTrigger
-            value="security"
-            className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent pb-3 px-6 text-[10px] uppercase tracking-widest font-medium transition-all font-poppins"
-          >
-            Seguridad
-          </TabsTrigger>
+        <TabsList className="bg-transparent border-b rounded-none w-full justify-start h-auto p-0 mb-8 overflow-x-auto">
+          <TabHeader value="notifications" label="Notificaciones" />
+          <TabHeader value="system" label="Sistema" />
+          <TabHeader value="security" label="Seguridad" />
         </TabsList>
 
-        <TabsContent value="general" className="mt-0 space-y-6">
-          <Card className="border-none shadow-none bg-transparent">
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-sm uppercase tracking-wider font-semibold font-poppins">Perfil del Negocio</CardTitle>
-              <CardDescription className="text-xs font-poppins">Actualiza la información que aparecerá en tus facturas.</CardDescription>
-            </CardHeader>
-            <CardContent className="px-0 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-2">
-                  <Label htmlFor="store-name" className="text-[10px] uppercase tracking-widest text-gray-500 font-poppins">Nombre de la Tienda</Label>
-                  <Input id="store-name" defaultValue="iSync Web Cloud" className="rounded-none border-gray-200 focus-visible:ring-0 focus-visible:border-black font-poppins" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency" className="text-[10px] uppercase tracking-widest text-gray-500 font-poppins">Moneda Base</Label>
-                  <Input id="currency" defaultValue="Lempira Hondureño (L)" disabled className="rounded-none bg-gray-50 border-gray-200 font-poppins" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="rtn" className="text-[10px] uppercase tracking-widest text-gray-500 font-poppins">RTN / Identificación Fiscal</Label>
-                <Input id="rtn" placeholder="0801-XXXX-XXXXXX" className="rounded-none border-gray-200 focus-visible:ring-0 focus-visible:border-black font-poppins" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Separator className="my-8" />
-
-          <div className="flex justify-end gap-4">
-            <Button variant="outline" className="rounded-none text-xs uppercase tracking-widest px-8 font-poppins">Cancelar</Button>
-            <Button onClick={handleSave} className="rounded-none bg-black hover:bg-gray-800 text-white text-xs uppercase tracking-widest px-10 font-poppins transition-all shadow-none">Guardar</Button>
-          </div>
+        <TabsContent value="notifications">
+          <NotificationSettings />
         </TabsContent>
 
-        <TabsContent value="notifications" className="mt-0">
-          <Card className="border-none shadow-none bg-transparent">
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-sm uppercase tracking-wider font-semibold font-poppins">Preferencias de Alerta</CardTitle>
-              <CardDescription className="text-xs font-poppins">Recibe actualizaciones sobre inventario y ventas.</CardDescription>
-            </CardHeader>
-            <CardContent className="px-0 space-y-2">
-              <div className="flex items-center justify-between p-4 border border-gray-100 mb-2">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium font-poppins">Reporte diario por email</Label>
-                  <p className="text-xs text-gray-400 font-poppins">Recibe un resumen de todas las ventas de Lempiras al final del día.</p>
-                </div>
-                <Switch className="data-[state=checked]:bg-black" />
-              </div>
-              <div className="flex items-center justify-between p-4 border border-gray-100">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium font-poppins">Alertas de Stock Bajo</Label>
-                  <p className="text-xs text-gray-400 font-poppins">Notificar cuando un producto tenga menos de 5 unidades.</p>
-                </div>
-                <Switch defaultChecked className="data-[state=checked]:bg-black" />
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="system">
+          <SystemSettings
+            syncLoading={syncLoading}
+            handleSync={handleSync}
+            cacheSize={cacheSize}
+          />
         </TabsContent>
 
-        <TabsContent value="security" className="mt-0">
-          <Card className="border-none shadow-none bg-transparent">
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-sm uppercase tracking-wider font-semibold font-poppins">Acceso</CardTitle>
-              <CardDescription className="text-xs font-poppins">Configura la seguridad de tu terminal.</CardDescription>
-            </CardHeader>
-            <CardContent className="px-0 space-y-4 max-w-sm">
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase tracking-widest text-gray-500 font-poppins">PIN de Autorización</Label>
-                <Input type="password" placeholder="****" className="rounded-none border-gray-200 focus-visible:ring-0 focus-visible:border-black text-center text-xl tracking-[0.5em] font-poppins" />
-              </div>
-              <Button variant="outline" className="w-full rounded-none text-xs uppercase tracking-widest font-poppins">Cambiar Contraseña</Button>
-            </CardContent>
-          </Card>
+        <TabsContent value="security">
+          <SecuritySettings />
         </TabsContent>
       </Tabs>
+
+      <footer className="mt-12 pt-8 border-t border-gray-100 text-center">
+        <p className="text-[10px] uppercase tracking-widest text-gray-400">
+          © {new Date().getFullYear()} iSync Web - Todos los derechos reservados
+        </p>
+      </footer>
+    </div>
+  )
+}
+
+function TabHeader({ value, label }: { value: string, label: string }) {
+  return (
+    <TabsTrigger
+      value={value}
+      className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent pb-3 px-6 text-[10px] uppercase tracking-widest font-medium transition-all"
+    >
+      {label}
+    </TabsTrigger>
+  )
+}
+
+function NotificationSettings() {
+  return (
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-sm uppercase tracking-wider font-semibold">Comunicación</CardTitle>
+        <CardDescription className="text-xs">Gestiona tus alertas y sonidos.</CardDescription>
+      </CardHeader>
+      <CardContent className="px-0 space-y-3">
+        <div className="flex items-center justify-between p-4 border border-gray-100">
+          <div className="flex gap-4 items-center">
+            <Bell size={18} className="text-gray-400" />
+            <div>
+              <Label className="text-sm font-medium">Notificaciones Push</Label>
+              <p className="text-xs text-gray-400">Permitir avisos importantes del sistema</p>
+            </div>
+          </div>
+          <Switch defaultChecked className="data-[state=checked]:bg-black" />
+        </div>
+        <div className="flex items-center justify-between p-4 border border-gray-100">
+          <div className="flex gap-4 items-center">
+            <ImageIcon size={18} className="text-gray-400" />
+            <div>
+              <Label className="text-sm font-medium">Imágenes de Producto</Label>
+              <p className="text-xs text-gray-400">Mostrar miniaturas en el catálogo</p>
+            </div>
+          </div>
+          <Switch defaultChecked className="data-[state=checked]:bg-black" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function SystemSettings({ syncLoading, handleSync, cacheSize }: any) {
+  return (
+    <div className="space-y-6">
+      <Card className="border-none shadow-none bg-transparent">
+        <CardHeader className="px-0 pt-0">
+          <CardTitle className="text-sm uppercase tracking-wider font-semibold">Estado del Sistema</CardTitle>
+        </CardHeader>
+        <CardContent className="px-0 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 border border-gray-100 flex items-center gap-3">
+              <Wifi size={16} className="text-gray-400" />
+              <div>
+                <p className="text-[10px] uppercase text-gray-400">Dirección IP</p>
+                <p className="text-xs font-medium">192.168.1.45</p>
+              </div>
+            </div>
+            <div className="p-4 border border-gray-100 flex items-center gap-3">
+              <Smartphone size={16} className="text-gray-400" />
+              <div>
+                <p className="text-[10px] uppercase text-gray-400">Build Versión</p>
+                <p className="text-xs font-medium">1.1002.26-WEB</p>
+              </div>
+            </div>
+            <div className="p-4 border border-gray-100 flex items-center gap-3">
+              <Database size={16} className="text-gray-400" />
+              <div>
+                <p className="text-[10px] uppercase text-gray-400">Caché Local</p>
+                <p className="text-xs font-medium">{cacheSize}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 pt-4">
+            <Button
+              variant="outline"
+              className="rounded-none text-[10px] uppercase tracking-widest border-gray-200"
+              onClick={handleSync}
+              disabled={syncLoading}
+            >
+              <RefreshCw size={14} className={`mr-2 ${syncLoading && 'animate-spin'}`} />
+              {syncLoading ? 'Sincronizando...' : 'Sincronizar Datos'}
+            </Button>
+            <Button variant="outline" className="rounded-none text-[10px] uppercase tracking-widest border-gray-200">
+              Limpiar Caché
+            </Button>
+            <Button variant="outline" className="rounded-none text-[10px] uppercase tracking-widest border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700">
+              Exportar Logs
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function SecuritySettings() {
+  return (
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-sm uppercase tracking-wider font-semibold">
+          Seguridad y Sesión
+        </CardTitle>
+        <CardDescription className="text-xs">
+          Controla el acceso y la seguridad de tu cuenta en iSync Web
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="px-0 space-y-6">
+
+        {/* Estado de sesión */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <InfoItem label="Usuario" value="Nuñez Eileen" />
+          <InfoItem label="Rol" value="Vendedor" />
+          <InfoItem label="Último acceso" value="09/02/2026 · 12:02 PM" />
+        </div>
+
+        {/* MFA */}
+        <div className="flex items-center justify-between p-4 border border-gray-100">
+          <div className="flex gap-3 items-center">
+            <Shield size={18} className="text-gray-400" />
+            <div>
+              <p className="text-sm font-medium">Autenticación MFA</p>
+              <p className="text-xs text-gray-400">
+                Protección adicional para accesos desde la Web
+              </p>
+            </div>
+          </div>
+          <Switch className="data-[state=checked]:bg-black" />
+        </div>
+
+        {/* Sesiones */}
+        <div className="space-y-3">
+          <p className="text-[10px] uppercase tracking-widest text-gray-500">
+            Sesiones Activa
+          </p>
+
+          <div className="p-4 border border-gray-100 flex justify-between items-center">
+            <div>
+              <p className="text-xs font-medium">Chrome · Windows</p>
+              <p className="text-[10px] text-gray-400">IP: 192.168.1.45</p>
+            </div>
+            <span className="text-[10px] uppercase text-green-600">
+              Actual
+            </span>
+          </div>
+        </div>
+
+        <Separator className="my-6" />
+
+        {/* Logout */}
+        <Button
+          variant="destructive"
+          className="rounded-full text-xs uppercase tracking-widest cursor-pointer bg-red-600 shadow-none"
+        >
+          <LogOut size={14} className="mr-2" />
+          Cerrar sesión
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function InfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="p-4 border border-gray-100">
+      <p className="text-[10px] uppercase tracking-widest text-gray-400">
+        {label}
+      </p>
+      <p className="text-xs font-medium">{value}</p>
     </div>
   )
 }
