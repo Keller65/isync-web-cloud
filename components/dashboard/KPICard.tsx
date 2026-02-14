@@ -56,7 +56,7 @@ export default function KPICardApi() {
   // Estado de carga (Loading skeleton)
   if (loading || !data || !data.ventas) {
     return (
-      <div className="bg-white p-6 rounded-2xl w-full border border-gray-100 relative shadow-sm animate-pulse space-y-4">
+      <div className="bg-white p-6 rounded-2xl w-full border border-gray-100 relative animate-pulse space-y-4">
         <div className="h-6 w-3/4 bg-gray-200 rounded-full" />
         <div className="h-6 w-1/2 bg-gray-200 rounded-full" />
         <div className="h-4 w-full bg-gray-200 rounded-full" />
@@ -71,7 +71,7 @@ export default function KPICardApi() {
   const DeltaIcon = isDeltaUp ? ArrowUp : ArrowDown
 
   return (
-    <div className="bg-white p-6 rounded-2xl w-full border border-gray-100 relative shadow-sm flex flex-col gap-4">
+    <div className="bg-white p-6 w-full border border-gray-100 relative flex flex-col gap-4">
       {/* Icono indicador */}
       <div className="absolute top-4 right-4">
         <div className={`p-1 rounded-full ${isDeltaUp ? 'bg-green-50' : 'bg-red-50'}`}>

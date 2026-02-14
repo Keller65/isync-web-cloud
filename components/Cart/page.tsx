@@ -197,7 +197,7 @@ function CartISync() {
           </span>
         </DrawerTrigger>
 
-        <DrawerContent className="h-screen min-w-[80vw] right-0 left-auto rounded-none border-l">
+        <DrawerContent className="h-screen min-w-[50vw] right-0 left-auto rounded-none border-l">
           <div className="flex flex-col h-full bg-white justify-between">
             <DrawerHeader className="flex flex-row justify-between px-8 py-6">
               <DrawerTitle className="text-2xl font-semibold uppercase tracking-tight flex items-center gap-3">

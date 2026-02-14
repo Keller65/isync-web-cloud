@@ -4,15 +4,16 @@ import { useMemo, useEffect, useState, useRef } from "react"
 import { Doughnut } from "react-chartjs-2"
 import { Chart as ChartJS, ArcElement, Tooltip } from "chart.js"
 import { useAuthStore } from "@/app/lib/store"
+import { SalesDonutTypes } from "@/types/dashboar"
 import axios from "axios"
 
 ChartJS.register(ArcElement, Tooltip)
 
 export default function SalesDonutCard() {
-  const [data, setData] = useState<any>(null)
+  const [data, setData] = useState<SalesDonutTypes | null>(null)
   const [loading, setLoading] = useState(true)
+  const [goal, setGoal] = useState(20);
   const { token, salesPersonCode } = useAuthStore()
-  const GOAL = 2310000
 
   // Evitar doble fetch en desarrollo (Strict Mode)
   const calledRef = useRef(false)
@@ -24,9 +25,13 @@ export default function SalesDonutCard() {
     const fetchData = async () => {
       try {
         const response = await axios.get(`/api-proxy/api/Kpi/monthly/${salesPersonCode}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }, timeout: 60000
         })
         setData(response.data)
+        console.log("KPI de ventas: ", response.data);
       } catch (error) {
         console.error("Error fetching donut data:", error)
       } finally {
@@ -40,14 +45,14 @@ export default function SalesDonutCard() {
   // Calcular porcentaje
   const percentage = useMemo(() => {
     if (!data?.total) return 0
-    return Math.min((data.total / GOAL) * 100, 100)
+    return Math.min((Number(data.total) / goal) * 100, 100)
   }, [data])
 
   // Datos para el Doughnut
   const chartData = useMemo(() => ({
     datasets: [
       {
-        data: [data?.total || 0, Math.max(0, GOAL - (data?.total || 0))],
+        data: [Number(data?.total) || 0, Math.max(0, goal - (Number(data?.total) || 0))],
         backgroundColor: ["#ef4444", "#f3f3f3"],
         borderWidth: 0,
         cutout: "80%",
@@ -60,6 +65,7 @@ export default function SalesDonutCard() {
     responsive: true,
     maintainAspectRatio: false,
     plugins: { tooltip: { enabled: false } },
+    Tooltip: "Ventas Mensuales"
   }
 
   // Formatear fecha
@@ -78,7 +84,7 @@ export default function SalesDonutCard() {
   return (
     <div className="bg-white border border-gray-100 rounded p-4 flex flex-col justify-center min-h-62.5">
       <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">
-        Meta mensual
+        Meta mensual {goal}M
       </p>
 
       {loading ? (
@@ -92,7 +98,7 @@ export default function SalesDonutCard() {
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <span className="text-xl font-semibold">{percentage.toFixed(1)}%</span>
               <span className="text-[10px] text-gray-500 text-center px-2">
-                {data.currency} {(data.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} de {GOAL.toLocaleString()}
+                {data.currency} {(data.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })} de {goal.toLocaleString()}
               </span>
             </div>
           </div>

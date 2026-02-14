@@ -48,7 +48,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="flex-row items-center">
-        <div className="p-1.5 size-9 bg-brand-primary rounded-lg">
+        <div className="p-1 size-9 bg-brand-primary rounded-lg">
           <Image
             alt="logo isync web cloud"
             src="/assets/iSync_logo.png"
@@ -59,7 +59,7 @@ export function AppSidebar() {
             className="object-contain"
           />
         </div>
-        <h1 className="font-bold leading-tight tracking-tight">iSync Web</h1>
+        <h1 className="font-semibold leading-tight">iSync Web</h1>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
