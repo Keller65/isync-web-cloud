@@ -23,7 +23,7 @@ export default function DashboardLayout({
       <SidebarProvider defaultOpen={true}>
         <AppSidebar />
         <main className="flex-1 w-full bg-gray-50">
-          <div className="p-4 flex-1 border-b bg-white w-full justify-between flex items-center gap-4 sticky top-0 z-10">
+          <div className="p-4 z-50 flex-1 border-b bg-white w-full justify-between flex items-center gap-4 sticky top-0">
             <SidebarTrigger />
             <span className="font-medium text-black uppercase tracking-widest text-[14px]">
               {productsInCart.length !== 0 ? selectedCustomer?.cardName : ""}

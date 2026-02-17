@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import { Product } from '@/types/products'
 import Image from 'next/image'
+import { BackButton } from '@/components/ui/back-button'
 import { MagnifyingGlass, SealPercent } from '@phosphor-icons/react'
 
 interface Category {
@@ -760,16 +761,20 @@ export default function Page() {
 
   return (
     <div className="w-full">
-      <InputGroup className="rounded-full h-12.5 mb-4 px-2">
-        <InputGroupInput
-          placeholder="Buscar Producto por nombre, codigo, etc..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-        />
-        <InputGroupAddon>
-          <MagnifyingGlass size={32} />
-        </InputGroupAddon>
-      </InputGroup>
+      <BackButton />
+
+      <div className="sticky bg-[#f9fafb] top-12 z-10 pt-6 pb-2">
+        <InputGroup className="rounded-full h-12.5 px-2">
+          <InputGroupInput
+            placeholder="Buscar Producto por nombre, codigo, etc..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+          <InputGroupAddon>
+            <MagnifyingGlass size={32} />
+          </InputGroupAddon>
+        </InputGroup>
+      </div>
 
       {debouncedSearchTerm ? (
         <SearchedProducts searchTerm={debouncedSearchTerm} />

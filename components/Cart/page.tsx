@@ -253,7 +253,7 @@ function CartISync() {
                     </div>
                     <span>{item.quantity}</span>
                     <span>
-                      {item.priceAfterVAT.toLocaleString("es-HN")} L
+                      L. {item.priceAfterVAT.toLocaleString("es-HN")}
                     </span>
                     <button onClick={() => removeProduct(item.itemCode)}>
                       <X size={14} />
@@ -273,20 +273,20 @@ function CartISync() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Subtotal</span>
                   <span className="font-medium">
+                    L.
                     {subtotal.toLocaleString("es-HN", {
                       minimumFractionDigits: 2
                     })}{" "}
-                    L
                   </span>
                 </div>
 
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">ISV</span>
                   <span className="font-medium">
+                    L.
                     {tax.toLocaleString("es-HN", {
                       minimumFractionDigits: 2
                     })}{" "}
-                    L
                   </span>
                 </div>
 
@@ -295,10 +295,10 @@ function CartISync() {
                     Total
                   </span>
                   <span className="font-bold">
+                    L.
                     {total.toLocaleString("es-HN", {
                       minimumFractionDigits: 2
                     })}{" "}
-                    L
                   </span>
                 </div>
               </div>
@@ -306,7 +306,7 @@ function CartISync() {
               <div className="flex flex-row gap-3">
                 <Button
                   onClick={() => setShowConfirmAlert(true)}
-                  className="flex-1 bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.2em] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
+                  className="flex-1 font-normal bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.3px] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
                   disabled={productsInCart.length === 0 || isLoading || !selectedAddress}
                 >
                   {isLoading
@@ -315,6 +315,15 @@ function CartISync() {
                       ? "Actualizar Pedido"
                       : "Realizar Pedido"}
                 </Button>
+
+                <DrawerClose asChild>
+                  <Link
+                    href="/dashboard/orders/shop"
+                    className="w-fit flex items-center bg-brand-primary rounded-full justify-center gap-2 text-xs uppercase text-white py-3 px-8"
+                  >
+                    <Plus size={14} /> Agregar Mas
+                  </Link>
+                </DrawerClose>
 
                 <Button
                   onClick={() => {
@@ -325,15 +334,6 @@ function CartISync() {
                   className="size-13 rounded-full bg-brand-primary hover:bg-brand-primary p-0 grid place-content-center cursor-pointer disabled:bg-gray-300 disabled:text-gray-600">
                   <MapPinLine size={68} />
                 </Button>
-
-                <DrawerClose asChild>
-                  <Link
-                    href="/dashboard/orders/shop"
-                    className="w-75 flex items-center bg-brand-primary rounded-full justify-center gap-2 text-xs uppercase text-white py-3 px-6"
-                  >
-                    <Plus size={14} /> Agregar Mas
-                  </Link>
-                </DrawerClose>
               </div>
             </div>
           </div>

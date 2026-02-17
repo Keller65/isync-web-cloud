@@ -1,16 +1,6 @@
 "use client"
 
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarFooter,
-} from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter, } from "@/components/ui/sidebar"
 import { signOut, useSession } from "next-auth/react"
 import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown } from "@phosphor-icons/react"
 import Image from "next/image"
