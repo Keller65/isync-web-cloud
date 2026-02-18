@@ -689,7 +689,6 @@ function ProductCard({ product }: { product: Product }) {
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total estimado</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-brand-primary">L.{(editablePrice * quantity).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                <span className="text-xs text-muted-foreground">LPS</span>
               </div>
             </div>
             <Button
@@ -780,7 +779,7 @@ export default function Page() {
         <SearchedProducts searchTerm={debouncedSearchTerm} />
       ) : (
         <Tabs defaultValue="ofertas">
-          <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsList className="w-full justify-start overflow-x-auto sticky bg-[#f9fafb] top-32.5 z-10">
             <TabsTrigger value="ofertas">Ofertas</TabsTrigger>
 
             {categories.map(cat => (
