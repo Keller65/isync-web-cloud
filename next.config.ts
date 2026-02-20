@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: undefined,
   devIndicators: false,
   experimental: {
     externalDir: true,
@@ -18,11 +18,10 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    const apiHost = process.env.NEXT_PUBLIC_API_HOST
     return [
       {
         source: "/api-proxy/:path*",
-        destination: `${apiHost}/:path*`,
+        destination: `${process.env.NEXT_PUBLIC_API_HOST}/:path*`,
       },
     ]
   },

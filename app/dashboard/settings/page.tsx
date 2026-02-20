@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { RefreshCw, Bell, Database, LogOut, Wifi, Smartphone, Image as ImageIcon } from "lucide-react"
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/app/lib/store"
 
 export default function SettingsPage() {
@@ -166,7 +167,14 @@ function SystemSettings({ syncLoading, handleSync, cacheSize }: any) {
 }
 
 function SecuritySettings() {
-  const {fullName} = useAuthStore();
+  const router = useRouter();
+  const { fullName } = useAuthStore();
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false })
+    router.push(window.location.origin)
+  }
+
   return (
     <Card className="border-none shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
@@ -208,7 +216,7 @@ function SecuritySettings() {
 
         {/* Logout */}
         <Button
-          onClick={() => signOut({ callbackUrl: "/" })}
+          onClick={handleSignOut}
           variant="destructive"
           className="rounded-full text-xs uppercase tracking-widest cursor-pointer bg-red-600 shadow-none"
         >

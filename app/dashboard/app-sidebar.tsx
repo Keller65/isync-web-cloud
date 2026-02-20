@@ -1,11 +1,12 @@
 "use client"
 
 import { signOut, useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import Avvvatars from "avvvatars-react"
-import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, CaretRight, SignOut } from "@phosphor-icons/react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarGroup, SidebarGroupLabel, } from "@/components/ui/sidebar"
+import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, CaretRight, SignOut, Users, MapTrifoldIcon } from "@phosphor-icons/react"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
 
@@ -34,12 +35,28 @@ const items = [
         url: "/dashboard/settings",
         icon: GearSix,
       },
+      {
+        title: "Mapas",
+        url: "/dashboard/maps",
+        icon: MapTrifoldIcon,
+      },
+      {
+        title: "Usuarios",
+        url: "/dashboard/users",
+        icon: Users,
+      },
     ]
   }
 ]
 
 export function AppSidebar() {
   const { data: session } = useSession()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    await signOut({ redirect: false })
+    router.push(window.location.origin)
+  }
 
   return (
     <Sidebar variant="sidebar" collapsible="icon">
@@ -60,7 +77,6 @@ export function AppSidebar() {
                 <span className="truncate font-semibold">iSync Web</span>
                 <span className="truncate text-xs text-muted-foreground">WCS Soluciones</span>
               </div>
-              <CaretUpDown size={16} className="ml-auto" />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -115,7 +131,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg" side="top" align="end">
-                <DropdownMenuItem onClick={() => signOut()} className="text-destructive">
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <SignOut size={16} className="mr-2" />
                   Cerrar Sesión
                 </DropdownMenuItem>
