@@ -65,7 +65,7 @@ export default function PaymentPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto py-8">
       <Link
         href="/dashboard/payments"
         className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 mb-6"

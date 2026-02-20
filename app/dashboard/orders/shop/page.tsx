@@ -759,7 +759,7 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full p-8">
       <BackButton />
 
       <div className="sticky bg-[#f9fafb] top-12 z-10 pt-6 pb-2">

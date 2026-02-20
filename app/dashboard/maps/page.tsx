@@ -134,8 +134,8 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-[86vh]">
-      <div className="h-full rounded-2xl overflow-hidden">
+    <div className="h-[92vh]">
+      <div className="h-full">
         <div ref={mapContainer} className="w-full h-full" />
       </div>
     </div>

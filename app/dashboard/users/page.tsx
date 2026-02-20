@@ -132,7 +132,7 @@ export default function Page() {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto p-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
         <Button>Nuevo Usuario</Button>
@@ -142,7 +142,7 @@ export default function Page() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[80px]">Foto</TableHead>
+              <TableHead className="w-20">Foto</TableHead>
               <TableHead>Nombre</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Estado</TableHead>
@@ -176,7 +176,7 @@ export default function Page() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+        <DialogContent className="sm:max-w-137.5">
           <DialogHeader>
             <DialogTitle>Configuración de Usuario</DialogTitle>
             <DialogDescription>
@@ -206,7 +206,7 @@ export default function Page() {
 
               <div className="grid gap-4">
                 <Label className="text-base font-bold text-brand-primary">Permisos por Pantalla</Label>
-                <ScrollArea className="h-[300px] pr-4">
+                <ScrollArea className="h-75 pr-4">
                   <div className="grid gap-6">
                     {(Object.keys(permissionLabels) as Array<keyof UserPermissions>).map((key) => (
                       <div key={key} className="flex flex-col gap-2">

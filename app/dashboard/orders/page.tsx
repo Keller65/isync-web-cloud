@@ -203,7 +203,7 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="flex-1 min-h-screen">
+    <div className="flex-1 min-h-screen p-8">
       <div className="border-b border-gray-200">
         <div className="flex items-center justify-between py-4">
           <div>

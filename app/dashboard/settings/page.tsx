@@ -26,7 +26,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto font-poppins pb-20">
+    <div className="max-w-5xl mx-auto font-poppins pb-20 py-8">
       <header className="mb-10">
         <h1 className="text-4xl font-light uppercase tracking-tighter text-gray-900">Configuración</h1>
         <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-2">

@@ -31,7 +31,7 @@ export default function DashboardLayout({
             <CartISync />
           </div>
 
-          <div className="p-8">
+          <div className="p-0">
             {children}
           </div>
         </main>
