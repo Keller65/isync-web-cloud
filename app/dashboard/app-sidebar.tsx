@@ -5,20 +5,19 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import Avvvatars from "avvvatars-react"
-import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, CaretRight, SignOut, Users, MapTrifoldIcon } from "@phosphor-icons/react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar"
+import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, SignOut, Users, MapTrifoldIcon, Calendar, MapPin, Path, List, Clock } from "@phosphor-icons/react"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
 
 const items = [
   {
-    title: "Pantallas",
+    title: "Principal",
     items: [
       {
         title: "Analiticas",
         url: "/dashboard",
         icon: ChartLineUp,
-        subItems: ["Historial", "Reportes"]
       },
       {
         title: "Pedidos",
@@ -30,20 +29,36 @@ const items = [
         url: "/dashboard/payments",
         icon: Cardholder,
       },
-      {
-        title: "Ajustes",
-        url: "/dashboard/settings",
-        icon: GearSix,
-      },
-      {
-        title: "Mapas",
-        url: "/dashboard/maps",
-        icon: MapTrifoldIcon,
-      },
+    ]
+  },
+  {
+    title: "Visitas",
+    url: "/dashboard/visitas",
+    icon: MapPin,
+    subItems: [
+      { title: "General", url: "/dashboard/visitas", icon: List },
+      { title: "Mapas", url: "/dashboard/visitas/maps", icon: MapTrifoldIcon },
+      { title: "Registro", url: "/dashboard/visitas/visits", icon: Clock },
+      { title: "Calendario", url: "/dashboard/visitas/calendar", icon: Calendar },
+    ]
+  },
+  {
+    title: "Utilidades",
+    items: [
       {
         title: "Usuarios",
         url: "/dashboard/users",
         icon: Users,
+      },
+    ]
+  },
+  {
+    title: "Cuenta",
+    items: [
+      {
+        title: "Ajustes",
+        url: "/dashboard/settings",
+        icon: GearSix,
       },
     ]
   }
@@ -87,30 +102,44 @@ export function AppSidebar() {
           <SidebarGroup key={group.title}>
             <SidebarGroupLabel>{group.title}</SidebarGroupLabel>
             <SidebarMenu>
-              {group.items.map((item) => (
-                <Collapsible key={item.title} asChild className="group/collapsible">
+              {'subItems' in group && group.subItems ? (
+                <Collapsible key={group.title} asChild className="group/collapsible">
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
-                      <SidebarMenuButton tooltip={item.title}>
-                        <item.icon size={20} />
-                        <span>{item.title}</span>
-                        <CaretRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      <SidebarMenuButton tooltip={group.title}>
+                        <group.icon size={20} />
+                        <span>{group.title}</span>
+                        <Path className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" size={14} />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        <SidebarMenuSubItem>
-                          <SidebarMenuSubButton asChild>
-                            <Link href={item.url}>
-                              <span>General</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
+                        {group.subItems.map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild>
+                              <Link href={subItem.url}>
+                                {subItem.icon && <subItem.icon size={16} />}
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>
                 </Collapsible>
-              ))}
+              ) : (
+                'items' in group && group.items?.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                      <Link href={item.url}>
+                        <item.icon size={20} />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))
+              )}
             </SidebarMenu>
           </SidebarGroup>
         ))}

@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
-import { RefreshCw, Bell, Database, LogOut, Wifi, Smartphone, Image as ImageIcon } from "lucide-react"
+import { RefreshCw, Bell, Database, LogOut, Wifi, Smartphone, Image as ImageIcon, Shield, Settings, Cpu } from "lucide-react"
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/app/lib/store"
@@ -26,16 +26,23 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto font-poppins pb-20 py-8">
+    <div className="max-w-5xl mx-auto font-poppins pb-20 py-8 px-4">
       <header className="mb-10">
-        <h1 className="text-4xl font-light uppercase tracking-tighter text-gray-900">Configuración</h1>
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-2">
-          Panel de control del sistema iSync Web
-        </p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-brand-primary rounded-xl flex items-center justify-center">
+            <Settings className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold uppercase tracking-tight text-gray-900">Configuración</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mt-1">
+              Panel de control del sistema iSync Web
+            </p>
+          </div>
+        </div>
       </header>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="bg-transparent border-b rounded-none w-full justify-start h-auto p-0 mb-8 overflow-x-auto">
+        <TabsList className="bg-gray-50 border-b rounded-none w-full justify-start h-auto p-0 mb-8 overflow-x-auto">
           <TabHeader value="notifications" label="Notificaciones" />
           <TabHeader value="system" label="Sistema" />
           <TabHeader value="security" label="Seguridad" />
@@ -71,7 +78,7 @@ function TabHeader({ value, label }: { value: string, label: string }) {
   return (
     <TabsTrigger
       value={value}
-      className="rounded-none border-b-2 border-transparent data-[state=active]:border-black data-[state=active]:bg-transparent pb-3 px-6 text-[10px] uppercase tracking-widest font-medium transition-all"
+      className="rounded-none border-b-2 border-transparent data-[state=active]:border-brand-primary data-[state=active]:bg-white pb-4 px-6 text-xs uppercase tracking-widest font-medium transition-all text-gray-400 data-[state=active]:text-brand-primary data-[state=active]:shadow-none"
     >
       {label}
     </TabsTrigger>
@@ -80,83 +87,108 @@ function TabHeader({ value, label }: { value: string, label: string }) {
 
 function NotificationSettings() {
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-sm uppercase tracking-wider font-semibold">Comunicación</CardTitle>
-        <CardDescription className="text-xs">Gestiona tus alertas y sonidos.</CardDescription>
-      </CardHeader>
-      <CardContent className="px-0 space-y-3">
-        <div className="flex items-center justify-between p-4 border border-gray-100">
-          <div className="flex gap-4 items-center">
-            <Bell size={18} className="text-gray-400" />
-            <div>
-              <Label className="text-sm font-medium">Notificaciones Push</Label>
-              <p className="text-xs text-gray-400">Permitir avisos importantes del sistema</p>
+    <div className="space-y-4">
+      <Card className="overflow-hidden">
+        <div className="h-1 bg-brand-primary" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm uppercase tracking-wider font-semibold flex items-center gap-2">
+            <Bell className="w-4 h-4 text-brand-primary" />
+            Comunicación
+          </CardTitle>
+          <CardDescription className="text-xs">Gestiona tus alertas y notificaciones del sistema</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+            <div className="flex gap-4 items-center">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Bell size={18} className="text-brand-primary" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Notificaciones Push</Label>
+                <p className="text-xs text-gray-400">Permitir avisos importantes del sistema</p>
+              </div>
             </div>
+            <Switch defaultChecked className="data-[state=checked]:bg-brand-primary" />
           </div>
-          <Switch defaultChecked className="data-[state=checked]:bg-black" />
-        </div>
-        <div className="flex items-center justify-between p-4 border border-gray-100">
-          <div className="flex gap-4 items-center">
-            <ImageIcon size={18} className="text-gray-400" />
-            <div>
-              <Label className="text-sm font-medium">Imágenes de Producto</Label>
-              <p className="text-xs text-gray-400">Mostrar miniaturas en el catálogo</p>
+          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
+            <div className="flex gap-4 items-center">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <ImageIcon size={18} className="text-brand-primary" />
+              </div>
+              <div>
+                <Label className="text-sm font-medium">Imágenes de Producto</Label>
+                <p className="text-xs text-gray-400">Mostrar miniaturas en el catálogo</p>
+              </div>
             </div>
+            <Switch defaultChecked className="data-[state=checked]:bg-brand-primary" />
           </div>
-          <Switch defaultChecked className="data-[state=checked]:bg-black" />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 
 function SystemSettings({ syncLoading, handleSync, cacheSize }: any) {
   return (
-    <div className="space-y-6">
-      <Card className="border-none shadow-none bg-transparent">
-        <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-sm uppercase tracking-wider font-semibold">Estado del Sistema</CardTitle>
+    <div className="space-y-4">
+      <Card className="overflow-hidden">
+        <div className="h-1 bg-brand-primary" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm uppercase tracking-wider font-semibold flex items-center gap-2">
+            <Cpu className="w-4 h-4 text-brand-primary" />
+            Estado del Sistema
+          </CardTitle>
+          <CardDescription className="text-xs">Información técnica y mantenimiento del sistema</CardDescription>
         </CardHeader>
-        <CardContent className="px-0 space-y-4">
+        <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border border-gray-100 flex items-center gap-3">
-              <Wifi size={16} className="text-gray-400" />
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Wifi size={18} className="text-brand-primary" />
+              </div>
               <div>
                 <p className="text-[10px] uppercase text-gray-400">Dirección IP</p>
-                <p className="text-xs font-medium">192.168.1.45</p>
+                <p className="text-xs font-semibold">192.168.1.45</p>
+              </div>
+              <div className="ml-auto">
+                <span className="w-2 h-2 bg-brand-primary rounded-full block animate-pulse" />
               </div>
             </div>
-            <div className="p-4 border border-gray-100 flex items-center gap-3">
-              <Smartphone size={16} className="text-gray-400" />
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Smartphone size={18} className="text-brand-primary" />
+              </div>
               <div>
                 <p className="text-[10px] uppercase text-gray-400">Build Versión</p>
-                <p className="text-xs font-medium">1.1002.26-WEB</p>
+                <p className="text-xs font-semibold">1.1002.26-WEB</p>
               </div>
             </div>
-            <div className="p-4 border border-gray-100 flex items-center gap-3">
-              <Database size={16} className="text-gray-400" />
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                <Database size={18} className="text-brand-primary" />
+              </div>
               <div>
                 <p className="text-[10px] uppercase text-gray-400">Caché Local</p>
-                <p className="text-xs font-medium">{cacheSize}</p>
+                <p className="text-xs font-semibold">{cacheSize}</p>
               </div>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-4 pt-4">
+          <Separator />
+
+          <div className="flex flex-wrap gap-3">
             <Button
-              variant="outline"
-              className="rounded-none text-[10px] uppercase tracking-widest border-gray-200"
+              className="bg-brand-primary hover:bg-brand-primary/90"
               onClick={handleSync}
               disabled={syncLoading}
             >
               <RefreshCw size={14} className={`mr-2 ${syncLoading && 'animate-spin'}`} />
               {syncLoading ? 'Sincronizando...' : 'Sincronizar Datos'}
             </Button>
-            <Button variant="outline" className="rounded-none text-[10px] uppercase tracking-widest border-gray-200">
+            <Button variant="outline">
               Limpiar Caché
             </Button>
-            <Button variant="outline" className="rounded-none text-[10px] uppercase tracking-widest border-red-100 text-red-600 hover:bg-red-50 hover:text-red-700">
+            <Button variant="outline" className="border-gray-200 text-gray-600 hover:bg-gray-50">
               Exportar Logs
             </Button>
           </div>
@@ -176,65 +208,73 @@ function SecuritySettings() {
   }
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="text-sm uppercase tracking-wider font-semibold">
-          Seguridad y Sesión
-        </CardTitle>
-        <CardDescription className="text-xs">
-          Controla el acceso y la seguridad de tu cuenta en iSync Web
-        </CardDescription>
-      </CardHeader>
+    <div className="space-y-4">
+      <Card className="overflow-hidden">
+        <div className="h-1 bg-brand-primary" />
+        <CardHeader className="pb-4">
+          <CardTitle className="text-sm uppercase tracking-wider font-semibold flex items-center gap-2">
+            <Shield className="w-4 h-4 text-brand-primary" />
+            Seguridad y Sesión
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Controla el acceso y la seguridad de tu cuenta en iSync Web
+          </CardDescription>
+        </CardHeader>
 
-      <CardContent className="px-0 space-y-6">
+        <CardContent className="space-y-6">
 
-        {/* Estado de sesión */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <InfoItem label="Usuario" value={fullName || ""} />
-          <InfoItem label="Rol" value="Vendedor" />
-          <InfoItem label="Último acceso" value="09/02/2026 · 12:02 PM" />
-        </div>
-
-        {/* Sesiones */}
-        <div className="space-y-3">
-          <p className="text-[10px] uppercase tracking-widest text-gray-500">
-            Sesion Activa
-          </p>
-
-          <div className="p-4 border border-gray-100 flex justify-between items-center">
-            <div>
-              <p className="text-xs font-medium">Chrome · Windows</p>
-              <p className="text-[10px] text-gray-400">IP: 192.168.1.45</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-[10px] uppercase text-gray-400 mb-1">Usuario</p>
+              <p className="text-xs font-semibold">{fullName || "Usuario"}</p>
             </div>
-            <span className="text-[10px] uppercase text-green-600">
-              Actual
-            </span>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-[10px] uppercase text-gray-400 mb-1">Rol</p>
+              <p className="text-xs font-semibold">Vendedor</p>
+            </div>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100">
+              <p className="text-[10px] uppercase text-gray-400 mb-1">Último acceso</p>
+              <p className="text-xs font-semibold">09/02/2026 · 12:02 PM</p>
+            </div>
           </div>
-        </div>
 
-        <Separator className="my-6" />
+          <Separator />
 
-        {/* Logout */}
-        <Button
-          onClick={handleSignOut}
-          variant="destructive"
-          className="rounded-full text-xs uppercase tracking-widest cursor-pointer bg-red-600 shadow-none"
-        >
-          <LogOut size={14} className="mr-2" />
-          Cerrar sesión
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
+          <div className="space-y-3">
+            <p className="text-[10px] uppercase tracking-widest text-gray-500">
+              Sesión Activa
+            </p>
 
-function InfoItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-4 border border-gray-100">
-      <p className="text-[10px] uppercase tracking-widest text-gray-400">
-        {label}
-      </p>
-      <p className="text-xs font-medium">{value}</p>
+            <div className="p-4 bg-gray-50 rounded-lg border border-gray-100 flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                  <Smartphone size={18} className="text-brand-primary" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium">Chrome · Windows</p>
+                  <p className="text-[10px] text-gray-400">IP: 192.168.1.45</p>
+                </div>
+              </div>
+              <span className="text-[10px] uppercase bg-brand-primary/10 text-brand-primary px-2 py-1 rounded-full font-medium">
+                Actual
+              </span>
+            </div>
+          </div>
+
+          <Separator />
+
+          <div className="flex justify-end">
+            <Button
+              onClick={handleSignOut}
+              variant="destructive"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <LogOut size={14} className="mr-2" />
+              Cerrar sesión
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
