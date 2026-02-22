@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+
+import { VendorInfoPanel } from "@/components/dashboard/visitas/VendorInfoPanel";
 
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -17,6 +19,7 @@ mapboxgl.accessToken = mapboxToken || "";
 export default function Page() {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const [routeData, setRouteData] = useState<{ distance: number; duration: number } | null>(null);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -76,6 +79,11 @@ export default function Page() {
                     console.warn("No se encontró ninguna ruta");
                     return;
                   }
+
+                  setRouteData({
+                    distance: data.distance / 1000,
+                    duration: data.duration,
+                  });
                   
                   const route = data.geometry.coordinates;
 
@@ -149,11 +157,24 @@ export default function Page() {
     };
   }, []);
 
+  const vendorInfo = {
+    kmRecorridos: routeData ? Math.round(routeData.distance * 10) / 10 : 2.5,
+    checkIn: "08:30 AM",
+    checkOut: "12:45 PM",
+    tiempoTotal: "4h 15m",
+  };
+
   return (
-    <div className="h-[92vh]">
+    <div className="h-[92vh] relative">
       <div className="h-full">
         <div ref={mapContainer} className="w-full h-full" />
       </div>
+      <VendorInfoPanel
+        kmRecorridos={vendorInfo.kmRecorridos}
+        checkIn={vendorInfo.checkIn}
+        checkOut={vendorInfo.checkOut}
+        tiempoTotal={vendorInfo.tiempoTotal}
+      />
     </div>
   );
 }
