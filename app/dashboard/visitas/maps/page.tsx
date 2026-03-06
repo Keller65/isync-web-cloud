@@ -30,6 +30,10 @@ export default function Page() {
         style: "mapbox://styles/aerleyadkins/cmltpyifw001i01qw3y31gmjs",
         center: [-74.5, 40],
         zoom: 9,
+        pitch: 60,
+        bearing: -20,
+        antialias: true,
+        accessToken: mapboxToken
       });
 
       map.addControl(new mapboxgl.NavigationControl(), "top-right");

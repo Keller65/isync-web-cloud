@@ -4,6 +4,8 @@ import axios from "axios"
 import { LoginRequest, LoginResponse } from "@/types/api-types"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
+
   providers: [
     Credentials({
       name: "Credenciales",
@@ -24,28 +26,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           const apiHost = process.env.NEXT_PUBLIC_API_HOST
           if (!apiHost) {
-            console.error("La variable de entorno NEXT_PUBLIC_API_HOST no está definida.")
+            console.error("NEXT_PUBLIC_API_HOST no está definido")
             return null
           }
 
           const response = await axios.post<LoginResponse>(
             `${apiHost}/auth/employee`,
-            payload,
+            payload
           )
 
-          // Asumimos que si la respuesta tiene datos, es un login exitoso.
-          // ADVERTENCIA: Ajusta 'response.data' según la estructura real que devuelve tu API.
-          // NextAuth espera que retornes un objeto 'User'.
           if (response.status === 200 || response.status === 201) {
-            const apiData = response.data;
-            
+            const apiData = response.data
+
             return {
               id: String(apiData.salesPersonCode),
               name: apiData.fullName,
               salesPersonCode: apiData.salesPersonCode,
               token: apiData.token,
               fullName: apiData.fullName,
-              email: `${apiData.salesPersonCode}@sistema.local` // Email dummy opcional
+              email: `${apiData.salesPersonCode}@sistema.local`
             }
           }
         } catch (error) {
@@ -60,9 +59,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+
   pages: {
-    signIn: "/", // Ruta de login ahora es la raíz
+    signIn: "/",
   },
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -72,6 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
       return token
     },
+
     async session({ session, token }) {
       if (session.user) {
         session.user.salesPersonCode = token.salesPersonCode

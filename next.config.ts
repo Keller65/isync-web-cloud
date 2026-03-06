@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: undefined,
+  output: "standalone",
   devIndicators: false,
   experimental: {
     externalDir: true,
