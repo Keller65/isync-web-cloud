@@ -1,0 +1,14 @@
+services:
+  isync-web:
+    image: isync-web:latest
+    container_name: isync
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=secretodeejemplomuysegurocambiaraproduccion123
+      - AUTH_TRUST_HOST=true
+      - NEXT_PUBLIC_API_HOST=http://200.115.188.54:4325
+      - NEXT_PUBLIC_MAPBOX_TOKEN=pk.eyJ1IjoiYWVybGV5YWRraW5zIiwiYSI6ImNtbHRwcHE2aTAyc3IzcG9uNTl4Nm81MGsifQ.GV6OEfjv_7rGShFieXQ_rw
+      - HOSTNAME=0.0.0.0
+    restart: always
