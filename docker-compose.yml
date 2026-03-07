@@ -1,5 +1,6 @@
 services:
   isync-web:
+    build: .
     image: isync-web:latest
     container_name: isync
     ports:
