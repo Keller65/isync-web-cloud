@@ -106,7 +106,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
         {products.map((product, i) => {
           const isLast = i === products.length - 1
 
@@ -114,7 +114,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
             <div
               key={product.itemCode}
               ref={isLast ? lastItemRef : undefined}
-              className="border rounded-lg p-4 flex flex-col gap-2"
+              className="flex"
             >
               <ProductCard product={product} />
             </div>
@@ -123,7 +123,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
       </div>
 
       {loading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-5">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="h-40 w-full" />
@@ -233,7 +233,7 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
         {products.map((product, i) => {
           const isLast = i === products.length - 1
 
@@ -241,7 +241,7 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
             <div
               key={product.itemCode}
               ref={isLast ? lastItemRef : undefined}
-              className="border rounded-lg p-4 flex flex-col gap-2"
+              className="flex"
             >
               <ProductCard product={product} />
             </div>
@@ -250,7 +250,7 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mt-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-5">
           {Array.from({ length: 5 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="h-40 w-full" />
@@ -432,59 +432,85 @@ function ProductCard({ product }: { product: Product }) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <section className='cursor-pointer relative flex flex-col gap-2 bg-white'>
-            <div className="h-40 bg-white rounded-md flex items-center justify-center overflow-hidden">
-              <Image
-                src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
-                }}
-                alt={product.itemName}
-                className="h-full w-full object-contain"
-                height={400}
-                width={400}
-              />
+          <section className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 group overflow-hidden'>
+            <div className="h-44 bg-linear-to-b from-gray-50 to-white rounded-t-2xl flex items-center justify-center overflow-hidden p-3">
+              <div className="relative w-full h-full flex items-center justify-center">
+                <Image
+                  src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
+                  }}
+                  alt={product.itemName}
+                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                  height={400}
+                  width={400}
+                />
+              </div>
 
               {product.hasDiscount && (
-                <span className="absolute top-0 left-0">
-                  <SealPercent color={product.pricingSource === "GeneralSpecialPrice" ? "red" : "green"} weight='fill' size={24} />
-                </span>
+                <div className="absolute top-0 right-0">
+                  <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${
+                    product.pricingSource === "GeneralSpecialPrice" 
+                      ? 'bg-linear-to-r from-red-500 to-red-600' 
+                      : 'bg-linear-to-r from-emerald-500 to-emerald-600'
+                  }`}>
+                    <div className="flex items-center gap-1">
+                      <SealPercent weight="fill" size={14} />
+                      <span>OFERTA</span>
+                    </div>
+                  </div>
+                </div>
               )}
 
               {product.inStock <= 0 && (
-                <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
-                  <span className="text-xs font-bold bg-destructive text-white px-2 py-1 rounded">
+                <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center backdrop-blur-[2px]">
+                  <span className="text-xs font-bold bg-gray-900 text-white px-4 py-2 rounded-full">
                     SIN STOCK
+                  </span>
+                </div>
+              )}
+
+              {product.inStock > 0 && product.inStock <= 10 && (
+                <div className="absolute top-2 left-2">
+                  <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                    ¡Últimas {product.inStock}!
                   </span>
                 </div>
               )}
             </div>
 
-            <h3 className="font-medium text-sm line-clamp-2 min-h-10">
-              {product.itemName}
-            </h3>
+            <div className="p-4 flex flex-col gap-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-semibold text-sm text-gray-800 line-clamp-2 leading-tight flex-1">
+                  {product.itemName}
+                </h3>
+              </div>
 
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{product.itemCode}</span>
-              <span className="bg-secondary px-2 rounded">
-                {product.salesUnit}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-primary">
-                L.{finalPrice.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-
-              {tier && (
-                <span className="line-through text-xs text-muted-foreground">
-                  L.{product.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500 font-medium">{product.itemCode}</span>
+                <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium text-[10px]">
+                  {product.salesUnit}
                 </span>
-              )}
+              </div>
+
+              <div className="mt-1 flex items-baseline gap-2">
+                <span className="text-xl font-black text-brand-primary">
+                  L.{finalPrice.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+
+                {tier && (
+                  <span className="text-xs text-gray-400 line-through">
+                    L.{product.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                )}
+              </div>
+
+              <div className="pt-2">
+                <Button className="w-full text-sm rounded-xl bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white transition-all duration-200 font-semibold py-2.5">
+                  Ver Detalles
+                </Button>
+              </div>
             </div>
-            <Button className="w-full text-sm rounded-full bg-brand-primary hover:bg-brand-primary/90 text-white shadow-none">
-              Ver Detalles
-            </Button>
           </section>
         </DialogTrigger>
 
@@ -692,7 +718,7 @@ function ProductCard({ product }: { product: Product }) {
               </div>
             </div>
             <Button
-              className="bg-brand-primary hover:bg-brand-primary/90 rounded-full px-6 py-3 h-auto text-xs font-bold shadow-lg transition-transform active:scale-95"
+              className="bg-brand-primary hover:bg-brand-primary/90 rounded-full px-6 py-3 h-auto text-xs font-bold transition-transform active:scale-95"
               onClick={handleAddToCart}
               disabled={product.inStock <= 0 || !isPriceValid}
             >
