@@ -43,13 +43,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
   const [hasMore, setHasMore] = useState(true)
   const observer = useRef<IntersectionObserver | null>(null)
 
-  const filteredProducts = products.filter(product => {
-    if (filters?.subCategory) {
-      const subCatMatch = product.subCategoryName === filters.subCategory
-      if (!subCatMatch) return false
-    }
-    return true
-  })
+  const filteredProducts = products
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -86,6 +80,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
             groupCode,
             page,
             pageSize: 20,
+            search: filters?.subCategory || undefined,
           },
           headers: {
             Authorization: `Bearer ${token}`,
@@ -110,7 +105,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
     } finally {
       setLoading(false)
     }
-  }, [token, page, selectedCustomer, hasMore, endpoint, groupCode])
+  }, [token, page, selectedCustomer, hasMore, endpoint, groupCode, filters])
 
   /* Reset al cambiar cliente o categoría */
   useEffect(() => {
@@ -182,13 +177,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
 
-  const filteredProducts = products.filter(product => {
-    if (filters?.subCategory) {
-      const subCatMatch = product.subCategoryName === filters.subCategory
-      if (!subCatMatch) return false
-    }
-    return true
-  })
+  const filteredProducts = products
   const observer = useRef<IntersectionObserver | null>(null)
 
   const lastItemRef = useCallback(
@@ -217,11 +206,15 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
       const cardCode = selectedCustomer?.cardCode ?? '205'
       const priceList = selectedCustomer?.priceListNum ?? 1
 
+      const combinedSearch = filters?.subCategory 
+        ? `${searchTerm} ${filters.subCategory}`.trim()
+        : searchTerm
+
       const res = await axios.get(
         `/api-proxy/api/Catalog/products/search`,
         {
           params: {
-            search: searchTerm,
+            search: combinedSearch,
             cardCode,
             priceList,
             groupCode: 0,
@@ -251,7 +244,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
     } finally {
       setLoading(false)
     }
-  }, [token, page, selectedCustomer, hasMore, searchTerm])
+  }, [token, page, selectedCustomer, hasMore, searchTerm, filters])
 
   /* Reset al cambiar cliente o término de búsqueda */
   useEffect(() => {
@@ -266,7 +259,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
         {filteredProducts.map((product, i) => {
           const isLast = i === filteredProducts.length - 1
 
@@ -841,7 +834,7 @@ export default function Page() {
         <div className="flex gap-2">
           <InputGroup className="rounded-full h-12.5 px-2 flex-1">
             <InputGroupInput
-              placeholder="Buscar Producto por nombre, codigo, etc..."
+              placeholder={filters.subCategory ? '' : "Buscar Producto por nombre, codigo, etc..."}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
@@ -852,7 +845,7 @@ export default function Page() {
 
           <Popover open={filterOpen} onOpenChange={setFilterOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="h-12.5 rounded-full px-4 relative">
+              <Button variant="outline" className="h-12.5 w-12.5 rounded-full px-4 relative">
                 <Funnel size={24} />
                 {activeFiltersCount > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
@@ -872,6 +865,7 @@ export default function Page() {
                 <button
                   onClick={() => {
                     setFilters(prev => ({ ...prev, subCategory: null }))
+                    setSearchTerm('')
                     setFilterOpen(false)
                   }}
                   className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
@@ -890,6 +884,7 @@ export default function Page() {
                     key={activeCategory === 'ofertas' ? `${sub.catCode}-${idx}` : idx}
                     onClick={() => {
                       setFilters(prev => ({ ...prev, subCategory: sub.name }))
+                      setSearchTerm(sub.name)
                       setFilterOpen(false)
                     }}
                     className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
