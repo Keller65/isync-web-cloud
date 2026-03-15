@@ -15,6 +15,7 @@ export type Product = {
   itemName: string;
   groupCode: number | string;
   groupName: string;
+  subCategoryName?: string;
   inStock: number;
   committed: number;
   ordered: number;

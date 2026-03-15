@@ -15,14 +15,26 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '
 import { Product } from '@/types/products'
 import Image from 'next/image'
 import { BackButton } from '@/components/ui/back-button'
-import { MagnifyingGlass, SealPercent, Tag } from '@phosphor-icons/react'
+import { MagnifyingGlass, SealPercent, Tag, Funnel } from '@phosphor-icons/react'
+import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription } from '@/components/ui/popover'
+import { Badge } from '@/components/ui/badge'
+
+interface SubCategory {
+  name: string
+}
 
 interface Category {
   code: string
   name: string
+  subCategories?: SubCategory[]
 }
 
-function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?: string | number }) {
+interface ProductFilters {
+  subCategory: string | null,
+  inStock: boolean,
+}
+
+function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, groupCode?: string | number, filters?: ProductFilters }) {
   const { token } = useAuthStore()
   const { selectedCustomer } = useCustomerStore()
   const [products, setProducts] = useState<Product[]>([])
@@ -30,6 +42,14 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const observer = useRef<IntersectionObserver | null>(null)
+
+  const filteredProducts = products.filter(product => {
+    if (filters?.subCategory) {
+      const subCatMatch = product.subCategoryName === filters.subCategory
+      if (!subCatMatch) return false
+    }
+    return true
+  })
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement | null) => {
@@ -106,8 +126,8 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
   return (
     <div className="py-4">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
-        {products.map((product, i) => {
-          const isLast = i === products.length - 1
+        {filteredProducts.map((product, i) => {
+          const isLast = i === filteredProducts.length - 1
 
           return (
             <div
@@ -133,7 +153,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
         </div>
       )}
 
-      {!hasMore && products.length > 0 && (
+      {!hasMore && filteredProducts.length > 0 && (
         <p className="text-center text-muted-foreground mt-8">
           No hay más productos disponibles.
         </p>
@@ -144,17 +164,31 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
           No se encontraron productos.
         </p>
       )}
+
+      {!loading && products.length > 0 && filteredProducts.length === 0 && (
+        <p className="text-center text-muted-foreground mt-8">
+          No hay productos que coincidan con los filtros.
+        </p>
+      )}
     </div>
   )
 }
 
-function SearchedProducts({ searchTerm }: { searchTerm: string }) {
+function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters?: ProductFilters }) {
   const { token } = useAuthStore()
   const { selectedCustomer } = useCustomerStore()
   const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+
+  const filteredProducts = products.filter(product => {
+    if (filters?.subCategory) {
+      const subCatMatch = product.subCategoryName === filters.subCategory
+      if (!subCatMatch) return false
+    }
+    return true
+  })
   const observer = useRef<IntersectionObserver | null>(null)
 
   const lastItemRef = useCallback(
@@ -233,8 +267,8 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
   return (
     <div className="py-4">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-        {products.map((product, i) => {
-          const isLast = i === products.length - 1
+        {filteredProducts.map((product, i) => {
+          const isLast = i === filteredProducts.length - 1
 
           return (
             <div
@@ -260,7 +294,7 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
         </div>
       )}
 
-      {!hasMore && products.length > 0 && (
+      {!hasMore && filteredProducts.length > 0 && (
         <p className="text-center text-muted-foreground mt-8">
           No hay más productos disponibles.
         </p>
@@ -271,16 +305,22 @@ function SearchedProducts({ searchTerm }: { searchTerm: string }) {
           No se encontraron productos para "{searchTerm}".
         </p>
       )}
+
+      {!loading && products.length > 0 && filteredProducts.length === 0 && (
+        <p className="text-center text-muted-foreground mt-8">
+          No hay productos que coincidan con los filtros.
+        </p>
+      )}
     </div>
   )
 }
 
-function DiscountedProducts() {
-  return <ProductList endpoint="/api/Catalog/products/discounted-by-customer" groupCode={0} />
+function DiscountedProducts({ filters }: { filters?: ProductFilters }) {
+  return <ProductList endpoint="/api/Catalog/products/discounted-by-customer" groupCode={0} filters={filters} />
 }
 
-function CategoryProducts({ groupCode }: { groupCode: string }) {
-  return <ProductList endpoint="/api/Catalog/products/search" groupCode={groupCode} />
+function CategoryProducts({ groupCode, filters }: { groupCode: string, filters?: ProductFilters }) {
+  return <ProductList endpoint="/api/Catalog/products/search" groupCode={groupCode} filters={filters} />
 }
 
 function ProductCard({ product }: { product: Product }) {
@@ -431,14 +471,11 @@ function ProductCard({ product }: { product: Product }) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <section className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-100 hover:border-gray-200 transition-all duration-300 group overflow-hidden'>
+          <section className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-200 transition-all duration-300 group overflow-hidden'>
             <div className="h-44 bg-linear-to-b from-gray-50 to-white rounded-t-2xl flex items-center justify-center overflow-hidden p-3">
               <div className="relative w-full h-full flex items-center justify-center">
                 <Image
-                  src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
-                  }}
+                  src={"https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"}
                   alt={product.itemName}
                   className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
                   height={400}
@@ -448,11 +485,10 @@ function ProductCard({ product }: { product: Product }) {
 
               {product.hasDiscount && (
                 <div className="absolute top-0 right-0">
-                  <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${
-                    product.pricingSource === "GeneralSpecialPrice" 
-                      ? 'bg-linear-to-r from-red-500 to-red-600' 
+                  <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${product.pricingSource === "GeneralSpecialPrice"
+                      ? 'bg-linear-to-r from-red-500 to-red-600'
                       : 'bg-linear-to-r from-emerald-500 to-emerald-600'
-                  }`}>
+                    }`}>
                     <div className="flex items-center gap-1">
                       <SealPercent weight="fill" size={14} />
                       <span>OFERTA</span>
@@ -462,8 +498,8 @@ function ProductCard({ product }: { product: Product }) {
               )}
 
               {product.inStock <= 0 && (
-                <div className="absolute inset-0 bg-gray-900/60 flex items-center justify-center backdrop-blur-[2px]">
-                  <span className="text-xs font-bold bg-gray-900 text-white px-4 py-2 rounded-full">
+                <div className="absolute top-3 right-3">
+                  <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-1 rounded-full">
                     SIN STOCK
                   </span>
                 </div>
@@ -505,7 +541,14 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               <div className="pt-2">
-                <Button className="w-full text-sm rounded-xl bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white transition-all duration-200 font-semibold py-2.5">
+                <Button 
+                  disabled={product.inStock <= 0}
+                  className={`w-full text-sm rounded-full font-semibold py-2.5 transition-all duration-200 ${
+                    product.inStock <= 0 
+                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                      : 'bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white'
+                  }`}
+                >
                   Ver Detalles
                 </Button>
               </div>
@@ -752,6 +795,12 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('ofertas')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [filters, setFilters] = useState({
+    subCategory: null as string | null,
+  })
+
+  const activeFiltersCount = filters.subCategory ? 1 : 0
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -789,16 +838,73 @@ export default function Page() {
       <BackButton />
 
       <div className="sticky bg-[#f9fafb] top-12 z-10 pt-6 pb-2">
-        <InputGroup className="rounded-full h-12.5 px-2">
-          <InputGroupInput
-            placeholder="Buscar Producto por nombre, codigo, etc..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-          />
-          <InputGroupAddon>
-            <MagnifyingGlass size={32} />
-          </InputGroupAddon>
-        </InputGroup>
+        <div className="flex gap-2">
+          <InputGroup className="rounded-full h-12.5 px-2 flex-1">
+            <InputGroupInput
+              placeholder="Buscar Producto por nombre, codigo, etc..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+            <InputGroupAddon>
+              <MagnifyingGlass size={32} />
+            </InputGroupAddon>
+          </InputGroup>
+
+          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-12.5 rounded-full px-4 relative">
+                <Funnel size={24} />
+                {activeFiltersCount > 0 && (
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72" align="end">
+              <PopoverHeader>
+                <PopoverTitle>
+                  {activeCategory === 'ofertas' ? 'Todas las Subcategorías' : categories.find(c => c.code === activeCategory)?.name || 'Subcategorías'}
+                </PopoverTitle>
+              </PopoverHeader>
+              
+              <div className="max-h-64 overflow-y-auto space-y-1 pt-1">
+                <button
+                  onClick={() => {
+                    setFilters(prev => ({ ...prev, subCategory: null }))
+                    setFilterOpen(false)
+                  }}
+                  className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
+                    filters.subCategory === null 
+                      ? 'bg-brand-primary/10 text-brand-primary font-medium' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  Todas las subcategorías
+                </button>
+                {(activeCategory === 'ofertas' 
+                  ? categories.flatMap(cat => (cat.subCategories || []).map(sub => ({ ...sub, catCode: cat.code })))
+                  : categories.find(c => c.code === activeCategory)?.subCategories || []
+                ).map((sub: any, idx: number) => (
+                  <button
+                    key={activeCategory === 'ofertas' ? `${sub.catCode}-${idx}` : idx}
+                    onClick={() => {
+                      setFilters(prev => ({ ...prev, subCategory: sub.name }))
+                      setFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
+                      filters.subCategory === sub.name 
+                        ? 'bg-brand-primary/10 text-brand-primary font-medium' 
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       {debouncedSearchTerm ? (
@@ -809,11 +915,10 @@ export default function Page() {
             <nav className="sticky top-40 overflow-hidden">
               <button
                 onClick={() => setActiveCategory('ofertas')}
-                className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${
-                  activeCategory === 'ofertas'
+                className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${activeCategory === 'ofertas'
                     ? 'bg-brand-primary text-white'
                     : 'text-gray-600 hover:bg-gray-50'
-                }`}
+                  }`}
               >
                 <Tag size={16} weight="fill" />
                 <span className="font-medium text-sm">Ofertas</span>
@@ -830,11 +935,10 @@ export default function Page() {
                   <button
                     key={cat.code}
                     onClick={() => setActiveCategory(cat.code)}
-                    className={`w-full flex items-center px-1 py-2 text-left transition-colors ${
-                      activeCategory === cat.code
+                    className={`w-full flex items-center px-1 py-2 text-left transition-colors ${activeCategory === cat.code
                         ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
                         : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
-                    }`}
+                      }`}
                   >
                     <span className="font-medium text-xs truncate">{cat.name}</span>
                   </button>
