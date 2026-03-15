@@ -259,7 +259,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
         {filteredProducts.map((product, i) => {
           const isLast = i === filteredProducts.length - 1
 
@@ -902,55 +902,59 @@ export default function Page() {
         </div>
       </div>
 
-      {debouncedSearchTerm ? (
-        <SearchedProducts searchTerm={debouncedSearchTerm} />
-      ) : (
-        <div className="flex">
-          <aside className="w-56 shrink-0">
-            <nav className="sticky top-40 overflow-hidden">
-              <button
-                onClick={() => setActiveCategory('ofertas')}
-                className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${activeCategory === 'ofertas'
-                    ? 'bg-brand-primary text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-              >
-                <Tag size={16} weight="fill" />
-                <span className="font-medium text-sm">Ofertas</span>
-              </button>
+      <div className="flex">
+        <aside className="w-56 shrink-0">
+          <nav className="sticky top-40 overflow-hidden">
+            <button
+              onClick={() => {
+                setActiveCategory('ofertas')
+                setSearchTerm('')
+              }}
+              className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${activeCategory === 'ofertas'
+                  ? 'bg-brand-primary text-white'
+                  : 'text-gray-600 hover:bg-gray-50'
+                }`}
+            >
+              <Tag size={16} weight="fill" />
+              <span className="font-medium text-sm">Ofertas</span>
+            </button>
 
-              <div className="px-4 py-2 border-t">
-                <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                  Categorías
-                </span>
-              </div>
+            <div className="px-4 py-2 border-t">
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                Categorías
+              </span>
+            </div>
 
-              <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
-                {categories.map(cat => (
-                  <button
-                    key={cat.code}
-                    onClick={() => setActiveCategory(cat.code)}
-                    className={`w-full flex items-center px-1 py-2 text-left transition-colors ${activeCategory === cat.code
-                        ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
-                        : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
-                      }`}
-                  >
-                    <span className="font-medium text-xs truncate">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-            </nav>
-          </aside>
+            <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
+              {categories.map(cat => (
+                <button
+                  key={cat.code}
+                  onClick={() => {
+                    setActiveCategory(cat.code)
+                    setSearchTerm('')
+                  }}
+                  className={`w-full flex items-center px-1 py-2 text-left transition-colors ${activeCategory === cat.code
+                      ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
+                      : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+                    }`}
+                >
+                  <span className="font-medium text-xs truncate">{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          </nav>
+        </aside>
 
-          <main className="flex-1 min-w-0 pl-4">
-            {activeCategory === 'ofertas' ? (
-              <DiscountedProducts />
-            ) : (
-              <CategoryProducts groupCode={activeCategory} />
-            )}
-          </main>
-        </div>
-      )}
+        <main className="flex-1 min-w-0 pl-4">
+          {debouncedSearchTerm ? (
+            <SearchedProducts searchTerm={debouncedSearchTerm} />
+          ) : activeCategory === 'ofertas' ? (
+            <DiscountedProducts />
+          ) : (
+            <CategoryProducts groupCode={activeCategory} />
+          )}
+        </main>
+      </div>
     </div>
   )
 }
