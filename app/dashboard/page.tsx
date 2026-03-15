@@ -1,49 +1,20 @@
 "use client"
 
+import { useEffect, useState } from 'react'
 import {
   ArrowUpRight,
   ArrowDownRight,
-  Briefcase,
-  Calendar,
-  ChevronDown,
-  ChevronRight,
-  Clock,
-  Download,
-  MoreHorizontal,
-  Search,
-  User,
+  DollarSign,
   Users,
-} from "lucide-react"
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-
-import { Line, Doughnut } from "react-chartjs-2"
+  Package,
+  Receipt,
+  Target,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/app/lib/store'
+import { Line, Doughnut } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -54,7 +25,8 @@ import {
   Tooltip,
   Legend,
   ArcElement,
-} from "chart.js"
+  Filler,
+} from 'chart.js'
 
 ChartJS.register(
   CategoryScale,
@@ -64,312 +36,360 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  Filler
 )
 
-export default function AnalyticsPage() {
-  const lineChartData = {
-    labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+interface KPIMetric {
+  title: string
+  value: string
+  change: number
+  icon: React.ReactNode
+  trend: 'up' | 'down'
+}
+
+interface Order {
+  docNum: string
+  cardName: string
+  docDate: string
+  docTotal: number
+  status: 'pending' | 'completed' | 'cancelled'
+}
+
+interface TopProduct {
+  itemName: string
+  quantity: number
+  total: number
+}
+
+function CircularProgress({ value, max, label }: { value: number; max: number; label: string }) {
+  const percentage = Math.min((value / max) * 100, 100)
+  const radius = 70
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (percentage / 100) * circumference
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <svg className="transform -rotate-90 w-44 h-44">
+        <circle
+          cx="88"
+          cy="88"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="12"
+          fill="transparent"
+          className="text-gray-200"
+        />
+        <circle
+          cx="88"
+          cy="88"
+          r={radius}
+          stroke="currentColor"
+          strokeWidth="12"
+          fill="transparent"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          className="text-brand-primary transition-all duration-1000"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-3xl font-black text-brand-primary">{Math.round(percentage)}%</span>
+        <span className="text-xs text-gray-500">{label}</span>
+      </div>
+    </div>
+  )
+}
+
+export default function DashboardPage() {
+  const { token } = useAuthStore()
+
+  const kpis: KPIMetric[] = [
+    { title: 'Ventas del Día', value: 'L. 245,890', change: 12.5, icon: <DollarSign className="w-5 h-5" />, trend: 'up' },
+    { title: 'Pedidos del Día', value: '48', change: 8.2, icon: <Receipt className="w-5 h-5" />, trend: 'up' },
+    { title: 'Clientes Activos', value: '156', change: -2.4, icon: <Users className="w-5 h-5" />, trend: 'down' },
+    { title: 'Productos Vendidos', value: '892', change: 15.3, icon: <Package className="w-5 h-5" />, trend: 'up' },
+  ]
+
+  const orders: Order[] = [
+    { docNum: '1001', cardName: 'Distribuciones García', docDate: '15/03/2026', docTotal: 15420, status: 'pending' },
+    { docNum: '1002', cardName: 'Ferretería López', docDate: '15/03/2026', docTotal: 8750, status: 'completed' },
+    { docNum: '1003', cardName: 'Constructora ABC', docDate: '14/03/2026', docTotal: 42300, status: 'pending' },
+    { docNum: '1004', cardName: 'Servicios Metals', docDate: '14/03/2026', docTotal: 12800, status: 'completed' },
+    { docNum: '1005', cardName: 'Agroindustrias del Norte', docDate: '13/03/2026', docTotal: 6750, status: 'cancelled' },
+    { docNum: '1006', cardName: 'Maquinarias Honduras', docDate: '13/03/2026', docTotal: 31500, status: 'completed' },
+  ]
+
+  const topProducts: TopProduct[] = [
+    { itemName: 'Bomba Centrífuga 2HP', quantity: 45, total: 225000 },
+    { itemName: 'Motor Eléctrico 5HP', quantity: 32, total: 384000 },
+    { itemName: 'Válvula Check 2"', quantity: 120, total: 84000 },
+    { itemName: 'Tubo PVC 3" x 6m', quantity: 250, total: 125000 },
+    { itemName: 'Medidor de Agua', quantity: 85, total: 127500 },
+  ]
+
+  const monthlyGoal = 12000000
+  const currentProgress = 9360000
+  const remaining = monthlyGoal - currentProgress
+
+  const salesData = {
+    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
     datasets: [
       {
-        label: "Average Team KPI",
-        data: [65, 59, 80, 81, 56, 55, 40],
-        fill: false,
-        borderColor: "rgb(75, 192, 192)",
-        tension: 0.1,
+        label: 'Ventas (L)',
+        data: [1450000, 1680000, 1320000, 1890000, 2100000, 2450000, 1580000],
+        borderColor: 'rgb(59, 130, 246)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        fill: true,
+        tension: 0.4,
       },
     ],
   }
 
-  const doughnutChartData = {
-    labels: ["Satisfied", "Neutral", "Unsatisfied"],
+  const ordersByStatus = {
+    labels: ['Pendientes', 'Completados', 'Cancelados'],
     datasets: [
       {
-        data: [75, 15, 10],
-        backgroundColor: ["#34D399", "#FBBF24", "#F87171"],
-        hoverBackgroundColor: ["#10B981", "#F59E0B", "#EF4444"],
+        data: [12, 28, 5],
+        backgroundColor: ['#F59E0B', '#10B981', '#EF4444'],
         borderWidth: 0,
       },
     ],
   }
 
+  const salesByCategory = {
+    labels: ['Bombas', 'Motor Eléc.', 'Tubería', 'Válvulas', 'Otros'],
+    datasets: [
+      {
+        data: [35, 25, 20, 12, 8],
+        backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#6B7280'],
+        borderWidth: 0,
+      },
+    ],
+  }
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+    },
+    scales: {
+      y: { 
+        beginAtZero: true,
+        grid: { color: 'rgba(0,0,0,0.05)' },
+      },
+      x: {
+        grid: { display: false },
+      },
+    },
+  }
+
+  const doughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          padding: 15,
+          usePointStyle: true,
+        },
+      },
+    },
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-HN', {
+      style: 'currency',
+      currency: 'HNL',
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const getStatusBadge = (status: Order['status']) => {
+    switch (status) {
+      case 'pending':
+        return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Pendiente</Badge>
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Completado</Badge>
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-700 hover:bg-red-100">Cancelado</Badge>
+    }
+  }
+
+  if (!token) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Inicia sesión para ver el dashboard.</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-8 p-4 sm:p-8 bg-gray-50/50">
+    <div className="flex flex-col gap-6 p-4 sm:p-6 bg-gray-50/50">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
-            Good morning, Oscar Piastri!
+          <h1 className="text-2xl font-bold text-gray-800">
+            Dashboard
           </h1>
-          <p className="text-gray-500">It&apos;s Wednesday, 24 August 2024</p>
+          <p className="text-gray-500 text-sm">Resumen de tu negocio</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
-            <Calendar className="w-4 h-4" />
-            <span>Calendar</span>
+          <Button variant="outline" size="sm">
+            Esta Semana
           </Button>
-          <Button className="gap-2">
-            <Download className="w-4 h-4" />
-            <span>Export</span>
+          <Button size="sm">
+            Exportar
           </Button>
         </div>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Employee
-            </CardTitle>
-            <Users className="w-4 h-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">432</div>
-            <p className="text-xs text-green-500 flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+3.5%</span>
-              <span className="text-gray-500 ml-1">Than last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Payrolls</CardTitle>
-            <Briefcase className="w-4 h-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-green-500 flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+5%</span>
-              <span className="text-gray-500 ml-1">Than last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Turnover Rate</CardTitle>
-            <Users className="w-4 h-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">8%</div>
-            <p className="text-xs text-red-500 flex items-center gap-1">
-              <ArrowDownRight className="w-3 h-3" />
-              <span>-1%</span>
-              <span className="text-gray-500 ml-1">Than last month</span>
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">
-              Job Applicants
-            </CardTitle>
-            <User className="w-4 h-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-green-500 flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>+6%</span>
-              <span className="text-gray-500 ml-1">Than last month</span>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-2 flex flex-col gap-6">
-          <Card>
-            <CardHeader className="flex-row items-center justify-between">
-              <div className="flex items-center gap-4">
-                <CardTitle>Schedule</CardTitle>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span>Today, Wed, 24 Aug 2024</span>
-                  <ChevronDown className="w-4 h-4" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map((kpi, idx) => (
+          <Card key={idx} className="relative overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">{kpi.title}</p>
+                  <p className="text-2xl font-bold mt-1">{kpi.value}</p>
+                  <div className={`flex items-center gap-1 mt-2 text-xs ${
+                    kpi.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {kpi.trend === 'up' ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                    <span className="font-medium">{Math.abs(kpi.change)}%</span>
+                    <span className="text-gray-400">vs mes anterior</span>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-brand-primary/10 text-brand-primary">
+                  {kpi.icon}
                 </div>
               </div>
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="meetings">
-                <TabsList>
-                  <TabsTrigger value="meetings">Meetings</TabsTrigger>
-                  <TabsTrigger value="tasks">Tasks</TabsTrigger>
-                  <TabsTrigger value="events">Events</TabsTrigger>
-                </TabsList>
-                <TabsContent value="meetings" className="mt-4">
-                  <div className="space-y-4">
-                    <div className="border p-4 rounded-lg">
-                      <p className="font-semibold">
-                        Interview Candidate - UI/UX Designer
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>13:00 - 13:30</span>
-                        </div>
-                        <Avatar className="w-6 h-6">
-                          <AvatarImage src="https://github.com/shadcn.png" />
-                          <AvatarFallback>AK</AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <a
-                        href="#"
-                        className="text-sm text-blue-500 flex items-center gap-1 mt-2"
-                      >
-                        Go to link <ChevronRight className="w-4 h-4" />
-                      </a>
-                    </div>
-                    <div className="border p-4 rounded-lg">
-                      <p className="font-semibold">Retro Day - HR Departement</p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 mt-2">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          <span>15:00 - 16:00</span>
-                        </div>
-                        <div className="flex items-center -space-x-2">
-                           <Avatar className="w-6 h-6 border-2 border-white">
-                            <AvatarImage src="https://github.com/shadcn.png" />
-                            <AvatarFallback>CN</AvatarFallback>
-                          </Avatar>
-                           <Avatar className="w-6 h-6 border-2 border-white">
-                            <AvatarImage src="https://github.com/vercel.png" />
-                            <AvatarFallback>VC</AvatarFallback>
-                          </Avatar>
-                           <Avatar className="w-6 h-6 border-2 border-white">
-                             <AvatarFallback>+4</AvatarFallback>
-                          </Avatar>
-                        </div>
-                      </div>
-                       <a
-                        href="#"
-                        className="text-sm text-blue-500 flex items-center gap-1 mt-2"
-                      >
-                        Go to link <ChevronRight className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
             </CardContent>
           </Card>
+        ))}
+      </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>List Employee</CardTitle>
-              <div className="relative mt-2">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                <Input placeholder="Search employee..." className="pl-8" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Employee ID</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">
-                      Sarah Schmidt
-                    </TableCell>
-                    <TableCell>203142131</TableCell>
-                    <TableCell>Senior Engineer</TableCell>
-                    <TableCell>j.jones@outlook.com</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge>
-                    </TableCell>
-                  </TableRow>
-                   <TableRow>
-                    <TableCell className="font-medium">
-                      Mikayla Laudrup
-                    </TableCell>
-                    <TableCell>203142132</TableCell>
-                    <TableCell>Product Designer</TableCell>
-                    <TableCell>rodger913@aol.com</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-green-500 border-green-500">Active</Badge>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Sales Chart */}
+        <Card className="lg:col-span-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-lg font-semibold">Ventas de la Semana</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              <Line data={salesData} options={chartOptions} />
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Right Column */}
-        <div className="lg:col-span-1 flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Average Team KPI</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-60">
-                <Line data={lineChartData} options={{ maintainAspectRatio: false }} />
-              </div>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader>
-              <CardTitle>Employment Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
-                <div className="bg-blue-600 h-2.5 rounded-l-full" style={{ width: '49%' }}></div>
-                <div className="bg-teal-400 h-2.5" style={{ width: '31%', float: 'left' }}></div>
-                <div className="bg-red-500 h-2.5 rounded-r-full" style={{ width: '20%', float: 'left' }}></div>
+        {/* Monthly Goal */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Target className="w-5 h-5 text-brand-primary" />
+              Meta Mensual
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CircularProgress 
+              value={currentProgress} 
+              max={monthlyGoal} 
+              label="Completado"
+            />
+            <div className="mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Actual</span>
+                <span className="font-bold">{formatCurrency(currentProgress)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                 <div><span className="inline-block w-2 h-2 mr-2 bg-blue-600 rounded-full"></span>Permanent</div>
-                 <div><span className="inline-block w-2 h-2 mr-2 bg-teal-400 rounded-full"></span>Contract</div>
-                 <div><span className="inline-block w-2 h-2 mr-2 bg-red-500 rounded-full"></span>Probation</div>
+                <span className="text-gray-500">Meta</span>
+                <span className="font-bold">{formatCurrency(monthlyGoal)}</span>
               </div>
-               <div className="flex justify-between text-lg font-bold mt-1">
-                 <div>232</div>
-                 <div>112</div>
-                 <div>46</div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Restante</span>
+                <span className="font-bold text-amber-600">{formatCurrency(remaining)}</span>
               </div>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader>
-              <CardTitle>Leave Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-4">
-               <div>
-                 <p className="text-gray-500 text-sm">Annual Leave</p>
-                 <p className="text-lg font-bold">12 Days</p>
-                 <a href="#" className="text-sm text-blue-500 flex items-center gap-1">Request Leave <ChevronRight className="w-4 h-4" /></a>
-               </div>
-                <div>
-                 <p className="text-gray-500 text-sm">Sick Leave Used</p>
-                 <p className="text-lg font-bold">5 Days</p>
-                 <a href="#" className="text-sm text-blue-500 flex items-center gap-1">Request Leave <ChevronRight className="w-4 h-4" /></a>
-               </div>
-            </CardContent>
-          </Card>
-           <Card>
-            <CardHeader>
-              <CardTitle>Employee Satisfactory</CardTitle>
-            </CardHeader>
-            <CardContent>
-               <div className="h-40">
-                <Doughnut data={doughnutChartData} options={{ maintainAspectRatio: false }} />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Sales by Category */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-semibold">Ventas por Categoría</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-56">
+              <Doughnut data={salesByCategory} options={doughnutOptions} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Orders */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Pedidos Recientes</CardTitle>
+            <Button variant="ghost" size="sm">Ver todos</Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {orders.map((order) => (
+                <div key={order.docNum} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-white">
+                      <Receipt className="w-5 h-5 text-gray-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{order.cardName}</p>
+                      <p className="text-xs text-gray-500">#{order.docNum} • {order.docDate}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{formatCurrency(order.docTotal)}</p>
+                    {getStatusBadge(order.status)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Top Products */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-semibold">Productos Más Vendidos</CardTitle>
+            <Button variant="ghost" size="sm">Ver todos</Button>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {topProducts.map((product, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary flex items-center justify-center text-sm font-bold">
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm line-clamp-1">{product.itemName}</p>
+                      <p className="text-xs text-gray-500">{product.quantity} unidades</p>
+                    </div>
+                  </div>
+                  <p className="font-bold text-brand-primary">{formatCurrency(product.total)}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

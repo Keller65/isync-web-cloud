@@ -19,8 +19,15 @@ type Device = {
   history: [number, number][];
 };
 
+function getDate30DaysAgo(): Date {
+  const date = new Date();
+  date.setDate(date.getDate() - 30);
+  return date;
+}
+
 export function useTrackerDevices() {
   const [devices, setDevices] = useState<Device[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const clientRef = useRef<LocationClient | null>(null);
 
   async function getClient() {
@@ -53,25 +60,41 @@ export function useTrackerDevices() {
       for (const d of list) {
         if (!d.DeviceId || !d.Position) continue;
 
-        const historyRes = await client.send(
-          new GetDevicePositionHistoryCommand({
-            TrackerName: TRACKER,
-            DeviceId: d.DeviceId,
-            MaxResults: 50,
-          })
-        );
+        const startTime = getDate30DaysAgo();
+        let allPositions: [number, number][] = [];
+        let nextToken: string | undefined;
 
-        const history =
-          historyRes.DevicePositions?.map((p) => p.Position as [number, number]) || [];
+        do {
+          const historyRes = await client.send(
+            new GetDevicePositionHistoryCommand({
+              TrackerName: TRACKER,
+              DeviceId: d.DeviceId,
+              MaxResults: 100,
+              StartTimeInclusive: startTime,
+              NextToken: nextToken,
+            })
+          );
+
+          const positions = historyRes.DevicePositions?.map((p) => p.Position as [number, number]) || [];
+          allPositions = [...allPositions, ...positions];
+          nextToken = historyRes.NextToken;
+
+        } while (nextToken);
+
+        console.log(`📍 ${d.DeviceId}: ${allPositions.length} posiciones de los últimos 30 días`);
 
         updatedDevices.push({
           id: d.DeviceId,
           position: d.Position as [number, number],
           speed: d.SampleTime ? undefined : undefined,
-          history,
+          history: allPositions,
         });
       }
 
+      console.log("📍 Total dispositivos:", updatedDevices.length);
+      console.log("📍 Datos completos:", updatedDevices);
+      setLoaded(true);
+      
       setDevices(updatedDevices);
     } catch (err) {
       console.error("AWS error", err);
@@ -80,10 +103,6 @@ export function useTrackerDevices() {
 
   useEffect(() => {
     fetchDevices();
-
-    const interval = setInterval(fetchDevices, 5000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return devices;
