@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
 import { ArrowLeft, Loader2, Package, User, Calendar, FileText, Download, Edit3, Hash, Printer } from 'lucide-react';
-import { PDFDownloadLink, PDFViewer, pdf } from '@react-pdf/renderer';
 import OrderPDF from '@/components/pdf/OrderPDF';
 import { useAuthStore } from '@/app/lib/store';
 import { useCartStore } from '@/app/lib/store.cart';
@@ -13,6 +13,18 @@ import { OrderDetailType } from '@/types/orders';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const pdf = dynamic(
+  // @ts-expect-error - react-pdf types incompatible with Next.js dynamic imports
+  () => import('@react-pdf/renderer').then((mod) => mod.pdf),
+  { ssr: false }
+);
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -162,6 +174,7 @@ export default function OrderDetailPage() {
                   </PDFDownloadLink>
                   <button
                     onClick={async () => {
+                      // @ts-expect-error - pdf is dynamically imported and not typed correctly
                       const blob = await pdf(<OrderPDF order={orderDetail} />).toBlob();
                       const url = URL.createObjectURL(blob);
                       window.open(url, '_blank');
@@ -237,10 +250,10 @@ export default function OrderDetailPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-gray-600">
-                          {line.priceAfterVAT.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                          {(line.priceAfterVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell className="text-right text-sm font-bold text-gray-900">
-                          {(line.priceAfterVAT * line.quantity).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                          {((line.priceAfterVAT ?? 0) * line.quantity).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
                         </TableCell>
                       </TableRow>
                     ))}

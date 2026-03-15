@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import TrackerMap from "@/components/TrackerMap";
 
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -150,10 +151,6 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-[92vh]">
-      <div className="h-full">
-        <div ref={mapContainer} className="w-full h-full" />
-      </div>
-    </div>
+    <TrackerMap />
   );
 }

@@ -1,13 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { File, Image, Rows, Grid3X3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import axios, { isAxiosError } from "axios"
 import { useAuthStore } from "@/app/lib/store"
-import { PDFDownloadLink } from "@react-pdf/renderer"
 import CatalogPdf from "@/components/CatalogPdf"
+
+const PDFDownloadLink = dynamic(
+  () => import("@react-pdf/renderer").then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+)
 
 interface Product {
   itemCode: string

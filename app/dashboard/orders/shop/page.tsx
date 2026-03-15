@@ -2,7 +2,6 @@
 
 import axios from 'axios'
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
@@ -16,7 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '
 import { Product } from '@/types/products'
 import Image from 'next/image'
 import { BackButton } from '@/components/ui/back-button'
-import { MagnifyingGlass, SealPercent } from '@phosphor-icons/react'
+import { MagnifyingGlass, SealPercent, Tag } from '@phosphor-icons/react'
 
 interface Category {
   code: string
@@ -106,7 +105,7 @@ function ProductList({ endpoint, groupCode = 0 }: { endpoint: string, groupCode?
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
         {products.map((product, i) => {
           const isLast = i === products.length - 1
 
@@ -752,6 +751,7 @@ export default function Page() {
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+  const [activeCategory, setActiveCategory] = useState('ofertas')
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -785,7 +785,7 @@ export default function Page() {
   }
 
   return (
-    <div className="w-full p-8">
+    <div className="w-full p-4">
       <BackButton />
 
       <div className="sticky bg-[#f9fafb] top-12 z-10 pt-6 pb-2">
@@ -804,27 +804,53 @@ export default function Page() {
       {debouncedSearchTerm ? (
         <SearchedProducts searchTerm={debouncedSearchTerm} />
       ) : (
-        <Tabs defaultValue="ofertas">
-          <TabsList className="w-full justify-start overflow-x-auto sticky bg-[#f9fafb] top-32.5 z-10">
-            <TabsTrigger value="ofertas">Ofertas</TabsTrigger>
+        <div className="flex">
+          <aside className="w-56 shrink-0">
+            <nav className="sticky top-40 overflow-hidden">
+              <button
+                onClick={() => setActiveCategory('ofertas')}
+                className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${
+                  activeCategory === 'ofertas'
+                    ? 'bg-brand-primary text-white'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                <Tag size={16} weight="fill" />
+                <span className="font-medium text-sm">Ofertas</span>
+              </button>
 
-            {categories.map(cat => (
-              <TabsTrigger key={cat.code} value={cat.code}>
-                {cat.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+              <div className="px-4 py-2 border-t">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Categorías
+                </span>
+              </div>
 
-          <TabsContent value="ofertas">
-            <DiscountedProducts />
-          </TabsContent>
+              <div className="max-h-[calc(100vh-320px)] overflow-y-auto">
+                {categories.map(cat => (
+                  <button
+                    key={cat.code}
+                    onClick={() => setActiveCategory(cat.code)}
+                    className={`w-full flex items-center px-1 py-2 text-left transition-colors ${
+                      activeCategory === cat.code
+                        ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
+                        : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+                    }`}
+                  >
+                    <span className="font-medium text-xs truncate">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+            </nav>
+          </aside>
 
-          {categories.map(cat => (
-            <TabsContent key={cat.code} value={cat.code}>
-              <CategoryProducts groupCode={cat.code} />
-            </TabsContent>
-          ))}
-        </Tabs>
+          <main className="flex-1 min-w-0 pl-4">
+            {activeCategory === 'ofertas' ? (
+              <DiscountedProducts />
+            ) : (
+              <CategoryProducts groupCode={activeCategory} />
+            )}
+          </main>
+        </div>
       )}
     </div>
   )

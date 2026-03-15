@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import Avvvatars from "avvvatars-react"
-import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, SignOut, Users, MapTrifoldIcon, Calendar, MapPin, Path, List, Clock } from "@phosphor-icons/react"
+import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, SignOut, Users, MapTrifoldIcon, Calendar, MapPin, Path, List, Clock, Books } from "@phosphor-icons/react"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
@@ -28,6 +28,11 @@ const items = [
         title: "Cobros",
         url: "/dashboard/payments",
         icon: Cardholder,
+      },
+      {
+        title: "Catálogo",
+        url: "/dashboard/catalog",
+        icon: Books,
       },
     ]
   },
