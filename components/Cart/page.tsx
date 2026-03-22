@@ -21,15 +21,28 @@ import { CustomerAddress } from "@/types/customers"
 import { Howl } from "howler"
 import { useSession } from "next-auth/react"
 
-const successSound = new Howl({
-  src: ["/sound/success.mp3"],
-  volume: 0.5,
-});
+let successSound: Howl | null = null
+let errorSound: Howl | null = null
 
-const errorSound = new Howl({
-  src: ["/sound/error.mp3"],
-  volume: 0.5,
-});
+const getSuccessSound = () => {
+  if (!successSound) {
+    successSound = new Howl({
+      src: ["/sound/success.mp3"],
+      volume: 0.5,
+    });
+  }
+  return successSound
+}
+
+const getErrorSound = () => {
+  if (!errorSound) {
+    errorSound = new Howl({
+      src: ["/sound/error.mp3"],
+      volume: 0.5,
+    });
+  }
+  return errorSound
+}
 
 function CartISync() {
   const router = useRouter()
@@ -90,7 +103,7 @@ function CartISync() {
   const triggerError = (message: string) => {
     setErrorMessage(message)
     setShowErrorAlert(true)
-    errorSound.play();
+    getErrorSound().play();
   }
 
   const fetchAddresses = async () => {
@@ -172,7 +185,7 @@ function CartISync() {
       setOrderInfo({ docEntry: response.data?.docEntry })
       console.log("Pedido Enviado con exito", payload)
       setShowSuccessAlert(true)
-      successSound.play();
+      getSuccessSound().play();
       setOpen(false)
     } catch (error: any) {
       const msg = error.response?.data?.message || "Ocurrió un error inesperado al procesar el pedido."

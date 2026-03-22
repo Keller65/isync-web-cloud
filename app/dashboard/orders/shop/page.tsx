@@ -20,7 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '
 import { Product } from '@/types/products'
 import Image from 'next/image'
 import { BackButton } from '@/components/ui/back-button'
-import { MagnifyingGlass, SealPercent, Tag, Funnel } from '@phosphor-icons/react'
+import { MagnifyingGlass, SealPercent, Tag, Funnel, ChartPieSliceIcon, CircleNotch, FileText, Hash, Calendar, Cube, TagSimple, Money, Receipt, ShoppingCart } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 
@@ -37,6 +37,22 @@ interface Category {
 interface ProductFilters {
   subCategory: string | null,
   inStock: boolean,
+}
+
+interface ItemAnalytics {
+  docType: string
+  docEntry: number
+  docNum: number
+  docDate: string
+  lineNum: number
+  itemCode: string
+  quantity: number
+  netBeforeDiscount: number
+  discountPercent: number
+  netAfterDiscount: number
+  grossAfterDiscount: number
+  taxCode: string
+  vatPercent: number
 }
 
 function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, groupCode?: string | number, filters?: ProductFilters }) {
@@ -211,7 +227,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
       const cardCode = selectedCustomer?.cardCode ?? '205'
       const priceList = selectedCustomer?.priceListNum ?? 1
 
-      const combinedSearch = filters?.subCategory 
+      const combinedSearch = filters?.subCategory
         ? `${searchTerm} ${filters.subCategory}`.trim()
         : searchTerm
 
@@ -323,8 +339,13 @@ function CategoryProducts({ groupCode, filters }: { groupCode: string, filters?:
 
 function ProductCard({ product }: { product: Product }) {
   const { addProduct, updateQuantity, productsInCart } = useCartStore()
+  const { selectedCustomer } = useCustomerStore()
+  const { token } = useAuthStore()
   const [quantity, setQuantity] = useState(1)
   const [open, setOpen] = useState(false)
+  const [openAnalytics, setOpenAnalytics] = useState(false)
+  const [analyticsData, setAnalyticsData] = useState<ItemAnalytics[]>([])
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false)
   const [alertInfo, setAlertInfo] = useState<{ title: string; description: string; onConfirm?: () => void; showCancel?: boolean } | null>(null);
 
   const [editablePrice, setEditablePrice] = useState(product.price)
@@ -335,6 +356,35 @@ function ProductCard({ product }: { product: Product }) {
 
   const tier = product.tiers?.[0]
   const finalPrice = tier ? tier.price : product.price
+
+  const fetchAnalytics = useCallback(async () => {
+    if (!token || !selectedCustomer) return
+
+    setLoadingAnalytics(true)
+    try {
+      const res = await axios.get<ItemAnalytics[]>(
+        `/api-proxy/api/Kpi/item-last-moves?cardCode=${selectedCustomer.cardCode}&itemCode=${product.itemCode}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      setAnalyticsData(res.data)
+    } catch (err) {
+      console.error('Error al cargar analíticas:', err)
+    } finally {
+      setLoadingAnalytics(false)
+    }
+  }, [token, selectedCustomer, product.itemCode])
+
+  const handleOpenAnalytics = () => {
+    setOpenAnalytics(true)
+    if (analyticsData.length === 0) {
+      fetchAnalytics()
+    }
+  }
 
   useEffect(() => {
     if (isPriceManuallyEdited) return
@@ -418,10 +468,19 @@ function ProductCard({ product }: { product: Product }) {
       return
     }
 
-    const maxStock = product.inStock || 0
+    const maxStock = product.inStock ?? 0
     const itemInCart = productsInCart.find(
       p => p.itemCode === product.itemCode
     )
+
+    if (maxStock <= 0) {
+      setAlertInfo({
+        title: 'Producto agotado',
+        description: 'Este producto no tiene stock disponible.',
+        showCancel: false,
+      })
+      return
+    }
 
     if (quantity > maxStock) {
       setAlertInfo({
@@ -484,8 +543,8 @@ function ProductCard({ product }: { product: Product }) {
               {product.hasDiscount && (
                 <div className="absolute top-0 right-0">
                   <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${product.pricingSource === "GeneralSpecialPrice"
-                      ? 'bg-linear-to-r from-red-500 to-red-600'
-                      : 'bg-linear-to-r from-emerald-500 to-emerald-600'
+                    ? 'bg-linear-to-r from-red-500 to-red-600'
+                    : 'bg-linear-to-r from-emerald-500 to-emerald-600'
                     }`}>
                     <div className="flex items-center gap-1">
                       <SealPercent weight="fill" size={14} />
@@ -541,13 +600,12 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               <div className="pt-2">
-                <Button 
+                <Button
                   disabled={product.inStock <= 0}
-                  className={`w-full text-sm rounded-full font-semibold py-2.5 transition-all duration-200 ${
-                    product.inStock <= 0 
-                      ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
-                      : 'bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white'
-                  }`}
+                  className={`w-full text-sm rounded-full font-semibold py-2.5 transition-all duration-200 ${product.inStock <= 0
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white'
+                    }`}
                 >
                   Ver Detalles
                 </Button>
@@ -588,6 +646,117 @@ function ProductCard({ product }: { product: Product }) {
                     width={400}
                   />
                 </div>
+
+                <div className="py-4 flex gap-2 items-center">
+                  <Button
+                    className='bg-brand-primary hover:bg-brand-primary cursor-pointer'
+                    color='white'
+                    variant="default"
+                    onClick={handleOpenAnalytics}
+                  >
+                    <ChartPieSliceIcon size={26} weight="fill" />
+                    <h5>Analíticas del Producto</h5>
+                  </Button>
+                </div>
+
+                <Dialog open={openAnalytics} onOpenChange={setOpenAnalytics}>
+                  <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+                    <DialogHeader>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-brand-primary/10 rounded-lg">
+                          <ChartPieSliceIcon size={24} className="text-brand-primary" weight="fill" />
+                        </div>
+                        <div>
+                          <DialogTitle>Historial de Movimientos</DialogTitle>
+                          <p className="text-sm text-muted-foreground">
+                            {product.itemCode} - {selectedCustomer?.cardName}
+                          </p>
+                        </div>
+                      </div>
+                    </DialogHeader>
+
+                    <div className="flex-1 overflow-y-auto">
+                      {loadingAnalytics ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-3">
+                          <CircleNotch className="animate-spin text-brand-primary" size={32} weight="bold" />
+                          <p className="text-sm text-brand-primary">Cargando historial...</p>
+                        </div>
+                      ) : analyticsData.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-brand-primary">
+                          <FileText size={48} weight="thin" />
+                          <p>No hay historial de movimientos para este producto.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {analyticsData.map((item, index) => (
+                            <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-brand-primary/30 transition-colors">
+                              <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                  <div className={`p-2 -mt-2 rounded-lg bg-brand-primary/10`}>
+                                    <FileText size={18} weight="fill" className="text-brand-primary" />
+                                  </div>
+                                  <div>
+                                    <span className="text-xs font-bold px-2 py-1 rounded bg-brand-primary/10 text-brand-primary">
+                                      {item.docType}
+                                    </span>
+                                    <span className="ml-2 text-sm font-medium flex items-center gap-1 text-brand-primary">
+                                      <Hash size={14} /> {item.docNum}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-brand-primary">
+                                  <Calendar size={14} />
+                                  {new Date(item.docDate).toLocaleDateString('es-HN')}
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="flex items-start gap-2">
+                                  <Cube size={18} className="text-brand-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-xs text-brand-primary font-bold uppercase">Cantidad</p>
+                                    <p className="font-bold">{item.quantity}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <TagSimple size={18} className="text-brand-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-xs text-brand-primary font-bold uppercase">Descuento</p>
+                                    <p className="font-bold">{item.discountPercent}%</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <Money size={18} className="text-brand-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-xs text-brand-primary font-bold uppercase">Neto</p>
+                                    <p className="font-bold">L. {item.netAfterDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</p>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-2">
+                                  <ShoppingCart size={18} className="text-brand-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-xs text-brand-primary font-bold uppercase">Total</p>
+                                    <p className="font-bold text-brand-primary">L. {item.grossAfterDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 pt-3 border-t border-gray-200">
+                                <div className="flex items-center gap-1 text-xs text-brand-primary">
+                                  <Receipt size={14} />
+                                  <span>Impuesto: {item.taxCode} ({item.vatPercent}%)</span>
+                                  <span className="mx-2">•</span>
+                                  <span>Antes dto: L. {item.netBeforeDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+
               </div>
 
               {/* Columna Derecha: Datos */}
@@ -869,7 +1038,7 @@ export default function Page() {
                   {activeCategory === 'ofertas' ? 'Todas las Subcategorías' : categories.find(c => c.code === activeCategory)?.name || 'Subcategorías'}
                 </PopoverTitle>
               </PopoverHeader>
-              
+
               <div className="max-h-64 overflow-y-auto space-y-1 pt-1">
                 <button
                   onClick={() => {
@@ -877,15 +1046,14 @@ export default function Page() {
                     setSearchTerm('')
                     setFilterOpen(false)
                   }}
-                  className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
-                    filters.subCategory === null 
-                      ? 'bg-brand-primary/10 text-brand-primary font-medium' 
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                  className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === null
+                    ? 'bg-brand-primary/10 text-brand-primary font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
+                    }`}
                 >
                   Todas las subcategorías
                 </button>
-                {(activeCategory === 'ofertas' 
+                {(activeCategory === 'ofertas'
                   ? categories.flatMap(cat => (cat.subCategories || []).map(sub => ({ ...sub, catCode: cat.code })))
                   : categories.find(c => c.code === activeCategory)?.subCategories || []
                 ).map((sub: any, idx: number) => (
@@ -896,11 +1064,10 @@ export default function Page() {
                       setSearchTerm(sub.name)
                       setFilterOpen(false)
                     }}
-                    className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${
-                      filters.subCategory === sub.name 
-                        ? 'bg-brand-primary/10 text-brand-primary font-medium' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
+                    className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === sub.name
+                      ? 'bg-brand-primary/10 text-brand-primary font-medium'
+                      : 'text-gray-600 hover:bg-gray-100'
+                      }`}
                   >
                     {sub.name}
                   </button>
@@ -920,8 +1087,8 @@ export default function Page() {
                 setSearchTerm('')
               }}
               className={`w-full flex items-center gap-2 px-4 py-3 text-left transition-colors ${activeCategory === 'ofertas'
-                  ? 'bg-brand-primary text-white'
-                  : 'text-gray-600 hover:bg-gray-50'
+                ? 'bg-brand-primary text-white'
+                : 'text-gray-600 hover:bg-gray-50'
                 }`}
             >
               <Tag size={16} weight="fill" />
@@ -943,8 +1110,8 @@ export default function Page() {
                     setSearchTerm('')
                   }}
                   className={`w-full flex items-center px-1 py-2 text-left transition-colors ${activeCategory === cat.code
-                      ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
-                      : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
+                    ? 'bg-brand-primary/10 text-brand-primary border-l-4 border-brand-primary'
+                    : 'text-gray-600 hover:bg-gray-50 border-l-4 border-transparent'
                     }`}
                 >
                   <span className="font-medium text-xs truncate">{cat.name}</span>
