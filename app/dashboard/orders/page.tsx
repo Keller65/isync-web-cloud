@@ -14,6 +14,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CustomerType, CustomerResponseType, CustomerAddress } from '@/types/customers';
 import { Input } from "@/components/ui/input";
 import { CalendarDots, Coins } from '@phosphor-icons/react';
@@ -52,20 +62,23 @@ export default function OrdersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [customerPage, setCustomerPage] = useState(1);
   const [isLastCustomerPage, setIsLastCustomerPage] = useState(false);
+  const [alertInfo, setAlertInfo] = useState<{ title: string; description: string; onConfirm?: () => void; showCancel?: boolean } | null>(null);
+  const [pendingCustomer, setPendingCustomer] = useState<CustomerType | null>(null);
   const CUSTOMER_PAGE_SIZE = 50;
-  const customerListRef = useRef<HTMLDivElement>(null);
   const customerObserverRef = useRef<IntersectionObserver | null>(null);
   const customerSearchRef = useRef(customerSearch);
 
   const PAGE_SIZE = 20;
-  const { salesPersonCode, token } = useAuthStore();
+  const { salesPersonCode, token, fullName } = useAuthStore();
   const {
     setSelectedCustomer,
     selectedCustomer,
     addresses,
     setAddresses,
     selectedAddress,
-    setSelectedAddress
+    setSelectedAddress,
+    setSellerDifferent,
+    setSelectedSlpCode,
   } = useCustomerStore();
 
   const FETCH_URL = '/api-proxy/api/Quotations/open';
@@ -340,8 +353,8 @@ export default function OrdersPage() {
                                     key={addr.rowNum}
                                     onClick={() => setSelectedAddress(addr)}
                                     className={`p-2.5 rounded-lg border cursor-pointer transition-all ${selectedAddress?.rowNum === addr.rowNum
-                                        ? 'bg-blue-50 border-brand-primary'
-                                        : 'bg-white hover:bg-gray-100 border-gray-200'
+                                      ? 'bg-blue-50 border-brand-primary'
+                                      : 'bg-white hover:bg-gray-100 border-gray-200'
                                       }`}
                                   >
                                     <div className="flex items-start gap-2.5">
@@ -422,7 +435,26 @@ export default function OrdersPage() {
                               key={customer.cardCode}
                               onClick={() => {
                                 if (selectedCustomer?.cardCode !== customer.cardCode) {
-                                  setSelectedCustomer(customer);
+                                  // Verificar si el vendedor asignado al cliente es diferente del vendedor logueado
+                                  if (salesPersonCode && customer.slpCode && salesPersonCode !== customer.slpCode) {
+                                    setPendingCustomer(customer);
+                                    setAlertInfo({
+                                      title: 'Vendedor asignado diferente',
+                                      description: `Este cliente está asignado a ${customer.slpName}, pero tú estás logueado como ${fullName}.\n\n¿Con cuál vendedor deseas realizar la cotizacion?`,
+                                      showCancel: true,
+                                      onConfirm: () => {
+                                        // Usar el vendedor del cliente
+                                        setSellerDifferent(true);
+                                        setSelectedSlpCode(customer.slpCode ?? null);
+                                        setSelectedCustomer(customer);
+                                        console.log('Cliente seleccionado:', customer);
+                                        setPendingCustomer(null);
+                                      }
+                                    });
+                                  } else {
+                                    setSelectedCustomer(customer);
+                                    console.log('Cliente seleccionado:', customer);
+                                  }
                                 }
                               }}
                               className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${selectedCustomer?.cardCode === customer.cardCode
@@ -602,6 +634,42 @@ export default function OrdersPage() {
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!alertInfo} onOpenChange={(isOpen) => !isOpen && setAlertInfo(null)}>
+        <AlertDialogContent className='min-w-fit'>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{alertInfo?.title}</AlertDialogTitle>
+            <AlertDialogDescription className="whitespace-pre-line">
+              {alertInfo?.description}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction
+              onClick={() => {
+                alertInfo?.onConfirm?.();
+                setAlertInfo(null);
+              }}
+            >
+              Con {pendingCustomer?.slpName}
+            </AlertDialogAction>
+
+            <AlertDialogCancel
+              onClick={() => {
+                if (pendingCustomer) {
+                  setSellerDifferent(false);
+                  setSelectedSlpCode(salesPersonCode);
+                  setSelectedCustomer(pendingCustomer);
+                  console.log('Cliente seleccionado:', pendingCustomer);
+                  setPendingCustomer(null);
+                }
+                setAlertInfo(null);
+              }}
+            >
+              Con {fullName}
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

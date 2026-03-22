@@ -19,6 +19,11 @@ export interface CustomerType {
   federalTaxID: string;
   priceListNum: number;
   address?: string | [];
+  editRTN?: boolean;
+  referidoCode?: string;
+  referidoName?: string;
+  slpCode?: number;
+  slpName?: string;
 }
 
 export interface CustomerResponseType {

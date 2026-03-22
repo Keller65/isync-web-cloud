@@ -19,6 +19,7 @@ import axios from "axios"
 import { v4 as uuidv4 } from "uuid"
 import { CustomerAddress } from "@/types/customers"
 import { Howl } from "howler"
+import { useSession } from "next-auth/react"
 
 const successSound = new Howl({
   src: ["/sound/success.mp3"],
@@ -32,9 +33,9 @@ const errorSound = new Howl({
 
 function CartISync() {
   const router = useRouter()
-  const { selectedCustomer, selectedAddress, clearSelectedCustomer, setSelectedAddress } = useCustomerStore()
+  const { selectedCustomer, selectedAddress, clearSelectedCustomer, setSelectedAddress, sellerDifferent, selectedSlpCode } = useCustomerStore()
   const { productsInCart, removeProduct, clearCart, editMode, setEditMode, setDocEntry, docEntry, open, setOpen } = useCartStore()
-  const { token } = useAuthStore()
+  const { data: session } = useSession()
 
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
@@ -50,6 +51,8 @@ function CartISync() {
   const [orderInfo, setOrderInfo] = useState<{ docEntry?: string }>({})
   const [comments, setComments] = useState("")
   const [orderId, setOrderId] = useState<string | null>(null)
+
+  const user = useSession();
 
   const isProcessing = useRef(false)
 
@@ -95,7 +98,7 @@ function CartISync() {
       setLoadingAddresses(true)
       const { data } = await axios.get<CustomerAddress[]>(
         `/api-proxy/api/Customers/${selectedCustomer.cardCode}/addresses`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        { headers: { Authorization: `Bearer ${session?.user.token}` } }
       )
       setAddresses(data)
     } catch {
@@ -138,6 +141,9 @@ function CartISync() {
         cardCode: selectedCustomer.cardCode,
         payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
+        slpCode: sellerDifferent ? selectedSlpCode : undefined,
+        series: session?.user.u_SerieCot,
+        u_Referido: selectedCustomer.referidoCode,
         lines: productsInCart.map(p => {
           const basePrice = p.basePriceNoVAT ?? p.unitPriceNoVAT ?? p.priceList ?? 0
           return {
@@ -145,9 +151,10 @@ function CartISync() {
             barCode: p.barCode,
             quantity: p.quantity,
             priceList: p.priceList ?? basePrice,
-            priceAfterVAT: p.priceAfterVAT ?? (basePrice * 1.15),
+            priceAfterVAT: p.priceAfterVAT,
             unitPriceNoVAT: p.unitPriceNoVAT ?? p.basePriceNoVAT,
-            taxCode: p.taxCode
+            taxCode: p.taxCode,
+            warehouseCode: session?.user.u_WhsCode,
           }
         })
       }
@@ -156,11 +163,12 @@ function CartISync() {
         method: editMode ? "PATCH" : "POST",
         url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations`,
         data: payload,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${session?.user.token}` },
         timeout: 15000
       })
 
       setOrderInfo({ docEntry: response.data?.docEntry })
+      console.log("Pedido Enviado con exito", payload)
       setShowSuccessAlert(true)
       successSound.play();
       setOpen(false)
