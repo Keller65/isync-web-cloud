@@ -13,6 +13,7 @@ export type WarehouseStock = {
 export type Product = {
   itemCode: string;
   itemName: string;
+  suppCatNum: string;
   groupCode: number | string;
   groupName: string;
   subCategoryName?: string;

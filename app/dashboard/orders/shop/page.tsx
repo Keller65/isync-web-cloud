@@ -5,7 +5,12 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 
 function formatPrice(price: number) {
   const [intPart, decPart = ''] = price.toFixed(4).split('.')
-  return { intPart, decPart }
+  const withCommas = parseInt(intPart).toLocaleString('es-HN')
+  return { intPart: withCommas, decPart }
+}
+
+function formatNumber(num: number): string {
+  return num.toLocaleString('es-HN')
 }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
@@ -343,7 +348,6 @@ function ProductCard({ product }: { product: Product }) {
   const { token } = useAuthStore()
   const [quantity, setQuantity] = useState(1)
   const [open, setOpen] = useState(false)
-  const [openAnalytics, setOpenAnalytics] = useState(false)
   const [analyticsData, setAnalyticsData] = useState<ItemAnalytics[]>([])
   const [loadingAnalytics, setLoadingAnalytics] = useState(false)
   const [alertInfo, setAlertInfo] = useState<{ title: string; description: string; onConfirm?: () => void; showCancel?: boolean } | null>(null);
@@ -379,12 +383,11 @@ function ProductCard({ product }: { product: Product }) {
     }
   }, [token, selectedCustomer, product.itemCode])
 
-  const handleOpenAnalytics = () => {
-    setOpenAnalytics(true)
-    if (analyticsData.length === 0) {
+  useEffect(() => {
+    if (open && analyticsData.length === 0) {
       fetchAnalytics()
     }
-  }
+  }, [open, fetchAnalytics])
 
   useEffect(() => {
     if (isPriceManuallyEdited) return
@@ -565,7 +568,7 @@ function ProductCard({ product }: { product: Product }) {
               {product.inStock > 0 && product.inStock <= 10 && (
                 <div className="absolute top-2 left-2">
                   <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                    ¡Últimas {product.inStock}!
+                    ¡Últimas {formatNumber(product.inStock)}!
                   </span>
                 </div>
               )}
@@ -614,13 +617,18 @@ function ProductCard({ product }: { product: Product }) {
           </section>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-250 p-0 overflow-hidden flex flex-col max-h-[90vh]">
-          <DialogHeader className="p-6 pb-0">
+        <DialogContent className="sm:max-w-7xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+          <DialogHeader className="px-6 pt-4 pb-0">
             <DialogTitle className="text-xl font-bold">{product.itemName}</DialogTitle>
             <section className='flex gap-12'>
               <div className='flex flex-row items-center gap-2'>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Código: </p>
                 <p className="text-sm font-medium">{product.itemCode}</p>
+              </div>
+
+              <div className='flex flex-row items-center gap-2'>
+                <p className="text-xs font-bold text-muted-foreground uppercase">Código Proveedor: </p>
+                <p className="text-sm font-medium">{product.suppCatNum}</p>
               </div>
 
               <div className='flex flex-row items-center gap-2'>
@@ -631,9 +639,9 @@ function ProductCard({ product }: { product: Product }) {
           </DialogHeader>
 
           <div className="flex-1 overflow-y-auto px-6">
-            <div className="flex flex-col md:flex-row gap-8">
+            <div className="flex flex-col lg:flex-row gap-6">
               {/* Columna Izquierda: Imagen */}
-              <div className="md:w-1/2">
+              <div className="lg:w-90 shrink-0">
                 <div className="aspect-square bg-white rounded-lg flex items-center justify-center overflow-hidden border">
                   <Image
                     src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
@@ -646,121 +654,10 @@ function ProductCard({ product }: { product: Product }) {
                     width={400}
                   />
                 </div>
-
-                <div className="py-4 flex gap-2 items-center">
-                  <Button
-                    className='bg-brand-primary hover:bg-brand-primary cursor-pointer'
-                    color='white'
-                    variant="default"
-                    onClick={handleOpenAnalytics}
-                  >
-                    <ChartPieSliceIcon size={26} weight="fill" />
-                    <h5>Analíticas del Producto</h5>
-                  </Button>
-                </div>
-
-                <Dialog open={openAnalytics} onOpenChange={setOpenAnalytics}>
-                  <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-                    <DialogHeader>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-brand-primary/10 rounded-lg">
-                          <ChartPieSliceIcon size={24} className="text-brand-primary" weight="fill" />
-                        </div>
-                        <div>
-                          <DialogTitle>Historial de Movimientos</DialogTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {product.itemCode} - {selectedCustomer?.cardName}
-                          </p>
-                        </div>
-                      </div>
-                    </DialogHeader>
-
-                    <div className="flex-1 overflow-y-auto">
-                      {loadingAnalytics ? (
-                        <div className="flex flex-col items-center justify-center py-12 gap-3">
-                          <CircleNotch className="animate-spin text-brand-primary" size={32} weight="bold" />
-                          <p className="text-sm text-brand-primary">Cargando historial...</p>
-                        </div>
-                      ) : analyticsData.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-brand-primary">
-                          <FileText size={48} weight="thin" />
-                          <p>No hay historial de movimientos para este producto.</p>
-                        </div>
-                      ) : (
-                        <div className="space-y-4">
-                          {analyticsData.map((item, index) => (
-                            <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-brand-primary/30 transition-colors">
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                  <div className={`p-2 -mt-2 rounded-lg bg-brand-primary/10`}>
-                                    <FileText size={18} weight="fill" className="text-brand-primary" />
-                                  </div>
-                                  <div>
-                                    <span className="text-xs font-bold px-2 py-1 rounded bg-brand-primary/10 text-brand-primary">
-                                      {item.docType}
-                                    </span>
-                                    <span className="ml-2 text-sm font-medium flex items-center gap-1 text-brand-primary">
-                                      <Hash size={14} /> {item.docNum}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-brand-primary">
-                                  <Calendar size={14} />
-                                  {new Date(item.docDate).toLocaleDateString('es-HN')}
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                <div className="flex items-start gap-2">
-                                  <Cube size={18} className="text-brand-primary mt-0.5" />
-                                  <div>
-                                    <p className="text-xs text-brand-primary font-bold uppercase">Cantidad</p>
-                                    <p className="font-bold">{item.quantity}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <TagSimple size={18} className="text-brand-primary mt-0.5" />
-                                  <div>
-                                    <p className="text-xs text-brand-primary font-bold uppercase">Descuento</p>
-                                    <p className="font-bold">{item.discountPercent}%</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <Money size={18} className="text-brand-primary mt-0.5" />
-                                  <div>
-                                    <p className="text-xs text-brand-primary font-bold uppercase">Neto</p>
-                                    <p className="font-bold">L. {item.netAfterDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-start gap-2">
-                                  <ShoppingCart size={18} className="text-brand-primary mt-0.5" />
-                                  <div>
-                                    <p className="text-xs text-brand-primary font-bold uppercase">Total</p>
-                                    <p className="font-bold text-brand-primary">L. {item.grossAfterDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</p>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="mt-4 pt-3 border-t border-gray-200">
-                                <div className="flex items-center gap-1 text-xs text-brand-primary">
-                                  <Receipt size={14} />
-                                  <span>Impuesto: {item.taxCode} ({item.vatPercent}%)</span>
-                                  <span className="mx-2">•</span>
-                                  <span>Antes dto: L. {item.netBeforeDiscount.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
               </div>
 
-              {/* Columna Derecha: Datos */}
-              <div className="md:w-1/2 flex flex-col gap-6">
+              {/* Columna Central: Datos del Producto */}
+              <div className="flex-1 overflow-y-auto max-h-[calc(90vh-220px)]">
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -771,7 +668,7 @@ function ProductCard({ product }: { product: Product }) {
                     <div>
                       <p className="text-xs font-bold text-muted-foreground uppercase">Disponibilidad</p>
                       <p className={`text-sm font-bold ${product.inStock > 0 ? 'text-green-600' : 'text-destructive'}`}>
-                        {product.inStock > 0 ? `${product.inStock} en stock` : 'Agotado'}
+                        {product.inStock > 0 ? `${formatNumber(product.inStock)} en stock` : 'Agotado'}
                       </p>
                     </div>
                   </div>
@@ -817,7 +714,7 @@ function ProductCard({ product }: { product: Product }) {
                           <Input
                             type="text"
                             className="w-12 h-10 border-none rounded-none text-center font-bold text-lg focus-visible:ring-0 p-0"
-                            value={quantity}
+                            value={formatNumber(quantity)}
                             onChange={handleQuantityChange}
                           />
                           <Button
@@ -845,15 +742,15 @@ function ProductCard({ product }: { product: Product }) {
                     <div className="grid grid-cols-3 gap-2">
                       <div className="bg-muted/50 p-2 rounded-lg text-start">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">Disponible</p>
-                        <p className="text-sm font-bold">{product.inStock.toLocaleString()}</p>
+                        <p className="text-sm font-bold">{formatNumber(product.inStock)}</p>
                       </div>
                       <div className="bg-muted/50 p-2 rounded-lg text-start">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">En Pedido</p>
-                        <p className="text-sm font-bold">{product.ordered.toLocaleString()}</p>
+                        <p className="text-sm font-bold">{formatNumber(product.ordered)}</p>
                       </div>
                       <div className="bg-muted/50 p-2 rounded-lg text-start">
                         <p className="text-[10px] font-bold text-muted-foreground uppercase">Comprometido</p>
-                        <p className="text-sm font-bold">{product.committed.toLocaleString()}</p>
+                        <p className="text-sm font-bold">{formatNumber(product.committed)}</p>
                       </div>
                     </div>
                   </div>
@@ -865,7 +762,7 @@ function ProductCard({ product }: { product: Product }) {
                         {product.ws.map((w, idx) => (
                           <div key={idx} className="flex justify-between text-sm">
                             <span className="text-muted-foreground">{w.warehouseName}</span>
-                            <span className="font-medium">{w.inStock.toLocaleString()}</span>
+                            <span className="font-medium">{formatNumber(w.inStock)}</span>
                           </div>
                         ))}
                       </div>
@@ -900,7 +797,7 @@ function ProductCard({ product }: { product: Product }) {
                         <TableBody>
                           {product.tiers.map((t, idx) => (
                             <TableRow key={idx}>
-                              <TableCell className="py-2 text-sm">Desde {t.qty.toLocaleString()} un.</TableCell>
+                              <TableCell className="py-2 text-sm">Desde {formatNumber(t.qty)} un.</TableCell>
                               <TableCell className="py-2 text-sm font-bold text-right text-primary">
                                 L.{formatPrice(t.price).intPart}
                                 <span className="text-[10px] font-normal">.{formatPrice(t.price).decPart}</span>
@@ -918,6 +815,83 @@ function ProductCard({ product }: { product: Product }) {
                     * El precio final puede variar según las promociones vigentes al momento de la facturación.
                   </p>
                 </div>
+              </div>
+
+              {/* Columna Derecha: Analíticas - Fija con scroll interno */}
+              <div className="lg:w-80 shrink-0 border-l pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
+                <div className="flex items-center gap-2 mb-4 shrink-0">
+                  <ChartPieSliceIcon size={20} className="text-brand-primary" weight="fill" />
+                  <h3 className="font-bold text-sm">Historial de Movimientos</h3>
+                </div>
+
+                {loadingAnalytics ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3">
+                    <CircleNotch className="animate-spin text-brand-primary" size={28} weight="bold" />
+                    <p className="text-xs text-brand-primary">Cargando...</p>
+                  </div>
+                ) : analyticsData.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 gap-3 text-muted-foreground">
+                    <FileText size={32} weight="thin" />
+                    <p className="text-xs text-center">Sin historial de movimientos</p>
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                    {analyticsData.map((item, index) => (
+                      <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-100 hover:border-brand-primary/30 transition-colors">
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary">
+                              {item.docType}
+                            </span>
+                            <span className="text-xs font-medium flex items-center gap-1">
+                              <Hash size={12} /> {item.docNum}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">
+                            {new Date(item.docDate).toLocaleDateString('es-HN')}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <Cube size={14} className="text-brand-primary" />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase">Cantidad</p>
+                              <p className="text-xs font-bold">{formatNumber(item.quantity)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <TagSimple size={14} className="text-brand-primary" />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase">Dto%</p>
+                              <p className="text-xs font-bold">{formatNumber(item.discountPercent)}%</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Money size={14} className="text-brand-primary" />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase">Neto</p>
+                              <p className="text-xs font-bold">L. {formatPrice(item.netAfterDiscount).intPart}<span className="text-[9px]">.{formatPrice(item.netAfterDiscount).decPart}</span></p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <ShoppingCart size={14} className="text-brand-primary" />
+                            <div>
+                              <p className="text-[9px] text-muted-foreground uppercase">Total</p>
+                              <p className="text-xs font-bold text-brand-primary">L. {formatPrice(item.grossAfterDiscount).intPart}<span className="text-[9px]">.{formatPrice(item.grossAfterDiscount).decPart}</span></p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <p className="text-[9px] text-muted-foreground">
+                            {item.taxCode} ({item.vatPercent}%)
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
