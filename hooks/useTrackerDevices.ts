@@ -17,6 +17,7 @@ type Device = {
   position: [number, number];
   speed?: number;
   history: [number, number][];
+  timestamps?: Date[];
 };
 
 function getDate30DaysAgo(): Date {
@@ -62,6 +63,7 @@ export function useTrackerDevices() {
 
         const startTime = getDate30DaysAgo();
         let allPositions: [number, number][] = [];
+        let allTimestamps: Date[] = [];
         let nextToken: string | undefined;
 
         do {
@@ -75,8 +77,10 @@ export function useTrackerDevices() {
             })
           );
 
-          const positions = historyRes.DevicePositions?.map((p) => p.Position as [number, number]) || [];
-          allPositions = [...allPositions, ...positions];
+          const positions = historyRes.DevicePositions || [];
+          allPositions = [...allPositions, ...positions.map(p => p.Position as [number, number])];
+          if (!allTimestamps) allTimestamps = [];
+          allTimestamps = [...allTimestamps, ...positions.map(p => p.SampleTime).filter((t): t is Date => !!t)];
           nextToken = historyRes.NextToken;
 
         } while (nextToken);
@@ -88,6 +92,7 @@ export function useTrackerDevices() {
           position: d.Position as [number, number],
           speed: d.SampleTime ? undefined : undefined,
           history: allPositions,
+          timestamps: allTimestamps,
         });
       }
 
