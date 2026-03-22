@@ -5,7 +5,6 @@ import { AppSidebar } from "@/app/dashboard/app-sidebar"
 import AuthProvider from "@/app/ui/auth-provider"
 import SessionSync from "@/app/ui/session-sync"
 import CartISync from "@/components/Cart/page"
-import { CommandMenu } from "@/components/dashboard/command-menu"
 import { useCustomerStore } from "../lib/store.customer"
 import { useCartStore } from "../lib/store.cart"
 
@@ -27,7 +26,6 @@ export default function DashboardLayout({
           <div className="p-4 z-50 flex-1 border-b bg-white w-full justify-between flex items-center gap-4 sticky top-0">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <CommandMenu />
             </div>
             <span className="font-medium text-black uppercase tracking-widest text-[14px]">
               {productsInCart.length !== 0 ? selectedCustomer?.cardName : ""}

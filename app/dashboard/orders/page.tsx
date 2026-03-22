@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, User, ArrowRight, MapPin } from 'lucide-react';
@@ -50,6 +50,12 @@ export default function OrdersPage() {
   const [isLoadingCustomers, setIsLoadingCustomers] = useState(false);
   const [customerSearch, setCustomerSearch] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [customerPage, setCustomerPage] = useState(1);
+  const [isLastCustomerPage, setIsLastCustomerPage] = useState(false);
+  const CUSTOMER_PAGE_SIZE = 50;
+  const customerListRef = useRef<HTMLDivElement>(null);
+  const customerObserverRef = useRef<IntersectionObserver | null>(null);
+  const customerSearchRef = useRef(customerSearch);
 
   const PAGE_SIZE = 20;
   const { salesPersonCode, token } = useAuthStore();
@@ -116,27 +122,48 @@ export default function OrdersPage() {
     }
   }, [FETCH_URL, token, isLastPage, isLoading, salesPersonCode]);
 
-  const fetchCustomers = useCallback(async () => {
+  const fetchCustomers = useCallback(async (pageToFetch = 1, isRefresh = false) => {
     if (!salesPersonCode || !token) return;
+    if (!isRefresh && isLastCustomerPage) return;
+
+    const scrollContainer = document.getElementById('customer-list-container');
+    let scrollTop = 0;
+    if (!isRefresh && scrollContainer) {
+      scrollTop = scrollContainer.scrollTop;
+    }
+
+    const searchValue = customerSearchRef.current;
+    const searchParam = searchValue.trim() ? `&search=${encodeURIComponent(searchValue.trim())}` : '';
+    const url = `${CUSTOMERS_URL}?slpCode=${searchParam}&page=${pageToFetch}&pageSize=${CUSTOMER_PAGE_SIZE}`;
 
     setIsLoadingCustomers(true);
     try {
-      const res = await axios.get<CustomerResponseType>(
-        `${CUSTOMERS_URL}?slpCode=${salesPersonCode}&page=1&pageSize=1000`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      setCustomers(res.data.items);
+      const res = await axios.get<CustomerResponseType>(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      const newCustomers = res.data.items ?? [];
+      if (isRefresh || pageToFetch === 1) {
+        setCustomers(newCustomers);
+        setCustomerPage(2);
+      } else {
+        setCustomers(prev => [...prev, ...newCustomers]);
+        setCustomerPage(pageToFetch + 1);
+        requestAnimationFrame(() => {
+          if (scrollContainer) {
+            scrollContainer.scrollTop = scrollTop;
+          }
+        });
+      }
+      setIsLastCustomerPage(newCustomers.length < CUSTOMER_PAGE_SIZE);
     } catch (err) {
       console.error('Error al cargar clientes:', err);
     } finally {
       setIsLoadingCustomers(false);
     }
-  }, [CUSTOMERS_URL, salesPersonCode, token]);
+  }, [CUSTOMERS_URL, salesPersonCode, token, isLastCustomerPage]);
 
   const fetchAddresses = useCallback(async (cardCode: string) => {
     if (!token) return;
@@ -181,9 +208,51 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (isDialogOpen && customers.length === 0) {
-      fetchCustomers();
+      setCustomerPage(1);
+      setIsLastCustomerPage(false);
+      fetchCustomers(1, true);
     }
   }, [isDialogOpen, customers.length, fetchCustomers]);
+
+  useEffect(() => {
+    customerSearchRef.current = customerSearch;
+  }, [customerSearch]);
+
+  useEffect(() => {
+    if (!isDialogOpen) return;
+
+    const timer = setTimeout(() => {
+      setCustomerPage(1);
+      setIsLastCustomerPage(false);
+      fetchCustomers(1, true);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [customerSearch, isDialogOpen]);
+
+  useEffect(() => {
+    if (!isDialogOpen) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingCustomers && !isLastCustomerPage) {
+          fetchCustomers(customerPage, false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    customerObserverRef.current = observer;
+
+    const sentinelEl = document.getElementById('customer-scroll-sentinel');
+    if (sentinelEl) {
+      observer.observe(sentinelEl);
+    }
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [isDialogOpen, isLoadingCustomers, isLastCustomerPage, customerPage, fetchCustomers]);
 
   useEffect(() => {
     if (salesPersonCode && token) {
@@ -207,8 +276,8 @@ export default function OrdersPage() {
       <div className="border-b border-gray-200">
         <div className="flex items-center justify-between py-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
-            <p className="text-gray-600 mt-1">Gestiona tus pedidos abiertos</p>
+            <h1 className="text-3xl font-bold text-gray-900">Cotizaciones</h1>
+            <p className="text-gray-600 mt-1">Gestiona tus cotizaciones abiertos</p>
           </div>
 
           <div className='flex gap-2'>
@@ -311,9 +380,9 @@ export default function OrdersPage() {
                           setIsDialogOpen(false);
                           router.push('/dashboard/orders/shop');
                         }}
-                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 rounded-full transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 py-2 rounded-full transition-all flex items-center justify-center gap-2"
                       >
-                        {addresses.length > 0 ? 'Realizar un Pedido' : 'Continuar sin Ubicación'}
+                        {addresses.length > 0 ? 'Realizar una Cotizacion' : 'Continuar sin Ubicación'}
                         <ArrowRight size={18} />
                       </button>
                     )}
@@ -340,7 +409,7 @@ export default function OrdersPage() {
                       </div>
                     </div>
 
-                    <div className="flex-1 pt-2 overflow-y-auto px-6 pb-6">
+                    <div id="customer-list-container" className="flex-1 pt-2 overflow-y-auto px-6 pb-6">
                       {isLoadingCustomers ? (
                         <div className="flex flex-col items-center justify-center py-10 gap-3">
                           <Loader2 size={30} className="text-brand-primary animate-spin" />
@@ -384,6 +453,15 @@ export default function OrdersPage() {
                           {filteredCustomers.length === 0 && !isLoadingCustomers && (
                             <div className="text-center py-10 text-gray-500">
                               No se encontraron resultados para "{customerSearch}"
+                            </div>
+                          )}
+
+                          <div id="customer-scroll-sentinel" className="h-4" />
+
+                          {isLoadingCustomers && customers.length > 0 && (
+                            <div className="flex items-center justify-center py-4 gap-2">
+                              <Loader2 size={16} className="text-brand-primary animate-spin" />
+                              <span className="text-xs text-gray-500">Cargando más...</span>
                             </div>
                           )}
                         </div>
@@ -437,7 +515,7 @@ export default function OrdersPage() {
                     <div className="flex items-center gap-2">
                       <TrendingUp size={22} className="text-gray-700" />
                       <p className="text-sm text-gray-600">
-                        Pedido <span className="font-semibold text-gray-900">#{item.docNum}</span>
+                        Cotizacion <span className="font-semibold text-gray-900">#{item.docNum}</span>
                       </p>
                     </div>
                     <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">

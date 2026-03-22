@@ -64,7 +64,7 @@ export default function CatalogPdf({ products, title }: Props) {
               <Text style={styles.code}>{p.itemCode}</Text>
               <Text style={styles.name}>{p.itemName}</Text>
               <Text style={styles.price}>
-                L {p.price.toFixed(2)}
+                L {p.price.toFixed(4)}
               </Text>
             </View>
           ))}

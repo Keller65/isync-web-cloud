@@ -13,6 +13,8 @@ export interface LoginResponse {
   token: string;
   salesPersonCode: number;
   fullName: string;
+  u_SerieCot: string;
+  u_WhsCode: string;
 }
 
 // Tipos genéricos para respuestas de API estándar (opcional, para uso futuro)

@@ -2,6 +2,11 @@
 
 import axios from 'axios'
 import { useEffect, useState, useRef, useCallback } from 'react'
+
+function formatPrice(price: number) {
+  const [intPart, decPart = ''] = price.toFixed(4).split('.')
+  return { intPart, decPart }
+}
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, } from '@/components/ui/dialog'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
@@ -323,7 +328,7 @@ function ProductCard({ product }: { product: Product }) {
   const [alertInfo, setAlertInfo] = useState<{ title: string; description: string; onConfirm?: () => void; showCancel?: boolean } | null>(null);
 
   const [editablePrice, setEditablePrice] = useState(product.price)
-  const [editablePriceText, setEditablePriceText] = useState(product.price.toFixed(2))
+  const [editablePriceText, setEditablePriceText] = useState(product.price.toFixed(4))
   const [isPriceValid, setIsPriceValid] = useState(true)
   const [isPriceManuallyEdited, setIsPriceManuallyEdited] = useState(false)
   const [applyTierDiscounts, setApplyTierDiscounts] = useState(false)
@@ -345,7 +350,7 @@ function ProductCard({ product }: { product: Product }) {
     }
 
     setEditablePrice(newUnitPrice)
-    setEditablePriceText(newUnitPrice.toFixed(2))
+    setEditablePriceText(newUnitPrice.toFixed(4))
     setIsPriceValid(true)
   }, [quantity, applyTierDiscounts, product, isPriceManuallyEdited])
 
@@ -372,10 +377,10 @@ function ProductCard({ product }: { product: Product }) {
     if (isNaN(finalValue)) {
       finalValue = product.price
     } else {
-      finalValue = parseFloat(finalValue.toFixed(2))
+      finalValue = parseFloat(finalValue.toFixed(4))
     }
     setEditablePrice(finalValue)
-    setEditablePriceText(finalValue.toFixed(2))
+    setEditablePriceText(finalValue.toFixed(4))
 
     const applicableTier = product.tiers
       ?.filter(t => quantity >= t.qty)
@@ -522,13 +527,15 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               <div className="mt-1 flex items-baseline gap-2">
-                <span className="text-xl font-black text-brand-primary">
-                  L.{finalPrice.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <span className="text-xl font-black text-brand-primary flex items-baseline">
+                  L.{formatPrice(finalPrice).intPart}
+                  <span className="text-xs font-bold">.{formatPrice(finalPrice).decPart}</span>
                 </span>
 
                 {tier && (
                   <span className="text-xs text-gray-400 line-through">
-                    L.{product.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    L.{formatPrice(product.price).intPart}
+                    <span className="text-[10px]">.{formatPrice(product.price).decPart}</span>
                   </span>
                 )}
               </div>
@@ -571,7 +578,7 @@ function ProductCard({ product }: { product: Product }) {
               <div className="md:w-1/2">
                 <div className="aspect-square bg-white rounded-lg flex items-center justify-center overflow-hidden border">
                   <Image
-                    src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${product.itemCode}.jpg`}
+                    src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
                     onError={(e) => {
                       (e.target as HTMLImageElement).src = "https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"
                     }}
@@ -604,11 +611,11 @@ function ProductCard({ product }: { product: Product }) {
                     <div>
                       <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Precio de Venta</p>
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-lg">L.</span>
+                        <div className="relative flex items-center">
+                          <span className="font-bold text-lg mr-1">L.</span>
                           <Input
                             type="text"
-                            className={`w-32 font-bold text-lg h-11 focus-visible:ring-primary ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''
+                            className={`w-40 font-bold text-lg h-11 focus-visible:ring-primary tabular-nums ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''
                               }`}
                             value={editablePriceText}
                             onChange={handlePriceChange}
@@ -621,7 +628,7 @@ function ProductCard({ product }: { product: Product }) {
                           </p>
                         )}
                         <p className="text-[10px] text-muted-foreground">
-                          Precio base original: L. {product.price.toLocaleString('es-HN', { minimumFractionDigits: 2 })} + {product.taxType}
+                          Precio base original: L. {formatPrice(product.price).intPart}<span className="text-[10px]">.{formatPrice(product.price).decPart}</span> + {product.taxType}
                         </p>
                       </div>
                     </div>
@@ -726,7 +733,8 @@ function ProductCard({ product }: { product: Product }) {
                             <TableRow key={idx}>
                               <TableCell className="py-2 text-sm">Desde {t.qty.toLocaleString()} un.</TableCell>
                               <TableCell className="py-2 text-sm font-bold text-right text-primary">
-                                L.{t.price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                L.{formatPrice(t.price).intPart}
+                                <span className="text-[10px] font-normal">.{formatPrice(t.price).decPart}</span>
                               </TableCell>
                             </TableRow>
                           ))}
@@ -748,8 +756,9 @@ function ProductCard({ product }: { product: Product }) {
           <DialogFooter className="p-6 border-t bg-background flex flex-row items-center justify-between sm:justify-between gap-4">
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total estimado</span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-brand-primary">L.{(editablePrice * quantity).toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+              <div className="flex items-baseline gap-0">
+                <span className="text-3xl font-black text-brand-primary">L.{formatPrice(editablePrice * quantity).intPart}</span>
+                <span className="text-sm font-bold text-brand-primary">.{formatPrice(editablePrice * quantity).decPart}</span>
               </div>
             </div>
             <Button

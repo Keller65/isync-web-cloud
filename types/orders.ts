@@ -1,13 +1,17 @@
 export interface OrderLineType {
   itemCode: string;
   itemDescription: string;
+  itemName: string;
   barCode: string;
   quantity: number;
-  priceAfterVAT: number;
-  priceList: number;
+  priceAfterVAT?: number;
+  priceList?: number;
+  price?: number;
+  unitPriceNoVAT?: number;
+  basePriceNoVAT?: number;
   taxCode: string;
-  stock: number;
-  price: number;
+  stock?: number;
+  warehouseCode?: string;
 }
 
 export interface OrderDetailType {

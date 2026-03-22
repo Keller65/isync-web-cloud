@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { PDFDownloadLink, pdf } from '@react-pdf/renderer';
 import axios from 'axios';
 import { ArrowLeft, Loader2, Package, User, Calendar, FileText, Download, Edit3, Hash, Printer } from 'lucide-react';
 import OrderPDF from '@/components/pdf/OrderPDF';
@@ -13,18 +13,6 @@ import { OrderDetailType } from '@/types/orders';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const PDFDownloadLink = dynamic(
-  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
-  { ssr: false }
-);
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const pdf = dynamic(
-  // @ts-expect-error - react-pdf types incompatible with Next.js dynamic imports
-  () => import('@react-pdf/renderer').then((mod) => mod.pdf),
-  { ssr: false }
-);
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -37,7 +25,7 @@ export default function OrderDetailPage() {
   const [isClient, setIsClient] = useState(false);
   const { setSelectedCustomer } = useCustomerStore();
   const { loadCartWithProducts, clearCart, setEditMode, setDocEntry } = useCartStore();
-  const { token } = useAuthStore();
+  const { token, fullName: sellerName } = useAuthStore();
   const FETCH_URL = '/api-proxy/api/Quotations';
 
   const fetchOrderDetail = useCallback(async () => {
@@ -77,7 +65,7 @@ export default function OrderDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white">
         <Loader2 size={48} className="text-brand-primary animate-spin mb-4" />
-        <p className="text-gray-500 font-medium">Cargando pedido...</p>
+        <p className="text-gray-500 font-medium">Cargando Cotizaciones...</p>
       </div>
     );
   }
@@ -87,7 +75,7 @@ export default function OrderDetailPage() {
       <div className="min-h-lvh flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Pedido no encontrado.'}</p>
+          <p className="text-gray-600 mb-6">{error || 'Cotizacion no encontrada.'}</p>
           <button onClick={() => router.back()} className="bg-brand-primary text-white px-6 py-2 rounded-full font-semibold">
             Volver a Despues
           </button>
@@ -118,10 +106,12 @@ export default function OrderDetailPage() {
     const productsToLoad = orderDetail.lines.map(line => ({
       ...line,
       barCode: line.barCode,
-      itemName: line.itemDescription,
+      itemName: line.itemName,
       quantity: line.quantity,
       priceList: line.priceList,
       priceAfterVAT: line.priceAfterVAT,
+      unitPriceNoVAT: line.unitPriceNoVAT,
+      basePriceNoVAT: line.basePriceNoVAT,
       taxCode: line.taxCode,
     }));
 
@@ -146,7 +136,7 @@ export default function OrderDetailPage() {
               </button>
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h1 className="text-xl font-bold text-gray-900">Pedido #{orderDetail.docNum}</h1>
+                  <h1 className="text-xl font-bold text-gray-900">Cotizacion #{orderDetail.docNum}</h1>
                   <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">En Proceso</span>
                 </div>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -159,10 +149,10 @@ export default function OrderDetailPage() {
               {isClient && orderDetail && (
                 <>
                   <PDFDownloadLink
-                    document={<OrderPDF order={orderDetail} />}
+                    document={<OrderPDF order={orderDetail} sellerName={sellerName ?? ''} />}
                     fileName={`COTIZACION-${orderDetail.docNum}.pdf`}
                   >
-                    {({ loading }) => (
+                    {({ loading }: { loading: boolean }) => (
                       <button
                         disabled={loading}
                         className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all disabled:opacity-50"
@@ -174,10 +164,16 @@ export default function OrderDetailPage() {
                   </PDFDownloadLink>
                   <button
                     onClick={async () => {
-                      // @ts-expect-error - pdf is dynamically imported and not typed correctly
-                      const blob = await pdf(<OrderPDF order={orderDetail} />).toBlob();
-                      const url = URL.createObjectURL(blob);
-                      window.open(url, '_blank');
+                      if (!orderDetail) return
+                      try {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const blob = await pdf(React.createElement(OrderPDF, { order: orderDetail, sellerName: sellerName ?? '' }) as any).toBlob();
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, '_blank');
+                      } catch (err) {
+                        console.error('Error generating PDF:', err)
+                        alert('Error al generar el PDF')
+                      }
                     }}
                     className="flex-1 cursor-pointer md:flex-none flex items-center justify-center gap-2 px-4 py-2 text-sm font-bold text-gray-600 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-all"
                   >
@@ -203,7 +199,7 @@ export default function OrderDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Fecha del Pedido', value: new Date(orderDetail.docDate).toLocaleDateString('es-HN'), icon: Calendar },
-                { label: 'Vendedor', value: `Cod. ${orderDetail.salesPersonCode}`, icon: User },
+                { label: 'Vendedor', value: `${orderDetail.cardName}`, icon: User },
                 { label: 'RTN Cliente', value: orderDetail.federalTaxID || 'Consumidor Final', icon: FileText }
               ].map((item, i) => (
                 <div key={i} className="bg-white p-5 rounded-2xl border border-gray-200">
@@ -241,8 +237,7 @@ export default function OrderDetailPage() {
                       <TableRow key={idx} className="hover:bg-gray-50/30 border-gray-100">
                         <TableCell className="font-mono text-xs font-bold text-brand-primary">{line.itemCode}</TableCell>
                         <TableCell>
-                          <p className="text-sm font-bold text-gray-900 leading-none mb-1">{line.itemDescription}</p>
-                          <span className="text-[10px] text-gray-400 font-medium">EAN: {line.barCode || 'N/A'}</span>
+                          <p className="text-sm font-bold text-gray-900 leading-none mb-1">{line.itemName}</p>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
@@ -250,10 +245,10 @@ export default function OrderDetailPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-gray-600">
-                          {(line.priceAfterVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                          {(line.unitPriceNoVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 4 })}
                         </TableCell>
                         <TableCell className="text-right text-sm font-bold text-gray-900">
-                          {((line.priceAfterVAT ?? 0) * line.quantity).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                          {((line.unitPriceNoVAT ?? 0) * line.quantity).toLocaleString('es-HN', { minimumFractionDigits: 4 })}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -298,17 +293,17 @@ export default function OrderDetailPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">Subtotal</span>
-                  <span className="font-bold text-gray-200">L. {subtotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</span>
+                  <span className="font-bold text-gray-200">L. {subtotal.toLocaleString('es-HN', { minimumFractionDigits: 4 })}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">ISV (15%)</span>
-                  <span className="font-bold text-orange-400">L. {orderDetail.vatSum.toLocaleString('es-HN', { minimumFractionDigits: 2 })}</span>
+                  <span className="font-bold text-orange-400">L. {orderDetail.vatSum.toLocaleString('es-HN', { minimumFractionDigits: 4 })}</span>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                   <span className="text-sm font-bold text-white uppercase">Total</span>
                   <div className="text-right">
                     <p className="text-2xl font-black text-white leading-none">
-                      L. {orderDetail.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                      L. {orderDetail.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 4 })}
                     </p>
                     <p className="text-[9px] text-gray-500 mt-1 uppercase">Lempiras Hondureños</p>
                   </div>

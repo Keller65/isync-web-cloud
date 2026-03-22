@@ -6,10 +6,11 @@ export interface CartItem {
   itemName?: string
   barCode: string
   quantity: number
-  priceList: number        // precio base / real
-  priceAfterVAT: number    // precio final con descuento aplicado
+  priceList?: number
+  priceAfterVAT?: number
+  unitPriceNoVAT?: number
+  basePriceNoVAT?: number
   taxCode: string
-  // unitPrice?: number           // precio unitario sin descuento
 }
 
 interface CartState {

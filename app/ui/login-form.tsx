@@ -2,17 +2,7 @@
 
 import { useActionState, useState, useEffect } from "react"
 import { authenticate } from "@/app/lib/actions"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
-
+import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useCustomerStore } from "@/app/lib/store.customer"
@@ -119,16 +109,6 @@ export default function LoginForm() {
           </DrawerHeader>
 
           <div className="p-4 space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="hostUrl" className="text-sm font-medium">URL del Host</label>
-              <Input
-                id="hostUrl"
-                placeholder="https://tu-servidor.com"
-                value={tempHost}
-                onChange={(e) => setTempHost(e.target.value)}
-              />
-            </div>
-
             <div className="space-y-2">
               <label htmlFor="cloudflareUrl" className="text-sm font-medium">URL de Cloudflare</label>
               <Input

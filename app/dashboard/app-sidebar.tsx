@@ -20,15 +20,15 @@ const items = [
         icon: ChartLineUp,
       },
       {
-        title: "Pedidos",
+        title: "Cotizaciones",
         url: "/dashboard/orders",
         icon: ShoppingCart,
       },
-      {
-        title: "Cobros",
-        url: "/dashboard/payments",
-        icon: Cardholder,
-      },
+      // {
+      //   title: "Cobros",
+      //   url: "/dashboard/payments",
+      //   icon: Cardholder,
+      // },
       {
         title: "Catálogo",
         url: "/dashboard/catalog",
@@ -36,27 +36,27 @@ const items = [
       },
     ]
   },
-  {
-    title: "Visitas",
-    url: "/dashboard/visitas",
-    icon: MapPin,
-    subItems: [
-      { title: "General", url: "/dashboard/visitas", icon: List },
-      { title: "Mapas", url: "/dashboard/visitas/maps", icon: MapTrifoldIcon },
-      { title: "Registro", url: "/dashboard/visitas/visits", icon: Clock },
-      { title: "Calendario", url: "/dashboard/visitas/calendar", icon: Calendar },
-    ]
-  },
-  {
-    title: "Utilidades",
-    items: [
-      {
-        title: "Usuarios",
-        url: "/dashboard/users",
-        icon: Users,
-      },
-    ]
-  },
+  // {
+  //   title: "Visitas",
+  //   url: "/dashboard/visitas",
+  //   icon: MapPin,
+  //   subItems: [
+  //     { title: "General", url: "/dashboard/visitas", icon: List },
+  //     { title: "Mapas", url: "/dashboard/visitas/maps", icon: MapTrifoldIcon },
+  //     { title: "Registro", url: "/dashboard/visitas/visits", icon: Clock },
+  //     { title: "Calendario", url: "/dashboard/visitas/calendar", icon: Calendar },
+  //   ]
+  // },
+  // {
+  //   title: "Utilidades",
+  //   items: [
+  //     {
+  //       title: "Usuarios",
+  //       url: "/dashboard/users",
+  //       icon: Users,
+  //     },
+  //   ]
+  // },
   {
     title: "Cuenta",
     items: [
@@ -95,7 +95,7 @@ export function AppSidebar() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">iSync Web</span>
-                <span className="truncate text-xs text-muted-foreground">tu empresa</span>
+                <span className="truncate text-xs text-muted-foreground">Agrinsa</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -118,18 +118,6 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {group.subItems.map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild>
-                              <Link href={subItem.url}>
-                                {subItem.icon && <subItem.icon size={16} />}
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>
                 </Collapsible>
@@ -158,7 +146,7 @@ export function AppSidebar() {
                 <SidebarMenuButton size="lg">
                   <Avvvatars value={session?.user?.email ?? ''} style="shape" size={32} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">{session?.user?.name}</span>
+                    <span className="truncate font-semibold">{session?.user?.fullName}</span>
                     <span className="truncate text-xs text-muted-foreground">Manager</span>
                   </div>
                   <CaretUpDown size={16} className="ml-auto" />

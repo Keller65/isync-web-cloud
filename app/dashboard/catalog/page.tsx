@@ -188,7 +188,7 @@ export default function CatalogPage() {
                       </p>
 
                       <p className="text-sm font-semibold">
-                        L {product.price.toFixed(2)}
+                        L {product.price.toFixed(4)}
                       </p>
                     </div>
                   ))}
@@ -216,7 +216,7 @@ export default function CatalogPage() {
                       </div>
 
                       <p className="font-semibold">
-                        L {product.price.toFixed(2)}
+                        L {product.price.toFixed(4)}
                       </p>
                     </div>
                   ))}

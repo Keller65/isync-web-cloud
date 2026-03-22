@@ -40,11 +40,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             return {
               id: String(apiData.salesPersonCode),
-              name: apiData.fullName,
               salesPersonCode: apiData.salesPersonCode,
               token: apiData.token,
               fullName: apiData.fullName,
-              email: `${apiData.salesPersonCode}@sistema.local`
+              u_WhsCode: apiData.u_WhsCode,
+              u_SerieCot: apiData.u_SerieCot,
+              email: `${apiData.salesPersonCode}@isync.local`
             }
           }
         } catch (error) {

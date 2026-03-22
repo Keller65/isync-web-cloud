@@ -73,7 +73,10 @@ function CartISync() {
   }, [productsInCart, orderId, editMode])
 
   const subtotal = productsInCart.reduce(
-    (acc, item) => acc + item.priceAfterVAT * item.quantity,
+    (acc, item) => {
+      const price = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
+      return acc + price * (item.quantity ?? 0)
+    },
     0
   )
   const tax = subtotal * 0.15
@@ -121,11 +124,6 @@ function CartISync() {
       return
     }
 
-    if (!selectedAddress) {
-      triggerError("Debe seleccionar una dirección de entrega.")
-      return
-    }
-
     if (productsInCart.length === 0) {
       triggerError("El carrito está vacío.")
       return
@@ -138,21 +136,25 @@ function CartISync() {
       const payload = {
         requestId: editMode ? null : orderId,
         cardCode: selectedCustomer.cardCode,
-        payToCode: selectedAddress.addressName,
+        payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
-        lines: productsInCart.map(p => ({
-          itemCode: p.itemCode,
-          barCode: p.barCode,
-          quantity: p.quantity,
-          priceList: p.priceList,
-          priceAfterVAT: p.priceAfterVAT,
-          taxCode: p.taxCode
-        }))
+        lines: productsInCart.map(p => {
+          const basePrice = p.basePriceNoVAT ?? p.unitPriceNoVAT ?? p.priceList ?? 0
+          return {
+            itemCode: p.itemCode,
+            barCode: p.barCode,
+            quantity: p.quantity,
+            priceList: p.priceList ?? basePrice,
+            priceAfterVAT: p.priceAfterVAT ?? (basePrice * 1.15),
+            unitPriceNoVAT: p.unitPriceNoVAT ?? p.basePriceNoVAT,
+            taxCode: p.taxCode
+          }
+        })
       }
 
       const response = await axios({
         method: editMode ? "PATCH" : "POST",
-        url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations/Order`,
+        url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations`,
         data: payload,
         headers: { Authorization: `Bearer ${token}` },
         timeout: 15000
@@ -197,7 +199,7 @@ function CartISync() {
           </span>
         </DrawerTrigger>
 
-        <DrawerContent className="h-screen min-w-[50vw] right-0 left-auto rounded-none border-l">
+        <DrawerContent className="h-screen min-w-[60vw] right-0 left-auto rounded-none border-l">
           <div className="flex flex-col h-full bg-white justify-between">
             <DrawerHeader className="flex flex-row justify-between px-8 py-6">
               <DrawerTitle className="text-2xl font-semibold uppercase tracking-tight flex items-center gap-3">
@@ -239,7 +241,7 @@ function CartISync() {
                 {productsInCart.map(item => (
                   <div key={item.itemCode} className="flex gap-6 items-center">
                     <Image
-                      src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/${item.itemCode}.jpg`}
+                      src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
                       alt={item.itemCode}
                       width={80}
                       height={80}
@@ -253,7 +255,7 @@ function CartISync() {
                     </div>
                     <span>{item.quantity}</span>
                     <span>
-                      L. {item.priceAfterVAT.toLocaleString("es-HN")}
+                      L. {(item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0).toLocaleString("es-HN")}
                     </span>
                     <button onClick={() => removeProduct(item.itemCode)}>
                       <X size={14} />
@@ -307,7 +309,7 @@ function CartISync() {
                 <Button
                   onClick={() => setShowConfirmAlert(true)}
                   className="flex-1 font-normal bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.3px] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
-                  disabled={productsInCart.length === 0 || isLoading || !selectedAddress}
+                  disabled={productsInCart.length === 0 || isLoading}
                 >
                   {isLoading
                     ? "Procesando..."
