@@ -14,6 +14,8 @@ export default function SessionSync() {
         token: session.user.token,
         salesPersonCode: session.user.salesPersonCode,
         fullName: session.user.fullName,
+        u_WhsCode: session.user.u_WhsCode,
+        u_SerieCot: session.user.u_SerieCot,
       })
     }
   }, [session, setAuth])

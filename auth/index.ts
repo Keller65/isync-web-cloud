@@ -71,6 +71,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.salesPersonCode = user.salesPersonCode
         token.token = user.token
         token.fullName = user.fullName
+        token.u_WhsCode = user.u_WhsCode
+        token.u_SerieCot = user.u_SerieCot
       }
       return token
     },
@@ -81,6 +83,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.token = token.token
         session.user.fullName = token.fullName
         session.user.name = token.fullName
+        session.user.u_WhsCode = token.u_WhsCode
+        session.user.u_SerieCot = token.u_SerieCot
       }
       return session
     },

@@ -147,7 +147,7 @@ export function AppSidebar() {
                   <Avvvatars value={session?.user?.email ?? ''} style="shape" size={32} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{session?.user?.fullName}</span>
-                    <span className="truncate text-xs text-muted-foreground">Manager</span>
+                    <span className="truncate text-xs text-muted-foreground">Vendedor de tienda</span>
                   </div>
                   <CaretUpDown size={16} className="ml-auto" />
                 </SidebarMenuButton>

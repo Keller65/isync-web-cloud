@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils"
 // Definición de las secciones para la navegación lateral
 const navItems = [
   { id: "notifications", label: "Notificaciones", icon: Bell },
-  { id: "maps", label: "Mapas y Rastreo", icon: MapPin },
+  // { id: "maps", label: "Mapas y Rastreo", icon: MapPin },
   { id: "system", label: "Sistema y Datos", icon: Cpu },
   { id: "security", label: "Cuenta y Seguridad", icon: Shield },
 ]
@@ -103,7 +103,7 @@ export default function SettingsPage() {
       }
     })
     calculateCacheSize()
-    toast.success("Caché local limpiada", { icon: <Trash2 className="w-4 h-4 text-green-500"/> })
+    toast.success("Caché local limpiada", { icon: <Trash2 className="w-4 h-4 text-green-500" /> })
   }
 
   const handleExportLogs = () => {
@@ -221,24 +221,16 @@ export default function SettingsPage() {
       case "security": return (
         <SectionWrapper title="Seguridad de la Cuenta" description="Gestiona el acceso y las credenciales de tu sesión activa.">
           <div className="space-y-6">
-            <ToggleItem
-              icon={<Key />}
-              title="Acceso Biométrico (WebAuthn)"
-              desc="Usar TouchID, FaceID o Windows Hello para iniciar sesión rápidamente."
-              checked={biometricEnabled}
-              onCheckedChange={toggleBiometric}
-            />
-            <Separator />
             <div className="space-y-4">
               <div className="flex items-center justify-between gap-4 p-5 bg-gray-50 rounded-xl border border-gray-100">
                 <div className="flex items-center gap-4">
-                  <UserCircle className="w-12 h-12 text-gray-400" strokeWidth={1}/>
+                  <UserCircle className="w-12 h-12 text-gray-400" strokeWidth={1} />
                   <div>
                     <p className="text-sm font-semibold text-gray-950">{fullName || "Usuario iSync"}</p>
                     <p className="text-xs text-gray-500">Rol: Vendedor Pro · ID: IS-4509</p>
                     <div className="flex items-center gap-1.5 mt-1 text-[11px] text-green-600 bg-green-50 px-2 py-0.5 rounded-full w-fit">
-                        <CheckCircle2 size={12}/>
-                        Sesión activa en Chrome / Windows
+                      <CheckCircle2 size={12} />
+                      Sesión activa en Chrome / Windows
                     </div>
                   </div>
                 </div>
@@ -247,10 +239,10 @@ export default function SettingsPage() {
                 </Button>
               </div>
               <div className="flex items-start gap-3 p-4 bg-amber-50 text-amber-800 rounded-lg border border-amber-100 text-xs">
-                 <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0"/>
-                 <div>
-                    <span className="font-semibold">Nota de seguridad:</span> Tu sesión expira automáticamente tras 2 horas de inactividad. No compartas tus credenciales de acceso.
-                 </div>
+                <AlertTriangle className="w-5 h-5 text-amber-500 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-semibold">Nota de seguridad:</span> Tu sesión expira automáticamente tras 1 hora de inactividad. No compartas tus credenciales de acceso.
+                </div>
               </div>
             </div>
           </div>
@@ -370,14 +362,14 @@ function MapStyleOption({ id, title, desc, mapStyle, setMapStyle, iconColor }: a
           : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
       )}
     >
-      <div className={cn("w-8 h-8 rounded-lg bg-white flex items-center justify-center border shadow-sm shrink-0 mt-0.5", iconColor, active ? 'border-brand-primary/20': 'border-gray-100')}>
-        <MapPin size={16} strokeWidth={active? 2: 1.5} />
+      <div className={cn("w-8 h-8 rounded-lg bg-white flex items-center justify-center border shadow-sm shrink-0 mt-0.5", iconColor, active ? 'border-brand-primary/20' : 'border-gray-100')}>
+        <MapPin size={16} strokeWidth={active ? 2 : 1.5} />
       </div>
       <div>
         <p className={cn("text-sm font-semibold", active ? 'text-brand-primary' : 'text-gray-900')}>{title}</p>
         <p className="text-xs text-gray-500">{desc}</p>
       </div>
-      {active && <CheckCircle2 className="w-4 h-4 text-brand-primary ml-auto shrink-0 mt-0.5"/>}
+      {active && <CheckCircle2 className="w-4 h-4 text-brand-primary ml-auto shrink-0 mt-0.5" />}
     </button>
   )
 }

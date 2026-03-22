@@ -36,6 +36,10 @@ function CartISync() {
   const { selectedCustomer, selectedAddress, clearSelectedCustomer, setSelectedAddress, sellerDifferent, selectedSlpCode } = useCustomerStore()
   const { productsInCart, removeProduct, clearCart, editMode, setEditMode, setDocEntry, docEntry, open, setOpen } = useCartStore()
   const { data: session } = useSession()
+  const u_WhsCode = useAuthStore((state) => state.u_WhsCode)
+  const u_SerieCot = useAuthStore((state) => state.u_SerieCot)
+  const token = useAuthStore((state) => state.token)
+  const salesPersonCode = useAuthStore((state) => state.salesPersonCode)
 
   const [isLoading, setIsLoading] = useState(false)
   const [showSuccessAlert, setShowSuccessAlert] = useState(false)
@@ -51,8 +55,6 @@ function CartISync() {
   const [orderInfo, setOrderInfo] = useState<{ docEntry?: string }>({})
   const [comments, setComments] = useState("")
   const [orderId, setOrderId] = useState<string | null>(null)
-
-  const user = useSession();
 
   const isProcessing = useRef(false)
 
@@ -141,8 +143,8 @@ function CartISync() {
         cardCode: selectedCustomer.cardCode,
         payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
-        slpCode: sellerDifferent ? selectedSlpCode : undefined,
-        series: session?.user.u_SerieCot,
+        slpCode: sellerDifferent ? selectedSlpCode : salesPersonCode,
+        series: u_SerieCot ?? undefined,
         u_Referido: selectedCustomer.referidoCode,
         lines: productsInCart.map(p => {
           const basePrice = p.basePriceNoVAT ?? p.unitPriceNoVAT ?? p.priceList ?? 0
@@ -154,7 +156,7 @@ function CartISync() {
             priceAfterVAT: p.priceAfterVAT,
             unitPriceNoVAT: p.unitPriceNoVAT ?? p.basePriceNoVAT,
             taxCode: p.taxCode,
-            warehouseCode: session?.user.u_WhsCode,
+            warehouseCode: u_WhsCode,
           }
         })
       }
@@ -163,7 +165,7 @@ function CartISync() {
         method: editMode ? "PATCH" : "POST",
         url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations`,
         data: payload,
-        headers: { Authorization: `Bearer ${session?.user.token}` },
+        headers: { Authorization: `Bearer ${token}` },
         timeout: 15000
       })
 
