@@ -470,7 +470,6 @@ function ProductCard({ product }: { product: Product }) {
       return
     }
 
-    const maxStock = product.inStock ?? 0
     const itemInCart = productsInCart.find(
       p => p.itemCode === product.itemCode
     )
@@ -562,8 +561,11 @@ function ProductCard({ product }: { product: Product }) {
                 </h3>
               </div>
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-gray-500 font-medium">{product.itemCode}</span>
+              <div className="flex flex-row items-start justify-between text-xs">
+                <div className='flex flex-col gap-2'>
+                  <p className="text-gray-500 font-medium">Código Prov: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.suppCatNum}</span></p>
+                  <p className="text-gray-500 font-medium">Código: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.itemCode}</span></p>
+                </div>
                 <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium text-[10px]">
                   {product.salesUnit}
                 </span>
