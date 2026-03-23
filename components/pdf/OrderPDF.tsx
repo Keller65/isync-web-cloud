@@ -1,12 +1,23 @@
 'use client';
 
 import React from 'react';
-import { Page, Text, View, Document, StyleSheet } from '@react-pdf/renderer';
+import {
+  Page,
+  Text,
+  View,
+  Document,
+  StyleSheet,
+  Image
+} from '@react-pdf/renderer';
 import { OrderDetailType } from '@/types/orders';
+import LogoImage from "@/public/assets/Agrinsa.png";
 
 const formatMoney = (amount: number) => {
-  return amount.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
+  return amount.toLocaleString('es-HN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+};
 
 const styles = StyleSheet.create({
   page: {
@@ -15,6 +26,7 @@ const styles = StyleSheet.create({
     padding: 30,
     backgroundColor: '#ffffff',
     color: '#000000',
+    position: 'relative'
   },
   headerContainer: {
     flexDirection: 'row',
@@ -22,18 +34,21 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   logoBox: {
-    width: 80,
-    marginRight: 20,
+    position: "absolute",
+    top: 0,
+    left: 10
+  },
+  logoImage: {
+    width: 90,
+    height: 90,
   },
   companyInfo: {
     flex: 1,
     textAlign: 'center',
-    marginLeft: 80,
   },
   companyName: {
     fontSize: 18,
     fontWeight: 'bold',
-    margin: 0,
   },
   companySubtitle: {
     fontSize: 12,
@@ -66,18 +81,11 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 10,
   },
-  labelCol: {
-    width: '12%',
-  },
-  valueCol: {
-    width: '38%',
-  },
-  labelCol2: {
-    width: '15%',
-  },
-  valueCol2: {
-    width: '35%',
-  },
+  labelCol: { width: '12%' },
+  valueCol: { width: '38%' },
+  labelCol2: { width: '15%' },
+  valueCol2: { width: '35%' },
+
   tableArticles: {
     marginTop: 10,
   },
@@ -93,30 +101,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  thCode: {
-    width: '12%',
-    textAlign: 'left',
-  },
-  thDesc: {
-    width: '38%',
-    textAlign: 'left',
-  },
-  thCant: {
-    width: '10%',
-    textAlign: 'center',
-  },
-  thPU: {
-    width: '12%',
-    textAlign: 'right',
-  },
-  thISV: {
-    width: '13%',
-    textAlign: 'right',
-  },
-  thTotal: {
-    width: '15%',
-    textAlign: 'right',
-  },
+  thCode: { width: '12%' },
+  thDesc: { width: '38%' },
+  thCant: { width: '10%', textAlign: 'center' },
+  thPU: { width: '12%', textAlign: 'right' },
+  thISV: { width: '13%', textAlign: 'right' },
+  thTotal: { width: '15%', textAlign: 'right' },
+
   tableRow: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
@@ -132,34 +123,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     height: 24,
   },
-  tdCode: {
-    width: '12%',
-    fontSize: 10,
-  },
-  tdDesc: {
-    width: '38%',
-    fontSize: 10,
-  },
-  tdCant: {
-    width: '10%',
-    fontSize: 10,
-    textAlign: 'center',
-  },
-  tdPU: {
-    width: '12%',
-    fontSize: 10,
-    textAlign: 'right',
-  },
-  tdISV: {
-    width: '13%',
-    fontSize: 10,
-    textAlign: 'right',
-  },
-  tdTotal: {
-    width: '15%',
-    fontSize: 10,
-    textAlign: 'right',
-  },
+
+  tdCode: { width: '12%', fontSize: 10 },
+  tdDesc: { width: '38%', fontSize: 10 },
+  tdCant: { width: '10%', fontSize: 10, textAlign: 'center' },
+  tdPU: { width: '12%', fontSize: 10, textAlign: 'right' },
+  tdISV: { width: '13%', fontSize: 10, textAlign: 'right' },
+  tdTotal: { width: '15%', fontSize: 10, textAlign: 'right' },
+
   footerSection: {
     flexDirection: 'row',
     marginTop: 25,
@@ -216,52 +187,88 @@ interface OrderPDFProps {
 
 const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
   const docDate = new Date(order.docDate ?? '').toLocaleDateString('es-HN');
+
   const subtotal = order.docTotal - order.vatSum;
+  const lines = order.lines ?? [];
+  const minRows = 8;
 
-  const lines = order.lines ?? []
-  const minRows = 8
-
-  const getISVPerUnit = (price: number) => price / 1.15 * 0.15
+  // ✅ corregido
+  const getISVPerUnit = (priceNoVAT: number) => priceNoVAT * 0.15;
 
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+
+        <View style={styles.logoBox}>
+          <Image
+            style={styles.logoImage}
+            src={LogoImage.src}
+          />
+        </View>
+
+        {/* HEADER */}
         <View style={styles.headerContainer}>
-          <View style={styles.logoBox}>
-            <Text style={[styles.companyDetail, { fontWeight: 'bold', fontSize: 12 }]}>AGRINSA</Text>
-          </View>
           <View style={styles.companyInfo}>
             <Text style={styles.companyName}>AGRINSA</Text>
-            <Text style={styles.companySubtitle}>MOTORES AGRO INDUSTRIALES SA DE CV</Text>
-            <Text style={styles.companyDetail}>Principal: Bo. La Guardia, San Pedro Sula, Cortes, 23 Calle, 1 Ave.</Text>
-            <Text style={styles.companyDetail}>Bloque #1 De Los Juzgados De Avenida New Orleans</Text>
-            <Text style={styles.companyDetail}>2 Cuadras Hacia Abajo Izquierda. Honduras, C.A. Tel: (504) 2544-2476.</Text>
-            <Text style={styles.companyDetail}>E-mail: contabilidad@agrinsahn.com</Text>
-            <Text style={styles.companyDetail}><Text style={{ fontWeight: 'bold' }}>RTN: 05019995093760</Text></Text>
+            <Text style={styles.companySubtitle}>
+              MOTORES AGRO INDUSTRIALES SA DE CV
+            </Text>
+            <Text style={styles.companyDetail}>
+              Principal: Bo. La Guardia, San Pedro Sula, Cortes
+            </Text>
+            <Text style={styles.companyDetail}>
+              Tel: (504) 2544-2476
+            </Text>
+            <Text style={styles.companyDetail}>
+              E-mail: contabilidad@agrinsahn.com
+            </Text>
+            <Text style={styles.companyDetail}>
+              <Text style={{ fontWeight: 'bold' }}>
+                RTN: 05019995093760
+              </Text>
+            </Text>
           </View>
         </View>
 
         <Text style={styles.docTitle}>Cotización</Text>
 
+        {/* INFO */}
         <View style={styles.infoTable}>
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, styles.labelCol]}>Fecha:</Text>
             <Text style={[styles.infoValue, styles.valueCol]}>{docDate}</Text>
+
             <Text style={[styles.infoLabel, styles.labelCol2]}>Vendedor:</Text>
-            <Text style={[styles.infoValue, styles.valueCol2]}>{sellerName}</Text>
+            <Text style={[styles.infoValue, styles.valueCol2]}>
+              {sellerName}
+            </Text>
           </View>
+
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, styles.labelCol]}>Cliente:</Text>
-            <Text style={[styles.infoValue, styles.valueCol]}>{order.cardName}</Text>
-            <Text style={[styles.infoLabel, styles.labelCol2]}>RTN Cliente:</Text>
-            <Text style={[styles.infoValue, styles.valueCol2]}>{order.federalTaxID}</Text>
+            <Text style={[styles.infoValue, styles.valueCol]}>
+              {order.cardName}
+            </Text>
+
+            <Text style={[styles.infoLabel, styles.labelCol2]}>
+              RTN Cliente:
+            </Text>
+            <Text style={[styles.infoValue, styles.valueCol2]}>
+              {order.federalTaxID}
+            </Text>
           </View>
+
           <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, styles.labelCol]}>N. de Cotización:</Text>
-            <Text style={[styles.infoValue, styles.valueCol]}>{order.docNum}</Text>
+            <Text style={[styles.infoLabel, styles.labelCol]}>
+              N. de Cotización:
+            </Text>
+            <Text style={[styles.infoValue, styles.valueCol]}>
+              {order.docNum}
+            </Text>
           </View>
         </View>
 
+        {/* TABLE */}
         <View style={styles.tableArticles}>
           <View style={styles.tableHeader}>
             <Text style={[styles.tableHeaderCell, styles.thCode]}>Código</Text>
@@ -273,10 +280,16 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           </View>
 
           {lines.map((line, index) => {
-            const qty = line.quantity ?? 0
-            const priceNoVAT = line.unitPriceNoVAT ?? line.basePriceNoVAT ?? line.price ?? 0
-            const isvPerUnit = getISVPerUnit(priceNoVAT * 1.15)
-            const lineTotal = qty * (priceNoVAT * 1.15)
+            const qty = line.quantity ?? 0;
+            const priceNoVAT =
+              line.unitPriceNoVAT ??
+              line.basePriceNoVAT ??
+              line.price ??
+              0;
+
+            const isvPerUnit = getISVPerUnit(priceNoVAT);
+            const lineTotal = qty * (priceNoVAT * 1.15);
+
             return (
               <View key={line.itemCode || index} style={styles.tableRow}>
                 <Text style={styles.tdCode}>{line.itemCode}</Text>
@@ -286,25 +299,28 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
                 <Text style={styles.tdISV}>L{formatMoney(isvPerUnit)}</Text>
                 <Text style={styles.tdTotal}>L{formatMoney(lineTotal)}</Text>
               </View>
-            )
+            );
           })}
 
-          {lines.length < minRows && Array.from({ length: minRows - lines.length }).map((_, index) => (
-            <View key={`empty-${index}`} style={styles.emptyRow}>
-              <Text style={styles.tdCode}>&nbsp;</Text>
-              <Text style={styles.tdDesc}></Text>
-              <Text style={styles.tdCant}></Text>
-              <Text style={styles.tdPU}></Text>
-              <Text style={styles.tdISV}></Text>
-              <Text style={styles.tdTotal}></Text>
-            </View>
-          ))}
+          {lines.length < minRows &&
+            Array.from({ length: minRows - lines.length }).map((_, index) => (
+              <View key={`empty-${index}`} style={styles.emptyRow} />
+            ))}
         </View>
 
+        {/* FOOTER */}
         <View style={styles.footerSection}>
           <View style={styles.notesSection}>
-            <Text><Text style={{ fontWeight: 'bold' }}>Nota: La cotización tiene vigencia por 15 días</Text></Text>
-            <Text style={{ marginTop: 5 }}><Text style={{ fontWeight: 'bold' }}>Observaciones:</Text></Text>
+            <Text>
+              <Text style={{ fontWeight: 'bold' }}>
+                Nota: Vigencia 15 días
+              </Text>
+            </Text>
+
+            <Text style={{ marginTop: 5 }}>
+              <Text style={{ fontWeight: 'bold' }}>Observaciones:</Text>
+            </Text>
+
             <Text>{order.comments}</Text>
           </View>
 
@@ -312,19 +328,28 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
             <View style={styles.totalsTable}>
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Total Neto:</Text>
-                <Text style={styles.totalsValue}>L{formatMoney(subtotal)}</Text>
+                <Text style={styles.totalsValue}>
+                  L{formatMoney(subtotal)}
+                </Text>
               </View>
+
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Impuesto:</Text>
-                <Text style={styles.totalsValue}>L{formatMoney(order.vatSum)}</Text>
+                <Text style={styles.totalsValue}>
+                  L{formatMoney(order.vatSum)}
+                </Text>
               </View>
+
               <View style={styles.totalFinalRow}>
                 <Text style={styles.totalFinalLabel}>Total General:</Text>
-                <Text style={styles.totalFinalValue}>L{formatMoney(order.docTotal)}</Text>
+                <Text style={styles.totalFinalValue}>
+                  L{formatMoney(order.docTotal)}
+                </Text>
               </View>
             </View>
           </View>
         </View>
+
       </Page>
     </Document>
   );

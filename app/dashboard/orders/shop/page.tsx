@@ -514,7 +514,7 @@ function ProductCard({ product }: { product: Product }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
           <section style={{ paddingTop: productsWithImage ? 0 : 40 }} className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-200 transition-all duration-300 group overflow-hidden'>
-            {productsWithImage ?? (
+            {productsWithImage !== false ? (
               <div className="h-44 bg-linear-to-b from-gray-50 to-white rounded-t-2xl flex items-center justify-center overflow-hidden p-3">
                 <div className="relative w-full h-full flex items-center justify-center">
                   <Image
@@ -526,7 +526,7 @@ function ProductCard({ product }: { product: Product }) {
                   />
                 </div>
               </div>
-            )}
+            ): null}
 
             {product.hasDiscount && (
               <div className="absolute top-0 right-0">
