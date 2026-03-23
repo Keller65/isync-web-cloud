@@ -14,6 +14,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
 
+const formatPrice = (value: number) => {
+  const formatted = value.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const [integer, decimal] = formatted.split('.');
+  return <><span>{integer}</span><span className="text-[10px]">.{decimal}</span></>;
+};
+
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -245,10 +251,10 @@ export default function OrderDetailPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-gray-600">
-                          {(line.unitPriceNoVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 4 })}
+                          {(line.unitPriceNoVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
                         </TableCell>
                         <TableCell className="text-right text-sm font-bold text-gray-900">
-                          {((line.unitPriceNoVAT ?? 0) * line.quantity).toLocaleString('es-HN', { minimumFractionDigits: 4 })}
+                          {formatPrice((line.unitPriceNoVAT ?? 0) * line.quantity)}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -293,17 +299,17 @@ export default function OrderDetailPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">Subtotal</span>
-                  <span className="font-bold text-gray-200">L. {subtotal.toLocaleString('es-HN', { minimumFractionDigits: 4 })}</span>
+                  <span className="font-bold text-gray-200">L. {formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">ISV (15%)</span>
-                  <span className="font-bold text-orange-400">L. {orderDetail.vatSum.toLocaleString('es-HN', { minimumFractionDigits: 4 })}</span>
+                  <span className="font-bold text-orange-400">L. {formatPrice(orderDetail.vatSum)}</span>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                   <span className="text-sm font-bold text-white uppercase">Total</span>
                   <div className="text-right">
                     <p className="text-2xl font-black text-white leading-none">
-                      L. {orderDetail.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 4 })}
+                      L. {formatPrice(orderDetail.docTotal)}
                     </p>
                     <p className="text-[9px] text-gray-500 mt-1 uppercase">Lempiras Hondureños</p>
                   </div>

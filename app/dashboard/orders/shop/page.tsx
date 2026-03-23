@@ -617,7 +617,7 @@ function ProductCard({ product }: { product: Product }) {
           </section>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-7xl p-0 overflow-hidden flex flex-col max-h-[95vh]">
+        <DialogContent className="sm:max-w-[96vw] p-0 overflow-hidden flex flex-col max-h-[96vh]">
           <DialogHeader className="px-6 pt-4 pb-0">
             <DialogTitle className="text-xl font-bold">{product.itemName}</DialogTitle>
             <section className='flex gap-12'>
@@ -641,7 +641,7 @@ function ProductCard({ product }: { product: Product }) {
           <div className="flex-1 overflow-y-auto px-6">
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Columna Izquierda: Imagen */}
-              <div className="lg:w-90 shrink-0">
+              <div className="lg:w-100 shrink-0">
                 <div className="aspect-square bg-white rounded-lg flex items-center justify-center overflow-hidden border">
                   <Image
                     src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
@@ -818,7 +818,7 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               {/* Columna Derecha: Analíticas - Fija con scroll interno */}
-              <div className="lg:w-80 shrink-0 border-l pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
+              <div className="lg:w-90 shrink-0 border-l pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
                 <div className="flex items-center gap-2 mb-4 shrink-0">
                   <ChartPieSliceIcon size={20} className="text-brand-primary" weight="fill" />
                   <h3 className="font-bold text-sm">Historial de Movimientos</h3>
