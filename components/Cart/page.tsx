@@ -168,7 +168,7 @@ function CartISync() {
             barCode: p.barCode,
             quantity: p.quantity,
             basePriceNoVAT: basePrice,
-            unitPriceNoVAT: p.unitPriceNoVAT ?? p.basePriceNoVAT,
+            unitPriceNoVAT: p.priceAfterVAT,
             taxCode: p.taxCode,
             warehouseCode: u_WhsCode,
           }

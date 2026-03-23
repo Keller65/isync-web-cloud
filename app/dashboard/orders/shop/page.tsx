@@ -454,8 +454,7 @@ function ProductCard({ product }: { product: Product }) {
       setQuantity(0)
     } else {
       const newQuantity = parseInt(cleanedText, 10)
-      const maxStock = product.inStock || 0
-      setQuantity(Math.max(0, Math.min(maxStock, isNaN(newQuantity) ? 0 : newQuantity)))
+      setQuantity(Math.max(0, isNaN(newQuantity) ? 0 : newQuantity))
     }
   }
 
@@ -475,24 +474,6 @@ function ProductCard({ product }: { product: Product }) {
     const itemInCart = productsInCart.find(
       p => p.itemCode === product.itemCode
     )
-
-    if (maxStock <= 0) {
-      setAlertInfo({
-        title: 'Producto agotado',
-        description: 'Este producto no tiene stock disponible.',
-        showCancel: false,
-      })
-      return
-    }
-
-    if (quantity > maxStock) {
-      setAlertInfo({
-        title: 'Stock insuficiente',
-        description: `Solo hay ${maxStock} unidades disponibles.`,
-        showCancel: false,
-      })
-      return
-    }
 
     const cartItem = {
       itemCode: product.itemCode,
@@ -604,11 +585,7 @@ function ProductCard({ product }: { product: Product }) {
 
               <div className="pt-2">
                 <Button
-                  disabled={product.inStock <= 0}
-                  className={`w-full text-sm rounded-full font-semibold py-2.5 transition-all duration-200 ${product.inStock <= 0
-                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                    : 'bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white'
-                    }`}
+                  className="w-full text-sm rounded-full font-semibold py-2.5 transition-all duration-200 bg-linear-to-r from-brand-primary to-brand-primary/90 hover:from-brand-primary/90 hover:to-brand-primary/80 text-white"
                 >
                   Ver Detalles
                 </Button>
@@ -721,11 +698,7 @@ function ProductCard({ product }: { product: Product }) {
                             variant="ghost"
                             size="icon"
                             className="rounded-none h-10 w-10"
-                            onClick={() => {
-                              const maxStock = product.inStock || 0
-                              setQuantity(q => Math.min(maxStock, q + 1))
-                            }}
-                            disabled={quantity >= (product.inStock || 0)}
+                            onClick={() => setQuantity(q => q + 1)}
                           >
                             +
                           </Button>
@@ -821,7 +794,7 @@ function ProductCard({ product }: { product: Product }) {
               <div className="lg:w-90 shrink-0 border-l pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
                 <div className="flex items-center gap-2 mb-4 shrink-0">
                   <ChartPieSliceIcon size={20} className="text-brand-primary" weight="fill" />
-                  <h3 className="font-bold text-sm">Historial de Movimientos</h3>
+                  <h3 className="font-bold text-md">Historial de Movimientos</h3>
                 </div>
 
                 {loadingAnalytics ? (
@@ -837,54 +810,54 @@ function ProductCard({ product }: { product: Product }) {
                 ) : (
                   <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                     {analyticsData.map((item, index) => (
-                      <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-100 hover:border-brand-primary/30 transition-colors">
+                      <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-100 hover:border-brand-primary/30 transition-colors">
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary">
+                            <span className="text-xs font-bold px-2 py-1 rounded bg-brand-primary/10 text-brand-primary">
                               {item.docType}
                             </span>
-                            <span className="text-xs font-medium flex items-center gap-1">
-                              <Hash size={12} /> {item.docNum}
+                            <span className="text-sm font-medium flex items-center gap-1">
+                              <Hash size={14} /> {item.docNum}
                             </span>
                           </div>
-                          <span className="text-[10px] text-muted-foreground">
+                          <span className="text-xs text-muted-foreground">
                             {new Date(item.docDate).toLocaleDateString('es-HN')}
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center gap-1.5">
-                            <Cube size={14} className="text-brand-primary" />
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2">
+                            <Cube size={16} className="text-brand-primary" />
                             <div>
-                              <p className="text-[9px] text-muted-foreground uppercase">Cantidad</p>
-                              <p className="text-xs font-bold">{formatNumber(item.quantity)}</p>
+                              <p className="text-xs text-muted-foreground uppercase">Cantidad</p>
+                              <p className="text-sm font-bold">{formatNumber(item.quantity)}</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <TagSimple size={14} className="text-brand-primary" />
+                          <div className="flex items-center gap-2">
+                            <TagSimple size={16} className="text-brand-primary" />
                             <div>
-                              <p className="text-[9px] text-muted-foreground uppercase">Dto%</p>
-                              <p className="text-xs font-bold">{formatNumber(item.discountPercent)}%</p>
+                              <p className="text-xs text-muted-foreground uppercase">Dto%</p>
+                              <p className="text-sm font-bold">{formatNumber(item.discountPercent)}%</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <Money size={14} className="text-brand-primary" />
+                          <div className="flex items-center gap-2">
+                            <Money size={16} className="text-brand-primary" />
                             <div>
-                              <p className="text-[9px] text-muted-foreground uppercase">Neto</p>
-                              <p className="text-xs font-bold">L. {formatPrice(item.netAfterDiscount).intPart}<span className="text-[9px]">.{formatPrice(item.netAfterDiscount).decPart}</span></p>
+                              <p className="text-xs text-muted-foreground uppercase">Neto</p>
+                              <p className="text-sm font-bold">L. {formatPrice(item.netAfterDiscount).intPart}<span className="text-[10px]">.{formatPrice(item.netAfterDiscount).decPart}</span></p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            <ShoppingCart size={14} className="text-brand-primary" />
+                          <div className="flex items-center gap-2">
+                            <ShoppingCart size={16} className="text-brand-primary" />
                             <div>
-                              <p className="text-[9px] text-muted-foreground uppercase">Total</p>
-                              <p className="text-xs font-bold text-brand-primary">L. {formatPrice(item.grossAfterDiscount).intPart}<span className="text-[9px]">.{formatPrice(item.grossAfterDiscount).decPart}</span></p>
+                              <p className="text-xs text-muted-foreground uppercase">Total</p>
+                              <p className="text-sm font-bold text-brand-primary">L. {formatPrice(item.grossAfterDiscount).intPart}<span className="text-[10px]">.{formatPrice(item.grossAfterDiscount).decPart}</span></p>
                             </div>
                           </div>
                         </div>
 
                         <div className="mt-2 pt-2 border-t border-gray-200">
-                          <p className="text-[9px] text-muted-foreground">
+                          <p className="text-xs text-muted-foreground">
                             {item.taxCode} ({item.vatPercent}%)
                           </p>
                         </div>
@@ -907,7 +880,7 @@ function ProductCard({ product }: { product: Product }) {
             <Button
               className="bg-brand-primary hover:bg-brand-primary/90 rounded-full px-6 py-3 h-auto text-xs font-bold transition-transform active:scale-95"
               onClick={handleAddToCart}
-              disabled={product.inStock <= 0 || !isPriceValid}
+              disabled={!isPriceValid}
             >
               Agregar al carrito
             </Button>
