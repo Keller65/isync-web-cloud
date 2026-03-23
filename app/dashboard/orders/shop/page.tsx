@@ -28,6 +28,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { MagnifyingGlass, SealPercent, Tag, Funnel, ChartPieSliceIcon, CircleNotch, FileText, Hash, Calendar, Cube, TagSimple, Money, Receipt, ShoppingCart } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
+import { useSettingsStore } from '@/app/lib/store.general'
 
 interface SubCategory {
   name: string
@@ -357,6 +358,7 @@ function ProductCard({ product }: { product: Product }) {
   const [isPriceValid, setIsPriceValid] = useState(true)
   const [isPriceManuallyEdited, setIsPriceManuallyEdited] = useState(false)
   const [applyTierDiscounts, setApplyTierDiscounts] = useState(false)
+  const { productsWithImage } = useSettingsStore()
 
   const tier = product.tiers?.[0]
   const finalPrice = tier ? tier.price : product.price
@@ -511,48 +513,50 @@ function ProductCard({ product }: { product: Product }) {
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <section className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-200 transition-all duration-300 group overflow-hidden'>
-            <div className="h-44 bg-linear-to-b from-gray-50 to-white rounded-t-2xl flex items-center justify-center overflow-hidden p-3">
-              <div className="relative w-full h-full flex items-center justify-center">
-                <Image
-                  src={"https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"}
-                  alt={product.itemName}
-                  className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  height={400}
-                  width={400}
-                />
+          <section style={{ paddingTop: productsWithImage ? 0 : 40 }} className='cursor-pointer relative flex flex-col w-full bg-white rounded-2xl border border-gray-200 transition-all duration-300 group overflow-hidden'>
+            {productsWithImage ?? (
+              <div className="h-44 bg-linear-to-b from-gray-50 to-white rounded-t-2xl flex items-center justify-center overflow-hidden p-3">
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <Image
+                    src={"https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg"}
+                    alt={product.itemName}
+                    className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
+                    height={400}
+                    width={400}
+                  />
+                </div>
               </div>
+            )}
 
-              {product.hasDiscount && (
-                <div className="absolute top-0 right-0">
-                  <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${product.pricingSource === "GeneralSpecialPrice"
-                    ? 'bg-linear-to-r from-red-500 to-red-600'
-                    : 'bg-linear-to-r from-emerald-500 to-emerald-600'
-                    }`}>
-                    <div className="flex items-center gap-1">
-                      <SealPercent weight="fill" size={14} />
-                      <span>OFERTA</span>
-                    </div>
+            {product.hasDiscount && (
+              <div className="absolute top-0 right-0">
+                <div className={`px-3 py-1.5 rounded-bl-xl text-white text-xs font-bold ${product.pricingSource === "GeneralSpecialPrice"
+                  ? 'bg-linear-to-r from-red-500 to-red-600'
+                  : 'bg-linear-to-r from-emerald-500 to-emerald-600'
+                  }`}>
+                  <div className="flex items-center gap-1">
+                    <SealPercent weight="fill" size={14} />
+                    <span>OFERTA</span>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {product.inStock <= 0 && (
-                <div className="absolute top-3 right-3">
-                  <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-1 rounded-full">
-                    SIN STOCK
-                  </span>
-                </div>
-              )}
+            {product.inStock <= 0 && (
+              <div className="absolute top-3 right-3">
+                <span className="text-[10px] font-bold bg-red-500 text-white px-2 py-1 rounded-full">
+                  SIN STOCK
+                </span>
+              </div>
+            )}
 
-              {product.inStock > 0 && product.inStock <= 10 && (
-                <div className="absolute top-2 left-2">
-                  <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
-                    ¡Últimas {formatNumber(product.inStock)}!
-                  </span>
-                </div>
-              )}
-            </div>
+            {product.inStock > 0 && product.inStock <= 10 && (
+              <div className="absolute top-2 left-2">
+                <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-1 rounded-full">
+                  ¡Últimas {formatNumber(product.inStock)}!
+                </span>
+              </div>
+            )}
 
             <div className="p-4 flex flex-col gap-2.5">
               <div className="flex items-start justify-between gap-2">

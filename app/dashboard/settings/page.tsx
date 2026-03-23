@@ -14,6 +14,7 @@ import {
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useAuthStore } from "@/app/lib/store"
+import { useSettingsStore } from "@/app/lib/store.general"
 import { cn } from "@/lib/utils"
 
 // Definición de las secciones para la navegación lateral
@@ -27,14 +28,15 @@ const navItems = [
 export default function SettingsPage() {
   const router = useRouter()
   const { fullName } = useAuthStore()
+  const {
+    biometricEnabled, setBiometricEnabled,
+    pushEnabled, setPushEnabled,
+    soundEnabled, setSoundEnabled,
+    showTraffic, setShowTraffic,
+    productsWithImage, setProductsWithImage,
+    mapStyle, setMapStyle,
+  } = useSettingsStore()
   const [activeSection, setActiveSection] = useState("notifications")
-
-  // Estados de configuración (Persistidos en localStorage)
-  const [biometricEnabled, setBiometricEnabled] = useState(false)
-  const [pushEnabled, setPushEnabled] = useState(true)
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [showTraffic, setShowTraffic] = useState(false)
-  const [mapStyle, setMapStyle] = useState<'color' | 'minimalista'>('color')
 
   // Estados de sistema
   const [syncLoading, setSyncLoading] = useState(false)
@@ -43,17 +45,8 @@ export default function SettingsPage() {
   const [ipAddress, setIpAddress] = useState("192.168.1.1") // IP por defecto estática
 
   useEffect(() => {
-    loadSettings()
     calculateCacheSize()
   }, [])
-
-  const loadSettings = () => {
-    setBiometricEnabled(localStorage.getItem('settings:biometricEnabled') === 'true')
-    setPushEnabled(localStorage.getItem('settings:pushEnabled') !== 'false')
-    setSoundEnabled(localStorage.getItem('settings:soundEnabled') !== 'false')
-    setMapStyle((localStorage.getItem('settings:mapStyle') as any) || 'color')
-    setShowTraffic(localStorage.getItem('settings:showTraffic') === 'true')
-  }
 
   const calculateCacheSize = () => {
     let total = 0
@@ -153,6 +146,13 @@ export default function SettingsPage() {
               desc="Mostrar imágenes de productos en las alertas emergentes (consume más datos)."
               checked={true}
             />
+            <ToggleItem
+              icon={<ImageIcon />}
+              title="Productos con Imagen"
+              desc="Mostrar imagen del producto."
+              checked={productsWithImage}
+              onCheckedChange={(val: any) => { setProductsWithImage(val); localStorage.setItem('settings:productsWithImage', String(val)) }}
+            />
           </div>
         </SectionWrapper>
       )
@@ -196,7 +196,7 @@ export default function SettingsPage() {
           <div className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <InfoStatCard icon={<Wifi />} label="Dirección IP" value={ipAddress} pulse />
-              <InfoStatCard icon={<Smartphone />} label="Build Versión" value="1.10.02-WEB" />
+              <InfoStatCard icon={<Smartphone />} label="Build Versión" value="1.2303.26-WEB" />
               <InfoStatCard icon={<Database />} label="Caché Utilizada" value={cacheSize} />
             </div>
             <Separator />
