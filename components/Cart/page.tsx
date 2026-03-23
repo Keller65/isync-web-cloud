@@ -62,6 +62,9 @@ function CartISync() {
 
   const [showErrorAlert, setShowErrorAlert] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [showEditCustomerDialog, setShowEditCustomerDialog] = useState(false)
+  const [editCustomerName, setEditCustomerName] = useState("")
+  const [editCustomerRTN, setEditCustomerRTN] = useState("")
 
   const [addresses, setAddresses] = useState<CustomerAddress[]>([])
   const [, setLoadingAddresses] = useState(false)
@@ -154,8 +157,8 @@ function CartISync() {
       const payload = {
         ...(editMode ? {} : { requestId: orderId }),
         cardCode: selectedCustomer.cardCode,
-        cardName: selectedCustomer.cardName,
-        u_RTN: selectedCustomer.federalTaxID,
+        cardName: selectedCustomer.editRTN && editCustomerName ? editCustomerName : selectedCustomer.cardName,
+        u_RTN: selectedCustomer.editRTN && editCustomerRTN ? editCustomerRTN : selectedCustomer.federalTaxID,
         salesPersonCode: sellerDifferent ? selectedSlpCode : salesPersonCode,
         payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
@@ -337,7 +340,15 @@ function CartISync() {
 
               <div className="flex flex-row gap-3">
                 <Button
-                  onClick={() => setShowConfirmAlert(true)}
+                  onClick={() => {
+                    if (selectedCustomer?.editRTN) {
+                      setEditCustomerName(selectedCustomer.cardName)
+                      setEditCustomerRTN(selectedCustomer.federalTaxID)
+                      setShowEditCustomerDialog(true)
+                    } else {
+                      setShowConfirmAlert(true)
+                    }
+                  }}
                   className="flex-1 font-normal bg-brand-primary text-white hover:bg-brand-primary h-13 text-md tracking-[0.3px] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
                   disabled={productsInCart.length === 0 || isLoading}
                 >
@@ -487,6 +498,67 @@ function CartISync() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedCustomer?.editRTN && (
+        <AlertDialog open={showEditCustomerDialog} onOpenChange={setShowEditCustomerDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Editar Datos del Cliente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Actualice el nombre y RTN del cliente según sea necesario.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nombre del Cliente</label>
+                <input
+                  type="text"
+                  value={editCustomerName}
+                  onChange={(e) => setEditCustomerName(e.target.value)}
+                  className="w-full p-2 border border-gray-200 rounded-md"
+                  placeholder="Nombre del cliente"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">RTN</label>
+                <input
+                  type="text"
+                  value={editCustomerRTN}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 14)
+                    setEditCustomerRTN(value)
+                  }}
+                  className="w-full p-2 border border-gray-200 rounded-md"
+                  placeholder="Ingrese 14 dígitos"
+                />
+                <p className="text-xs text-gray-400">{editCustomerRTN.length}/14 caracteres</p>
+              </div>
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => {
+                setEditCustomerName(selectedCustomer?.cardName ?? "")
+                setEditCustomerRTN(selectedCustomer?.federalTaxID ?? "")
+              }}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className={editCustomerName.trim().length === 0 || editCustomerRTN.length !== 14 ? "bg-gray-200 text-gray-500 hover:bg-gray-200" : ""}
+                disabled={editCustomerName.trim().length === 0 || editCustomerRTN.length !== 14}
+                onClick={() => {
+                  if (editCustomerRTN.length !== 14) {
+                    triggerError("El RTN debe tener exactamente 14 dígitos.")
+                    return
+                  }
+                  setShowEditCustomerDialog(false)
+                  setShowConfirmAlert(true)
+                }}
+              >
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   )
 }
