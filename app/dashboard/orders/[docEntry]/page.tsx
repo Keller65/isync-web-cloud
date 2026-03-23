@@ -117,6 +117,7 @@ export default function OrderDetailPage() {
         unitPriceNoVAT: line.unitPriceNoVAT,
         basePriceNoVAT: line.basePriceNoVAT,
         taxCode: line.taxCode,
+        warehouseCode: line.warehouseCode
       }
       if (line.barCode) product.barCode = line.barCode
       if (line.priceList) product.priceList = line.priceList

@@ -168,6 +168,7 @@ function CartISync() {
             unitPriceNoVAT: p.unitPriceNoVAT,
             basePriceNoVAT: p.basePriceNoVAT,
             taxCode: p.taxCode,
+            warehouseCode: u_WhsCode
           }
           if (p.barCode) line.barCode = p.barCode
           if (p.priceList) line.priceList = p.priceList
