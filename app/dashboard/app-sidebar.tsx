@@ -112,7 +112,7 @@ export function AppSidebar() {
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton tooltip={group.title}>
-                        <group.icon size={20} />
+                        {/* <group.icon size={20} /> */}
                         <span>{group.title}</span>
                         <Path className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" size={14} />
                       </SidebarMenuButton>

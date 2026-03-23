@@ -24,6 +24,7 @@ export interface CustomerType {
   referidoName?: string;
   slpCode?: number;
   slpName?: string;
+  u_RTN?: string;
 }
 
 export interface CustomerResponseType {

@@ -152,11 +152,13 @@ function CartISync() {
       setIsLoading(true)
 
       const payload = {
-        requestId: editMode ? null : orderId,
+        ...(editMode ? {} : { requestId: orderId }),
         cardCode: selectedCustomer.cardCode,
+        cardName: selectedCustomer.cardName,
+        u_RTN: selectedCustomer.federalTaxID,
+        salesPersonCode: sellerDifferent ? selectedSlpCode : salesPersonCode,
         payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
-        slpCode: sellerDifferent ? selectedSlpCode : salesPersonCode,
         series: u_SerieCot ?? undefined,
         u_Referido: selectedCustomer.referidoCode,
         lines: productsInCart.map(p => {
@@ -165,14 +167,17 @@ function CartISync() {
             itemCode: p.itemCode,
             barCode: p.barCode,
             quantity: p.quantity,
-            priceList: p.priceList ?? basePrice,
-            priceAfterVAT: p.priceAfterVAT,
+            basePriceNoVAT: basePrice,
             unitPriceNoVAT: p.unitPriceNoVAT ?? p.basePriceNoVAT,
             taxCode: p.taxCode,
             warehouseCode: u_WhsCode,
           }
         })
       }
+
+      console.log("Enviando payload:", payload)
+      console.log("URL:", editMode ? `/api-proxy/api/Quotations/${docEntry}` : '/api-proxy/api/Quotations')
+      console.log("Method:", editMode ? "PATCH" : "POST")
 
       const response = await axios({
         method: editMode ? "PATCH" : "POST",
