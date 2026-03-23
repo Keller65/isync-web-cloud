@@ -93,6 +93,23 @@ function CartISync() {
     }
   }, [productsInCart, orderId, editMode])
 
+  const { taxableAmount, tax } = productsInCart.reduce(
+    (acc, item) => {
+      const price = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
+      const quantity = item.quantity ?? 0
+      const totalPrice = price * quantity
+
+      const isExempt = item.taxCode === "EXO" || item.taxCode === "EXE"
+
+      if (!isExempt) {
+        acc.taxableAmount += totalPrice
+      }
+
+      return acc
+    },
+    { taxableAmount: 0, tax: 0 }
+  )
+
   const subtotal = productsInCart.reduce(
     (acc, item) => {
       const price = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
@@ -100,8 +117,9 @@ function CartISync() {
     },
     0
   )
-  const tax = subtotal * 0.15
-  const total = subtotal
+
+  const calculatedTax = taxableAmount * 0.15
+  const total = subtotal + calculatedTax
 
   const triggerError = (message: string) => {
     setErrorMessage(message)
@@ -287,6 +305,7 @@ function CartISync() {
                       </p>
                     </div>
                     <span>{item.quantity}</span>
+                    <span>{item.taxCode}</span>
                     <span>
                       L. {(item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0).toLocaleString("es-HN")}
                     </span>
@@ -319,7 +338,7 @@ function CartISync() {
                   <span className="text-gray-500">ISV</span>
                   <span className="font-medium">
                     L.
-                    {tax.toLocaleString("es-HN", {
+                    {calculatedTax.toLocaleString("es-HN", {
                       minimumFractionDigits: 2
                     })}{" "}
                   </span>
