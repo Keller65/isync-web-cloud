@@ -161,17 +161,18 @@ function CartISync() {
         comments: comments,
         series: u_SerieCot ?? undefined,
         u_Referido: selectedCustomer.referidoCode,
-        lines: productsInCart.map(p => {
-          const basePrice = p.basePriceNoVAT ?? p.unitPriceNoVAT ?? p.priceList ?? 0
-          return {
+        lines: productsInCart.map((p) => {
+          const line: any = {
             itemCode: p.itemCode,
-            barCode: p.barCode,
             quantity: p.quantity,
-            basePriceNoVAT: basePrice,
-            unitPriceNoVAT: p.priceAfterVAT,
+            unitPriceNoVAT: p.unitPriceNoVAT,
+            basePriceNoVAT: p.basePriceNoVAT,
             taxCode: p.taxCode,
-            warehouseCode: u_WhsCode,
           }
+          if (p.barCode) line.barCode = p.barCode
+          if (p.priceList) line.priceList = p.priceList
+          if (p.priceAfterVAT) line.priceAfterVAT = p.priceAfterVAT
+          return line
         })
       }
 

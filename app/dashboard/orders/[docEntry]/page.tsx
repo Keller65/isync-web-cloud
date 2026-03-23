@@ -109,17 +109,20 @@ export default function OrderDetailPage() {
     setEditMode(true);
 
     // 3. Mapear las líneas del pedido a productos del carrito
-    const productsToLoad = orderDetail.lines.map(line => ({
-      ...line,
-      barCode: line.barCode,
-      itemName: line.itemName,
-      quantity: line.quantity,
-      priceList: line.priceList,
-      priceAfterVAT: line.priceAfterVAT,
-      unitPriceNoVAT: line.unitPriceNoVAT,
-      basePriceNoVAT: line.basePriceNoVAT,
-      taxCode: line.taxCode,
-    }));
+    const productsToLoad = orderDetail.lines.map((line) => {
+      const product: any = {
+        itemCode: line.itemCode,
+        itemName: line.itemName,
+        quantity: line.quantity,
+        unitPriceNoVAT: line.unitPriceNoVAT,
+        basePriceNoVAT: line.basePriceNoVAT,
+        taxCode: line.taxCode,
+      }
+      if (line.barCode) product.barCode = line.barCode
+      if (line.priceList) product.priceList = line.priceList
+      if (line.priceAfterVAT) product.priceAfterVAT = line.priceAfterVAT
+      return product
+    })
 
     console.log('Productos a cargar en el carrito:', productsToLoad);
 
