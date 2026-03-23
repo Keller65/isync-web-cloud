@@ -287,7 +287,7 @@ function CartISync() {
               )}
             </div>
 
-            <ScrollArea className="flex-1 max-h-[50vh] md:max-h-[60vh] px-3 md:px-6">
+            <ScrollArea className="flex-1 max-h-[50vh] md:max-h-[60vh] px-3 md:px-6 pb-10">
               <div className="space-y-2 py-2">
                 {productsInCart.map(item => {
                   const unitPrice = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
@@ -336,7 +336,7 @@ function CartISync() {
               </div>
             </ScrollArea>
 
-            <div className="px-4 md:px-8 py-4 bg-[#fcfcfc] border-t border-gray-100">
+            <div className="px-4 md:px-8 py-4 bg-[#fcfcfc] border-t border-gray-100 sticky bottom-0">
               <div className="space-y-2 mb-3 md:mb-4">
                 <div className="flex justify-between text-xs md:text-sm items-center">
                   <span className="text-gray-500">Ubicación</span>
