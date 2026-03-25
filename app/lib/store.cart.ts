@@ -12,6 +12,7 @@ export interface CartItem {
   basePriceNoVAT?: number
   taxCode: string
   warehouseCode?: string
+  suppCatNum?: string
 }
 
 interface CartState {

@@ -485,6 +485,7 @@ function ProductCard({ product }: { product: Product }) {
       priceAfterVAT: finalUnitPrice,   // PRECIO FINAL (con descuento)
       unitPrice: finalUnitPrice,
       taxCode: product.taxType,
+      suppCatNum: product.suppCatNum,
     }
 
     if (itemInCart) {
@@ -526,7 +527,7 @@ function ProductCard({ product }: { product: Product }) {
                   />
                 </div>
               </div>
-            ): null}
+            ) : null}
 
             {product.hasDiscount && (
               <div className="absolute top-0 right-0">
@@ -567,7 +568,7 @@ function ProductCard({ product }: { product: Product }) {
 
               <div className="flex flex-row items-start justify-between text-xs">
                 <div className='flex flex-col gap-2'>
-                  <p className="text-gray-500 font-medium">Código Prov: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.suppCatNum}</span></p>
+                  <p className="text-gray-500 font-medium">SKU: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.suppCatNum}</span></p>
                   <p className="text-gray-500 font-medium">Código: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.itemCode}</span></p>
                 </div>
                 <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium text-[10px]">
@@ -610,7 +611,7 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               <div className='flex flex-row items-center gap-2'>
-                <p className="text-xs font-bold text-muted-foreground uppercase">Código Proveedor: </p>
+                <p className="text-xs font-bold text-muted-foreground uppercase">SKU: </p>
                 <p className="text-sm font-medium">{product.suppCatNum}</p>
               </div>
 
@@ -678,6 +679,9 @@ function ProductCard({ product }: { product: Product }) {
                         )}
                         <p className="text-[10px] text-muted-foreground">
                           Precio base original: L. {formatPrice(product.price).intPart}<span className="text-[10px]">.{formatPrice(product.price).decPart}</span> + {product.taxType}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {product.priceListName}
                         </p>
                       </div>
                     </div>
@@ -959,81 +963,11 @@ export default function Page() {
 
   return (
     <div className="w-full p-4">
-      <BackButton />
-
-      <div className="sticky bg-[#f9fafb] top-12 z-10 pt-6 pb-2">
-        <div className="flex gap-2">
-          <InputGroup className="rounded-full h-12.5 px-2 flex-1">
-            <InputGroupInput
-              placeholder={filters.subCategory ? '' : "Buscar Producto por nombre, codigo, etc..."}
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-            />
-            <InputGroupAddon>
-              <MagnifyingGlass size={32} />
-            </InputGroupAddon>
-          </InputGroup>
-
-          <Popover open={filterOpen} onOpenChange={setFilterOpen}>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="h-12.5 w-12.5 rounded-full px-4 relative">
-                <Funnel size={24} />
-                {activeFiltersCount > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72" align="end">
-              <PopoverHeader>
-                <PopoverTitle>
-                  {activeCategory === 'ofertas' ? 'Todas las Subcategorías' : categories.find(c => c.code === activeCategory)?.name || 'Subcategorías'}
-                </PopoverTitle>
-              </PopoverHeader>
-
-              <div className="max-h-64 overflow-y-auto space-y-1 pt-1">
-                <button
-                  onClick={() => {
-                    setFilters(prev => ({ ...prev, subCategory: null }))
-                    setSearchTerm('')
-                    setFilterOpen(false)
-                  }}
-                  className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === null
-                    ? 'bg-brand-primary/10 text-brand-primary font-medium'
-                    : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                >
-                  Todas las subcategorías
-                </button>
-                {(activeCategory === 'ofertas'
-                  ? categories.flatMap(cat => (cat.subCategories || []).map(sub => ({ ...sub, catCode: cat.code })))
-                  : categories.find(c => c.code === activeCategory)?.subCategories || []
-                ).map((sub: any, idx: number) => (
-                  <button
-                    key={activeCategory === 'ofertas' ? `${sub.catCode}-${idx}` : idx}
-                    onClick={() => {
-                      setFilters(prev => ({ ...prev, subCategory: sub.name }))
-                      setSearchTerm(sub.name)
-                      setFilterOpen(false)
-                    }}
-                    className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === sub.name
-                      ? 'bg-brand-primary/10 text-brand-primary font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
-                      }`}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      </div>
-
       <div className="flex">
         <aside className="w-56 shrink-0">
-          <nav className="sticky top-40 overflow-hidden">
+          <nav className="sticky top-20 overflow-hidden">
+            <BackButton />
+
             <button
               onClick={() => {
                 setActiveCategory('ofertas')
@@ -1074,15 +1008,88 @@ export default function Page() {
           </nav>
         </aside>
 
-        <main className="flex-1 min-w-0 pl-4">
-          {debouncedSearchTerm ? (
-            <SearchedProducts searchTerm={debouncedSearchTerm} />
-          ) : activeCategory === 'ofertas' ? (
-            <DiscountedProducts />
-          ) : (
-            <CategoryProducts groupCode={activeCategory} />
-          )}
-        </main>
+        <div className="flex-1 pl-6">
+
+          <div className="sticky bg-[#f9fafb] top-20 z-10 pb-2">
+            <div className="flex gap-2">
+              <InputGroup className="rounded-full h-12.5 px-2 flex-1">
+                <InputGroupInput
+                  placeholder={filters.subCategory ? '' : "Buscar Producto por nombre, codigo, etc..."}
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                />
+                <InputGroupAddon>
+                  <MagnifyingGlass size={32} />
+                </InputGroupAddon>
+              </InputGroup>
+
+              <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-12.5 w-12.5 rounded-full px-4 relative">
+                    <Funnel size={24} />
+                    {activeFiltersCount > 0 && (
+                      <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                        {activeFiltersCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="end">
+                  <PopoverHeader>
+                    <PopoverTitle>
+                      {activeCategory === 'ofertas' ? 'Todas las Subcategorías' : categories.find(c => c.code === activeCategory)?.name || 'Subcategorías'}
+                    </PopoverTitle>
+                  </PopoverHeader>
+
+                  <div className="max-h-64 overflow-y-auto space-y-1 pt-1">
+                    <button
+                      onClick={() => {
+                        setFilters(prev => ({ ...prev, subCategory: null }))
+                        setSearchTerm('')
+                        setFilterOpen(false)
+                      }}
+                      className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === null
+                        ? 'bg-brand-primary/10 text-brand-primary font-medium'
+                        : 'text-gray-600 hover:bg-gray-100'
+                        }`}
+                    >
+                      Todas las subcategorías
+                    </button>
+                    {(activeCategory === 'ofertas'
+                      ? categories.flatMap(cat => (cat.subCategories || []).map(sub => ({ ...sub, catCode: cat.code })))
+                      : categories.find(c => c.code === activeCategory)?.subCategories || []
+                    ).map((sub: any, idx: number) => (
+                      <button
+                        key={activeCategory === 'ofertas' ? `${sub.catCode}-${idx}` : idx}
+                        onClick={() => {
+                          setFilters(prev => ({ ...prev, subCategory: sub.name }))
+                          setSearchTerm(sub.name)
+                          setFilterOpen(false)
+                        }}
+                        className={`w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors ${filters.subCategory === sub.name
+                          ? 'bg-brand-primary/10 text-brand-primary font-medium'
+                          : 'text-gray-600 hover:bg-gray-100'
+                          }`}
+                      >
+                        {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <main className="flex-1 min-w-0 pl-4">
+            {debouncedSearchTerm ? (
+              <SearchedProducts searchTerm={debouncedSearchTerm} />
+            ) : activeCategory === 'ofertas' ? (
+              <DiscountedProducts />
+            ) : (
+              <CategoryProducts groupCode={activeCategory} />
+            )}
+          </main>
+        </div>
       </div>
     </div>
   )

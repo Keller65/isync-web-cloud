@@ -27,6 +27,7 @@ export interface OrderDetailType {
   comments: string;
   salesPersonCode: number;
   priceListNum: number;
+  salesPersonName: string;
   lines: OrderLineType[];
 }
 

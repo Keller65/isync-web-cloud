@@ -20,6 +20,7 @@ interface Product {
   price: number
   groupName?: string
   inStock?: number
+  priceListName?: string
 }
 
 export default function CatalogPage() {

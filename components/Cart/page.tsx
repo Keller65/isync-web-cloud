@@ -44,6 +44,20 @@ const getErrorSound = () => {
   return errorSound
 }
 
+const PriceDisplay = ({ price, decimalNum }: { price: number; decimalNum: number }) => {
+  const formatted = price.toLocaleString('es-HN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  const [integer, decimal] = formatted.split('.');
+  const totalDecimals = decimalNum ?? 3;
+  const decimalPart = decimal ? decimal.substring(0, totalDecimals) : '00';
+  return (
+    <span>
+      <span>{integer}</span>
+      <span className="text-[10px]">.{decimalPart}</span>
+    </span>
+  );
+}
+
+
 function CartISync() {
   const router = useRouter()
   const { selectedCustomer, selectedAddress, clearSelectedCustomer, setSelectedAddress, sellerDifferent, selectedSlpCode } = useCustomerStore()
@@ -293,7 +307,9 @@ function CartISync() {
                   const unitPrice = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
                   const quantity = item.quantity ?? 0
                   const totalPrice = unitPrice * quantity
-                  
+                  const sku = item.suppCatNum
+                  const taxCode = item.taxCode
+
                   return (
                     <div key={item.itemCode} className="group flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200/50">
                       <div className="relative shrink-0">
@@ -305,7 +321,7 @@ function CartISync() {
                           className="object-contain rounded-lg bg-white"
                         />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{item.itemName}</p>
                         <p className="text-xs text-gray-400 font-mono">{item.itemCode}</p>
@@ -313,18 +329,24 @@ function CartISync() {
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary font-medium">
                             Cant: {quantity}
                           </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary font-medium">
+                            SKU: {sku}
+                          </span>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary font-medium">
+                            {taxCode}
+                          </span>
                           <span className="text-gray-500">
-                            L. {unitPrice.toLocaleString("es-HN")} c/u
+                            L. <PriceDisplay price={unitPrice} decimalNum={4} /> c/u
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex flex-col items-end gap-2">
-                        <span className="text-sm font-bold text-gray-900">
-                          L. {totalPrice.toLocaleString("es-HN")}
+                        <span className="font-bold text-gray-900">
+                          L. <PriceDisplay price={totalPrice} decimalNum={2} />
                         </span>
-                        <button 
-                          onClick={() => removeProduct(item.itemCode)} 
+                        <button
+                          onClick={() => removeProduct(item.itemCode)}
                           className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
                         >
                           <Trash size={16} />
@@ -346,21 +368,21 @@ function CartISync() {
                 <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-gray-500">Subtotal</span>
                   <span className="font-medium">
-                    L. {subtotal.toLocaleString("es-HN", { minimumFractionDigits: 2 })} 
+                    L. {subtotal.toLocaleString("es-HN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-xs md:text-sm">
                   <span className="text-gray-500">ISV (15%)</span>
                   <span className="font-medium">
-                    L. {calculatedTax.toLocaleString("es-HN", { minimumFractionDigits: 2 })} 
+                    L. {calculatedTax.toLocaleString("es-HN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
 
                 <div className="flex justify-between text-base md:text-lg pt-3 md:pt-4 border-t border-gray-200">
                   <span className="font-light uppercase tracking-wider text-sm md:text-base">Total</span>
                   <span className="font-bold">
-                    L. {total.toLocaleString("es-HN", { minimumFractionDigits: 2 })} 
+                    L. {total.toLocaleString("es-HN", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>

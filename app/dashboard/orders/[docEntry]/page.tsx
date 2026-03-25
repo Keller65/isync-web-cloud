@@ -14,11 +14,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
 
-const formatPrice = (value: number) => {
-  const formatted = value.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const PriceDisplay = ({ price, decimalNum }: { price: number; decimalNum: number }) => {
+  const formatted = price.toLocaleString('es-HN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
   const [integer, decimal] = formatted.split('.');
-  return <><span>{integer}</span><span className="text-[10px]">.{decimal}</span></>;
-};
+  const totalDecimals = decimalNum ?? 3;
+  const decimalPart = decimal ? decimal.substring(0, totalDecimals) : '00';
+  return (
+    <span>
+      <span>{integer}</span>
+      <span className="text-[10px]">.{decimalPart}</span>
+    </span>
+  );
+}
 
 export default function OrderDetailPage() {
   const router = useRouter();
@@ -209,7 +216,7 @@ export default function OrderDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 { label: 'Fecha del Pedido', value: new Date(orderDetail.docDate).toLocaleDateString('es-HN'), icon: Calendar },
-                { label: 'Vendedor', value: `${orderDetail.cardName}`, icon: User },
+                { label: 'Vendedor', value: `${orderDetail.salesPersonName}`, icon: User },
                 { label: 'RTN Cliente', value: orderDetail.federalTaxID || 'Consumidor Final', icon: FileText }
               ].map((item, i) => (
                 <div key={i} className="bg-white p-5 rounded-2xl border border-gray-200">
@@ -255,10 +262,10 @@ export default function OrderDetailPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-gray-600">
-                          {(line.unitPriceNoVAT ?? 0).toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                          <PriceDisplay decimalNum={4} price={line.unitPriceNoVAT ?? 0} />
                         </TableCell>
                         <TableCell className="text-right text-sm font-bold text-gray-900">
-                          {formatPrice((line.unitPriceNoVAT ?? 0) * line.quantity)}
+                          <PriceDisplay decimalNum={2} price={(line.unitPriceNoVAT ?? 0) * line.quantity} />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -303,17 +310,19 @@ export default function OrderDetailPage() {
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">Subtotal</span>
-                  <span className="font-bold text-gray-200">L. {formatPrice(subtotal)}</span>
+                  <span className="font-bold text-gray-200">L. <PriceDisplay decimalNum={2} price={subtotal} />
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-400">ISV (15%)</span>
-                  <span className="font-bold text-orange-400">L. {formatPrice(orderDetail.vatSum)}</span>
+                  <span className="font-bold text-orange-400">L. <PriceDisplay decimalNum={2} price={orderDetail.vatSum} />
+                  </span>
                 </div>
                 <div className="pt-4 border-t border-white/10 flex justify-between items-end">
                   <span className="text-sm font-bold text-white uppercase">Total</span>
                   <div className="text-right">
                     <p className="text-2xl font-black text-white leading-none">
-                      L. {formatPrice(orderDetail.docTotal)}
+                      L. <PriceDisplay decimalNum={2} price={orderDetail.docTotal} />
                     </p>
                     <p className="text-[9px] text-gray-500 mt-1 uppercase">Lempiras Hondureños</p>
                   </div>
