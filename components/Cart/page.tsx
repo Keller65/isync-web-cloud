@@ -529,7 +529,7 @@ function CartISync() {
       </AlertDialog>
 
       <AlertDialog open={showSuccessAlert} onOpenChange={setShowSuccessAlert}>
-        <AlertDialogContent className="bg-green-300">
+        <AlertDialogContent className="bg-green-300 border-green-300">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-green-600">{editMode ? "¡Pedido Actualizado!" : "¡Pedido Creado!"}</AlertDialogTitle>
             <AlertDialogDescription className="text-green-600">

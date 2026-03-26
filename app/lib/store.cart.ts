@@ -13,6 +13,7 @@ export interface CartItem {
   taxCode: string
   warehouseCode?: string
   suppCatNum?: string
+  inStock?: number
 }
 
 interface CartState {
@@ -44,11 +45,18 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           productsInCart: [...state.productsInCart, product]
         })),
-      updateQuantity: (itemCode, quantity, unitPrice) =>
+      updateQuantity: (itemCode, quantity, unitPrice, inStock) =>
         set((state) => ({
           productsInCart: state.productsInCart.map((p) =>
             p.itemCode === itemCode
-              ? { ...p, quantity, unitPrice }
+              ? { 
+                  ...p, 
+                  quantity, 
+                  unitPrice,
+                  priceAfterVAT: unitPrice,
+                  priceList: unitPrice,
+                  inStock: inStock ?? p.inStock,
+                }
               : p
           ),
         })),
