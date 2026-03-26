@@ -311,21 +311,21 @@ function CartISync() {
                   const taxCode = item.taxCode
 
                   return (
-                    <div key={item.itemCode} className="group flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200/50">
+                    <div key={item.itemCode} className="group flex items-center gap-2 md:gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200/50">
                       <div className="relative shrink-0">
                         <Image
                           src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
                           alt={item.itemCode}
-                          width={56}
-                          height={56}
-                          className="object-contain rounded-lg bg-white"
+                          width={48}
+                          height={48}
+                          className="object-contain rounded-lg bg-white md:w-14 md:h-14"
                         />
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{item.itemName}</p>
                         <p className="text-xs text-gray-400 font-mono">{item.itemCode}</p>
-                        <div className="flex items-center gap-3 mt-1.5 text-xs">
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5 text-xs">
                           <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-primary/10 text-brand-primary font-medium">
                             Cant: {quantity}
                           </span>
@@ -341,13 +341,13 @@ function CartISync() {
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-2">
-                        <span className="font-bold text-gray-900">
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className="font-bold text-sm text-gray-900">
                           L. <PriceDisplay price={totalPrice} decimalNum={2} />
                         </span>
                         <button
                           onClick={() => removeProduct(item.itemCode)}
-                          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
+                          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 rounded-full text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
                         >
                           <Trash size={16} />
                         </button>
@@ -387,7 +387,7 @@ function CartISync() {
                 </div>
               </div>
 
-              <div className="flex flex-col md:flex-row gap-2 md:gap-3">
+              <div className="flex flex-col gap-2 md:gap-3">
                 <Button
                   onClick={() => {
                     if (selectedCustomer?.editRTN) {
@@ -398,30 +398,32 @@ function CartISync() {
                       setShowConfirmAlert(true)
                     }
                   }}
-                  className="flex-1 font-normal bg-brand-primary text-white hover:bg-brand-primary h-12 md:h-13 text-sm md:text-md tracking-[0.3px] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
+                  className="w-full font-normal bg-brand-primary text-white hover:bg-brand-primary h-12 md:h-13 text-sm md:text-md tracking-[0.3px] rounded-full cursor-pointer disabled:bg-gray-300 disabled:text-gray-600"
                   disabled={productsInCart.length === 0 || isLoading}
                 >
                   {isLoading ? "Procesando..." : editMode ? "Actualizar" : "Realizar Pedido"}
                 </Button>
 
-                <DrawerClose asChild>
-                  <Link
-                    href="/dashboard/orders/shop"
-                    className="w-full md:w-fit flex items-center bg-brand-primary rounded-full justify-center gap-2 text-xs text-white py-3 px-4 md:px-8"
-                  >
-                    <Plus size={14} /> Agregar
-                  </Link>
-                </DrawerClose>
+                <div className="flex gap-2 md:gap-3">
+                  <DrawerClose asChild>
+                    <Link
+                      href="/dashboard/orders/shop"
+                      className="flex-1 flex items-center bg-brand-primary rounded-full justify-center gap-2 text-xs text-white py-3 px-4 md:px-8"
+                    >
+                      <Plus size={14} /> Agregar
+                    </Link>
+                  </DrawerClose>
 
-                <Button
-                  onClick={() => {
-                    fetchAddresses()
-                    setShowAddressDialog(true)
-                  }}
-                  disabled={false}
-                  className="size-11 md:size-13 rounded-full bg-brand-primary hover:bg-brand-primary p-0 grid place-content-center cursor-pointer disabled:bg-gray-300 disabled:text-gray-600">
-                  <MapPinLine size={68} />
-                </Button>
+                  <Button
+                    onClick={() => {
+                      fetchAddresses()
+                      setShowAddressDialog(true)
+                    }}
+                    disabled={false}
+                    className="size-12 md:size-13 rounded-full bg-brand-primary hover:bg-brand-primary p-0 grid place-content-center cursor-pointer disabled:bg-gray-300 disabled:text-gray-600">
+                    <MapPinLine size={68} />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

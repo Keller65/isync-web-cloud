@@ -1053,9 +1053,9 @@ export default function Page() {
             ))}
           </div>
 
-          {/* Subcategorías como tabs */}
+          {/* Subcategorías como tabs - solo móvil y tablet */}
           {subCategories.length > 0 && (
-            <div className="mb-4 -mx-4 px-4 overflow-x-auto flex gap-2 pb-2">
+            <div className="lg:hidden mb-4 -mx-4 px-4 overflow-x-auto flex gap-2 pb-2">
               <button
                 onClick={() => {
                   setActiveSubCategory(null)

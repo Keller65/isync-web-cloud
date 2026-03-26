@@ -178,6 +178,15 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     paddingTop: 4,
   },
+  poweredBy: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    fontSize: 8,
+    color: '#888888',
+    textAlign: 'center',
+  },
 });
 
 interface OrderPDFProps {
@@ -214,10 +223,13 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
               MOTORES AGRO INDUSTRIALES SA DE CV
             </Text>
             <Text style={styles.companyDetail}>
-              Principal: Bo. La Guardia, San Pedro Sula, Cortes
+              Principal: Bo. La Guardia, San Pedro Sula, Cortes, 23 Calle, 1 Ave.
             </Text>
             <Text style={styles.companyDetail}>
-              Tel: (504) 2544-2476
+              Bloque #1 De Los Juzgados De Avenida New Orleans
+            </Text>
+            <Text style={styles.companyDetail}>
+              2 Cuadras Hacia Abajo Izquierda. Honduras, C.A. Tel: (504) 2544-2476
             </Text>
             <Text style={styles.companyDetail}>
               E-mail: contabilidad@agrinsahn.com
@@ -350,6 +362,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           </View>
         </View>
 
+        <Text style={styles.poweredBy}>Powered by iSync Web</Text>
       </Page>
     </Document>
   );
