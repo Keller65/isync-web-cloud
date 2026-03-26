@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import dynamic from "next/dynamic"
 import { File, Image, Rows, Grid3X3 } from "lucide-react"
+import { MagnifyingGlass } from "@phosphor-icons/react"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import axios, { isAxiosError } from "axios"
 import { useAuthStore } from "@/app/lib/store"
@@ -24,14 +26,31 @@ interface Product {
 }
 
 export default function CatalogPage() {
-  const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [generating, setGenerating] = useState(false)
   const [page, setPage] = useState(1)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+  const [hasMore, setHasMore] = useState(true)
 
   const { token } = useAuthStore()
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm)
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
+  const filteredProducts = debouncedSearch
+    ? allProducts.filter(p =>
+        p.itemName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+        p.itemCode.toLowerCase().includes(debouncedSearch.toLowerCase())
+      )
+    : allProducts
 
   const toggleProduct = (code: string) => {
     setSelectedProducts(prev =>
@@ -42,24 +61,17 @@ export default function CatalogPage() {
   }
 
   const selectAll = () => {
-    if (selectedProducts.length === products.length) {
+    if (selectedProducts.length === filteredProducts.length) {
       setSelectedProducts([])
     } else {
-      setSelectedProducts(products.map(p => p.itemCode))
+      setSelectedProducts(filteredProducts.map(p => p.itemCode))
     }
   }
 
-  const handleGeneratePDF = async () => {
-    setGenerating(true)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    setGenerating(false)
-    alert("Catálogo PDF generado (demo)")
-  }
-
-  async function fetchProducts(pageNumber: number) {
+  async function fetchProducts(pageNumber: number, search?: string) {
     try {
       const res = await axios.get(
-        `/api-proxy/api/Catalog/products/search?search=1&priceList=1&groupCode=0&page=${pageNumber}&pageSize=60`,
+        `/api-proxy/api/Catalog/products/search?search=${search || '1'}&priceList=1&groupCode=0&page=${pageNumber}&pageSize=60`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -78,10 +90,12 @@ export default function CatalogPage() {
       }))
 
       if (pageNumber === 1) {
-        setProducts(mapped)
+        setAllProducts(mapped)
       } else {
-        setProducts(prev => [...prev, ...mapped])
+        setAllProducts(prev => [...prev, ...mapped])
       }
+
+      setHasMore(items.length === 60)
 
     } catch (error) {
       console.error(
@@ -91,22 +105,26 @@ export default function CatalogPage() {
     }
   }
 
+  useEffect(() => {
+    if (!token) return
+    setAllProducts([])
+    setPage(1)
+    setHasMore(true)
+    fetchProducts(1, debouncedSearch || undefined)
+  }, [token, debouncedSearch])
+
+  const selectedItems = filteredProducts.filter(p =>
+    selectedProducts.includes(p.itemCode)
+  )
+
   const loadMore = async () => {
+    if (!hasMore || loadingMore) return
     setLoadingMore(true)
     const nextPage = page + 1
-    await fetchProducts(nextPage)
+    await fetchProducts(nextPage, debouncedSearch || undefined)
     setPage(nextPage)
     setLoadingMore(false)
   }
-
-  useEffect(() => {
-    if (!token) return
-    fetchProducts(1)
-  }, [token])
-
-  const selectedItems = products.filter(p =>
-    selectedProducts.includes(p.itemCode)
-  )
 
   return (
     <div className="p-8 max-w-full mx-auto">
@@ -127,7 +145,7 @@ export default function CatalogPage() {
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base">
-                  Productos ({products.length})
+                  Productos ({filteredProducts.length})
                 </CardTitle>
 
                 <div className="flex gap-2">
@@ -150,12 +168,22 @@ export default function CatalogPage() {
                   </Button>
                 </div>
               </div>
+
+              <div className="relative mt-4">
+                <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+                <Input
+                  placeholder="Buscar por nombre o código..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </CardHeader>
 
             <CardContent>
               <div className="flex gap-2 mb-4">
                 <Button variant="outline" size="sm" onClick={selectAll}>
-                  {selectedProducts.length === products.length
+                  {selectedProducts.length === filteredProducts.length
                     ? "Deseleccionar todo"
                     : "Seleccionar todo"}
                 </Button>
@@ -167,7 +195,7 @@ export default function CatalogPage() {
 
               {viewMode === "grid" ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {products.map(product => (
+                  {filteredProducts.map(product => (
                     <div
                       key={product.itemCode}
                       onClick={() => toggleProduct(product.itemCode)}
@@ -196,7 +224,7 @@ export default function CatalogPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {products.map(product => (
+                  {filteredProducts.map(product => (
                     <div
                       key={product.itemCode}
                       onClick={() => toggleProduct(product.itemCode)}

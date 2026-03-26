@@ -923,6 +923,7 @@ export default function Page() {
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const [activeCategory, setActiveCategory] = useState('ofertas')
+  const [activeSubCategory, setActiveSubCategory] = useState<string | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
   const [filters, setFilters] = useState({
     subCategory: null as string | null,
@@ -930,12 +931,20 @@ export default function Page() {
 
   const activeFiltersCount = filters.subCategory ? 1 : 0
 
+  const currentCategory = categories.find(c => c.code === activeCategory)
+  const subCategories = currentCategory?.subCategories || []
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm)
     }, 500)
     return () => clearTimeout(timer)
   }, [searchTerm])
+
+  useEffect(() => {
+    setActiveSubCategory(null)
+    setFilters(prev => ({ ...prev, subCategory: null }))
+  }, [activeCategory])
 
 
   useEffect(() => {
@@ -963,8 +972,9 @@ export default function Page() {
 
   return (
     <div className="w-full p-4">
-      <div className="flex">
-        <aside className="w-56 shrink-0">
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Categorías sidebar - solo visible en desktop */}
+        <aside className="hidden lg:block w-56 shrink-0">
           <nav className="sticky top-20 overflow-hidden">
             <BackButton />
 
@@ -1008,7 +1018,77 @@ export default function Page() {
           </nav>
         </aside>
 
-        <div className="flex-1 pl-6">
+        <div className="flex-1">
+          {/* Mobile: Categorías horizontales */}
+          <div className="lg:hidden -mx-4 -mt-4 px-4 pb-2 mb-2 border-b overflow-x-auto flex gap-2 bg-background">
+            <button
+              onClick={() => {
+                setActiveCategory('ofertas')
+                setSearchTerm('')
+              }}
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+                activeCategory === 'ofertas'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+              }`}
+            >
+              <Tag size={14} weight="fill" />
+              Ofertas
+            </button>
+            {categories.map(cat => (
+              <button
+                key={cat.code}
+                onClick={() => {
+                  setActiveCategory(cat.code)
+                  setSearchTerm('')
+                }}
+                className={`px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+                  activeCategory === cat.code
+                    ? 'bg-brand-primary text-white'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+
+          {/* Subcategorías como tabs */}
+          {subCategories.length > 0 && (
+            <div className="mb-4 -mx-4 px-4 overflow-x-auto flex gap-2 pb-2">
+              <button
+                onClick={() => {
+                  setActiveSubCategory(null)
+                  setFilters(prev => ({ ...prev, subCategory: null }))
+                  setSearchTerm('')
+                }}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
+                  activeSubCategory === null
+                    ? 'bg-brand-primary text-white'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                Todas
+              </button>
+              {subCategories.map((sub, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setActiveSubCategory(sub.name)
+                    setFilters(prev => ({ ...prev, subCategory: sub.name }))
+                    setSearchTerm(sub.name)
+                  }}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
+                    activeSubCategory === sub.name
+                      ? 'bg-brand-primary text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="sticky bg-[#f9fafb] top-20 z-10 pb-2">
             <div className="flex gap-2">
