@@ -30,6 +30,7 @@ import { ArrowClockwise, CalendarDots, Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
 import { useCartStore } from '@/app/lib/store.cart';
 import { Button } from '@/components/ui/button';
+import { logClient } from '@/lib/logger/logger.client';
 
 interface OrderDataType {
   docEntry: number;
@@ -126,7 +127,18 @@ export default function OrdersPage() {
 
       setIsLastPage(newOrders.length < PAGE_SIZE);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'No se pudieron obtener las órdenes.');
+      const message = err.response?.data?.message || err.response?.data?.error || 'No se pudieron obtener las órdenes.';
+      setError(message);
+      logClient({
+        level: 'ERROR',
+        category: 'PEDIDO',
+        endpoint: `${FETCH_URL}/${salesPersonCode}`,
+        errorCode: err.response?.status,
+        message,
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders',
+        userId: fullName ?? undefined,
+      });
     } finally {
       if (isRefresh) {
         setIsRefreshing(false);
@@ -172,8 +184,17 @@ export default function OrdersPage() {
         });
       }
       setIsLastCustomerPage(newCustomers.length < CUSTOMER_PAGE_SIZE);
-    } catch (err) {
-      console.error('Error al cargar clientes:', err);
+    } catch (err: any) {
+      logClient({
+        level: 'ERROR',
+        category: 'CLIENTES',
+        endpoint: CUSTOMERS_URL,
+        errorCode: err.response?.status,
+        message: err.response?.data?.message || err.response?.data?.error || 'Error al cargar clientes',
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders',
+        userId: fullName ?? undefined,
+      });
     } finally {
       setIsLoadingCustomers(false);
     }
@@ -199,8 +220,17 @@ export default function OrdersPage() {
       } else {
         setSelectedAddress(null);
       }
-    } catch (err) {
-      console.error('Error al cargar direcciones:', err);
+    } catch (err: any) {
+      logClient({
+        level: 'ERROR',
+        category: 'CLIENTES',
+        endpoint: `${ADDRESSES_URL}/${cardCode}/addresses`,
+        errorCode: err.response?.status,
+        message: err.response?.data?.message || err.response?.data?.error || 'Error al cargar direcciones',
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders',
+        userId: fullName ?? undefined,
+      });
       setAddresses([]);
       setSelectedAddress(null);
     } finally {
@@ -463,13 +493,13 @@ export default function OrdersPage() {
                                       setSellerDifferent(true);
                                       setSelectedSlpCode(customer.slpCode ?? null);
                                       setSelectedCustomer(customer);
-                                      console.log('Cliente seleccionado:', customer);
+                                      logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado con vendedor diferente: ${customer.cardName}`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
                                       setPendingCustomer(null);
                                     }
                                   });
                                 } else {
                                   setSelectedCustomer(customer);
-                                  console.log('Cliente seleccionado:', customer);
+                                  logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado: ${customer.cardName} (${customer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
                                 }
                               }
                             }}
@@ -663,7 +693,7 @@ export default function OrdersPage() {
                   setSellerDifferent(false);
                   setSelectedSlpCode(salesPersonCode);
                   setSelectedCustomer(pendingCustomer);
-                  console.log('Cliente seleccionado:', pendingCustomer);
+                  logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado (vendedor propio): ${pendingCustomer.cardName} (${pendingCustomer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
                   setPendingCustomer(null);
                 }
                 setAlertInfo(null);

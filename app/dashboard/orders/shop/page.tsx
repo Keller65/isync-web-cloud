@@ -29,6 +29,7 @@ import { MagnifyingGlass, SealPercent, Tag, Funnel, ChartPieSliceIcon, CircleNot
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
 import { useSettingsStore } from '@/app/lib/store.general'
+import { logClient } from '@/lib/logger/logger.client'
 
 interface SubCategory {
   name: string
@@ -62,7 +63,7 @@ interface ItemAnalytics {
 }
 
 function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, groupCode?: string | number, filters?: ProductFilters }) {
-  const { token } = useAuthStore()
+  const { token, fullName } = useAuthStore()
   const { selectedCustomer } = useCustomerStore()
   const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
@@ -126,13 +127,22 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
         })
         setHasMore(newItems.length === 20)
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      logClient({
+        level: 'ERROR',
+        category: 'PEDIDO',
+        endpoint: `/api-proxy${endpoint}`,
+        errorCode: err.response?.status,
+        message: err.response?.data?.message || err.response?.data?.error || 'Error al cargar productos',
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders/shop',
+        userId: fullName ?? undefined,
+      });
       setHasMore(false)
     } finally {
       setLoading(false)
     }
-  }, [token, page, selectedCustomer, hasMore, endpoint, groupCode, filters])
+  }, [token, page, selectedCustomer, hasMore, endpoint, groupCode, filters, fullName])
 
   /* Reset al cambiar cliente o categoría */
   useEffect(() => {
@@ -197,7 +207,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
 }
 
 function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters?: ProductFilters }) {
-  const { token } = useAuthStore()
+  const { token, fullName } = useAuthStore()
   const { selectedCustomer } = useCustomerStore()
   const [products, setProducts] = useState<Product[]>([])
   const [page, setPage] = useState(1)
@@ -265,13 +275,22 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
         })
         setHasMore(newItems.length === 20)
       }
-    } catch (err) {
-      console.error(err)
+    } catch (err: any) {
+      logClient({
+        level: 'ERROR',
+        category: 'PEDIDO',
+        endpoint: '/api-proxy/api/Catalog/products/search',
+        errorCode: err.response?.status,
+        message: err.response?.data?.message || err.response?.data?.error || `Error al buscar productos: "${searchTerm}"`,
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders/shop',
+        userId: fullName ?? undefined,
+      });
       setHasMore(false)
     } finally {
       setLoading(false)
     }
-  }, [token, page, selectedCustomer, hasMore, searchTerm, filters])
+  }, [token, page, selectedCustomer, hasMore, searchTerm, filters, fullName])
 
   /* Reset al cambiar cliente o término de búsqueda */
   useEffect(() => {
@@ -346,7 +365,7 @@ function CategoryProducts({ groupCode, filters }: { groupCode: string, filters?:
 function ProductCard({ product }: { product: Product }) {
   const { addProduct, updateQuantity, productsInCart } = useCartStore()
   const { selectedCustomer } = useCustomerStore()
-  const { token } = useAuthStore()
+  const { token, fullName } = useAuthStore()
   const [quantity, setQuantity] = useState(1)
   const [open, setOpen] = useState(false)
   const [analyticsData, setAnalyticsData] = useState<ItemAnalytics[]>([])
@@ -378,12 +397,21 @@ function ProductCard({ product }: { product: Product }) {
         }
       )
       setAnalyticsData(res.data)
-    } catch (err) {
-      console.error('Error al cargar analíticas:', err)
+    } catch (err: any) {
+      logClient({
+        level: 'ERROR',
+        category: 'ANALITICAS',
+        endpoint: `/api-proxy/api/Kpi/item-last-moves`,
+        errorCode: err.response?.status,
+        message: err.response?.data?.message || err.response?.data?.error || `Error al cargar analíticas del producto ${product.itemCode}`,
+        responseBody: err.response?.data,
+        pageUrl: '/dashboard/orders/shop',
+        userId: fullName ?? undefined,
+      });
     } finally {
       setLoadingAnalytics(false)
     }
-  }, [token, selectedCustomer, product.itemCode])
+  }, [token, selectedCustomer, product.itemCode, fullName])
 
   useEffect(() => {
     if (open && analyticsData.length === 0) {
@@ -504,7 +532,15 @@ function ProductCard({ product }: { product: Product }) {
         },
       })
     } else {
-      console.log('🛒 CARRITO → ASÍ SE GUARDA:', cartItem)
+      logClient({
+        level: 'INFO',
+        category: 'PEDIDO',
+        endpoint: '/api-proxy/api/Catalog/products/search',
+        message: `Producto agregado al carrito: ${product.itemName} (${product.itemCode}) x${quantity}`,
+        payload: cartItem,
+        pageUrl: '/dashboard/orders/shop',
+        userId: fullName ?? undefined,
+      });
       addProduct(cartItem)
       setOpen(false)
     }
@@ -918,7 +954,7 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 export default function Page() {
-  const { token } = useAuthStore()
+  const { token, fullName } = useAuthStore()
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
@@ -957,8 +993,19 @@ export default function Page() {
         },
       })
       .then(res => setCategories(res.data))
-      .catch(console.error)
-  }, [token])
+      .catch((err: any) => {
+        logClient({
+          level: 'ERROR',
+          category: 'GENERAL',
+          endpoint: '/api-proxy/sap/items/categories',
+          errorCode: err.response?.status,
+          message: err.response?.data?.message || err.response?.data?.error || 'Error al cargar categorías',
+          responseBody: err.response?.data,
+          pageUrl: '/dashboard/orders/shop',
+          userId: fullName ?? undefined,
+        });
+      })
+  }, [token, fullName])
 
   if (!token) {
     return (

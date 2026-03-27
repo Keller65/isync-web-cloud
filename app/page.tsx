@@ -3,11 +3,11 @@ import Image from "next/image"
 
 export default function LoginPage() {
   return (
-    <main className="flex items-center justify-center h-dvh bg-gray-50 font-sans">
+    <main className="flex items-center justify-center h-dvh bg-gray-50 font-sans p-2">
       <div className="w-full bg-white overflow-hidden flex h-full">
 
         {/* Lado Izquierdo: Visual / Branding */}
-        <div className="hidden lg:flex w-1/2 bg-linear-to-br from-[#1e517b] via-brand-primary to-[#16334b] p-16 flex-col justify-between text-white relative">
+        <div className="hiddenw rounded-2xl lg:flex w-full bg-linear-to-br from-[#1e517b] via-brand-primary to-[#16334b] p-16 flex-col justify-between text-white relative">
 
           {/* Logo */}
           <div className="size-9">
@@ -34,7 +34,7 @@ export default function LoginPage() {
         </div>
 
         {/* Lado Derecho: Formulario */}
-        <div className="w-full lg:w-1/2 p-12 md:p-16 flex flex-col justify-center">
+        <div className="w-[60vw] p-12 md:p-16 flex flex-col justify-center">
           <LoginForm />
         </div>
 

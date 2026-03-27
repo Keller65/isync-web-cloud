@@ -13,6 +13,7 @@ import { OrderDetailType } from '@/types/orders';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from "@/components/ui/table";
 import { Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
+import { logClient } from '@/lib/logger/logger.client';
 
 const PriceDisplay = ({ price, decimalNum }: { price: number; decimalNum: number }) => {
   const formatted = price.toLocaleString('es-HN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
@@ -57,10 +58,20 @@ export default function OrderDetailPage() {
         },
       });
       setOrderDetail(res.data);
-      console.log(res.data)
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'No se pudieron obtener los detalles.');
+      const message = err.response?.data?.message || err.response?.data?.error || 'No se pudieron obtener los detalles.';
+      setError(message);
+      logClient({
+        level: 'ERROR',
+        category: 'PEDIDO',
+        endpoint: `${FETCH_URL}/${docEntry}`,
+        errorCode: err.response?.status,
+        message,
+        responseBody: err.response?.data,
+        pageUrl: `/dashboard/orders/${docEntry}`,
+        userId: sellerName ?? undefined,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,7 +143,15 @@ export default function OrderDetailPage() {
       return product
     })
 
-    console.log('Productos a cargar en el carrito:', productsToLoad);
+    logClient({
+      level: 'INFO',
+      category: 'PEDIDO',
+      endpoint: `${FETCH_URL}/${orderDetail.docEntry}`,
+      message: `Edición iniciada — Cotización #${orderDetail.docNum} (${orderDetail.cardName})`,
+      payload: { docEntry: orderDetail.docEntry, docNum: orderDetail.docNum, cardCode: orderDetail.cardCode, lines: orderDetail.lines.length },
+      pageUrl: `/dashboard/orders/${orderDetail.docEntry}`,
+      userId: sellerName ?? undefined,
+    });
 
     // 4. Cargar los nuevos productos
     loadCartWithProducts(productsToLoad);

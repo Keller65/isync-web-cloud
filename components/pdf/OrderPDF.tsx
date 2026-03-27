@@ -305,7 +305,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
             return (
               <View key={line.itemCode || index} style={styles.tableRow}>
                 <Text style={styles.tdCode}>{line.itemCode}</Text>
-                <Text style={styles.tdDesc}>{line.itemDescription}</Text>
+                <Text style={styles.tdDesc}>{line.itemName}</Text>
                 <Text style={styles.tdCant}>{qty.toFixed(2)}</Text>
                 <Text style={styles.tdPU}>L{formatMoney(priceNoVAT)}</Text>
                 <Text style={styles.tdISV}>L{formatMoney(isvPerUnit)}</Text>
