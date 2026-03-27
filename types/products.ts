@@ -33,6 +33,7 @@ export type Product = {
   unitPrice?: number;
   originalPrice?: number;
   categoryCode?: string;
+  priceListNum?: number;
   priceListName?: string;
   pricingSource?: "GeneralSpecialPrice" | "CustomerSpecialPrice";
   ws: WarehouseStock[];

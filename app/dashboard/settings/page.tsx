@@ -333,7 +333,7 @@ function Section({ title, description, children }: { title: string; description:
 }
 
 function ToggleItem({ icon, title, desc, checked, onCheckedChange, disabled = false }: {
-  icon: React.ReactElement;
+  icon: React.ReactElement<{ size?: number; strokeWidth?: number }>;
   title: string;
   desc: string;
   checked: boolean;
@@ -365,7 +365,7 @@ function ToggleItem({ icon, title, desc, checked, onCheckedChange, disabled = fa
 }
 
 function StatCard({ icon, label, value, pulse = false }: {
-  icon: React.ReactElement;
+  icon: React.ReactElement<{ size?: number; strokeWidth?: number }>;
   label: string;
   value: string;
   pulse?: boolean;

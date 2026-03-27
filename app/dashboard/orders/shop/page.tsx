@@ -175,7 +175,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
 
       {loading && (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 mt-5">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col gap-2">
               <Skeleton className="h-40 w-full" />
               <Skeleton className="h-4 w-3/4" />
@@ -377,6 +377,7 @@ function ProductCard({ product }: { product: Product }) {
   const [isPriceValid, setIsPriceValid] = useState(true)
   const [isPriceManuallyEdited, setIsPriceManuallyEdited] = useState(false)
   const [applyTierDiscounts, setApplyTierDiscounts] = useState(false)
+  const [discountPercent, setDiscountPercent] = useState(0)
   const { productsWithImage } = useSettingsStore()
 
   const tier = product.tiers?.[0]
@@ -473,7 +474,17 @@ function ProductCard({ product }: { product: Product }) {
       ? applicableTier.price
       : product.price
 
-    setIsPriceValid(finalValue >= minimumAllowedPrice)
+    setIsPriceValid(discountPercent > 0 || finalValue >= minimumAllowedPrice)
+  }
+
+  const handleDiscountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseFloat(e.target.value)
+    const validated = isNaN(value) ? 0 : Math.min(Math.max(value, 0), 5)
+    setDiscountPercent(validated)
+    const newPrice = product.price * (1 - validated / 100)
+    setEditablePrice(newPrice)
+    setEditablePriceText(newPrice.toFixed(4))
+    setIsPriceValid(validated > 0 || newPrice >= product.price)
   }
 
   const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -701,11 +712,11 @@ function ProductCard({ product }: { product: Product }) {
                           <span className="font-bold text-lg mr-1">L.</span>
                           <Input
                             type="text"
-                            className={`w-40 font-bold text-lg h-11 focus-visible:ring-primary tabular-nums ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''
-                              }`}
+                            className={`w-40 font-bold text-lg h-11 focus-visible:ring-primary tabular-nums ${!isPriceValid ? 'border-destructive bg-destructive/10 focus-visible:ring-destructive' : ''} ${product.priceListNum === 11 ? 'bg-muted text-muted-foreground' : ''}`}
                             value={editablePriceText}
                             onChange={handlePriceChange}
                             onBlur={handlePriceBlur}
+                            readOnly={product.priceListNum === 11}
                           />
                         </div>
                         {!isPriceValid && (
@@ -721,6 +732,25 @@ function ProductCard({ product }: { product: Product }) {
                         </p>
                       </div>
                     </div>
+
+                    {product.priceListNum === 11 && (
+                      <div>
+                        <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Descuento</p>
+                        <div className="flex items-center gap-1">
+                          <Input
+                            type="number"
+                            min={0}
+                            max={5}
+                            step={0.01}
+                            className="w-20 font-bold text-lg h-11 focus-visible:ring-primary tabular-nums"
+                            value={discountPercent}
+                            onChange={handleDiscountChange}
+                          />
+                          <span className="font-bold text-lg">%</span>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">Máx. 5%</p>
+                      </div>
+                    )}
 
                     <div>
                       <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Cantidad a comprar</p>
