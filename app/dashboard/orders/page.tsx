@@ -3,27 +3,11 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, User, ArrowRight, MapPin } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, ArrowRight, MapPin, Check } from 'lucide-react';
 import { useAuthStore } from '@/app/lib/store';
 import { useCustomerStore } from '@/app/lib/store.customer';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
 import { CustomerType, CustomerResponseType, CustomerAddress } from '@/types/customers';
 import { Input } from "@/components/ui/input";
 import { ArrowClockwise, CalendarDots, Coins } from '@phosphor-icons/react';
@@ -64,7 +48,6 @@ export default function OrdersPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [customerPage, setCustomerPage] = useState(1);
   const [isLastCustomerPage, setIsLastCustomerPage] = useState(false);
-  const [alertInfo, setAlertInfo] = useState<{ title: string; description: string; onConfirm?: () => void; showCancel?: boolean } | null>(null);
   const [pendingCustomer, setPendingCustomer] = useState<CustomerType | null>(null);
   const CUSTOMER_PAGE_SIZE = 50;
   const customerObserverRef = useRef<IntersectionObserver | null>(null);
@@ -73,6 +56,7 @@ export default function OrdersPage() {
   const PAGE_SIZE = 20;
   const isLoadingRef = useRef(false);
   const isLastPageRef = useRef(false);
+  const isLastCustomerPageRef = useRef(false);
   const { salesPersonCode, token, fullName } = useAuthStore();
   const {
     setSelectedCustomer,
@@ -157,13 +141,7 @@ export default function OrdersPage() {
 
   const fetchCustomers = useCallback(async (pageToFetch = 1, isRefresh = false) => {
     if (!salesPersonCode || !token) return;
-    if (!isRefresh && isLastCustomerPage) return;
-
-    const scrollContainer = document.getElementById('customer-list-container');
-    let scrollTop = 0;
-    if (!isRefresh && scrollContainer) {
-      scrollTop = scrollContainer.scrollTop;
-    }
+    if (!isRefresh && isLastCustomerPageRef.current) return;
 
     const searchValue = customerSearchRef.current;
     const searchParam = searchValue.trim() ? `&search=${encodeURIComponent(searchValue.trim())}` : '';
@@ -184,13 +162,10 @@ export default function OrdersPage() {
       } else {
         setCustomers(prev => [...prev, ...newCustomers]);
         setCustomerPage(pageToFetch + 1);
-        requestAnimationFrame(() => {
-          if (scrollContainer) {
-            scrollContainer.scrollTop = scrollTop;
-          }
-        });
       }
-      setIsLastCustomerPage(newCustomers.length < CUSTOMER_PAGE_SIZE);
+      const lastPage = newCustomers.length < CUSTOMER_PAGE_SIZE;
+      isLastCustomerPageRef.current = lastPage;
+      setIsLastCustomerPage(lastPage);
     } catch (err: any) {
       logClient({
         level: 'ERROR',
@@ -205,7 +180,7 @@ export default function OrdersPage() {
     } finally {
       setIsLoadingCustomers(false);
     }
-  }, [CUSTOMERS_URL, salesPersonCode, token, isLastCustomerPage]);
+  }, [CUSTOMERS_URL, salesPersonCode, token]);
 
   const fetchAddresses = useCallback(async (cardCode: string) => {
     if (!token) return;
@@ -259,14 +234,6 @@ export default function OrdersPage() {
   }, [fetchOrders, page, isLastPage]);
 
   useEffect(() => {
-    if (isDialogOpen && customers.length === 0) {
-      setCustomerPage(1);
-      setIsLastCustomerPage(false);
-      fetchCustomers(1, true);
-    }
-  }, [isDialogOpen, customers.length, fetchCustomers]);
-
-  useEffect(() => {
     customerSearchRef.current = customerSearch;
   }, [customerSearch]);
 
@@ -275,12 +242,13 @@ export default function OrdersPage() {
 
     const timer = setTimeout(() => {
       setCustomerPage(1);
+      isLastCustomerPageRef.current = false;
       setIsLastCustomerPage(false);
       fetchCustomers(1, true);
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [customerSearch, isDialogOpen]);
+  }, [customerSearch, isDialogOpen, fetchCustomers]);
 
   useEffect(() => {
     if (!isDialogOpen) return;
@@ -318,11 +286,6 @@ export default function OrdersPage() {
     }
   }, [selectedCustomer, fetchAddresses]);
 
-  const filteredCustomers = customers.filter(c =>
-    c.cardName.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    c.cardCode.toLowerCase().includes(customerSearch.toLowerCase())
-  );
-
   return (
     <div className="flex-1 min-h-screen p-4 sm:p-6 bg-gray-50/50">
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -354,204 +317,218 @@ export default function OrdersPage() {
                 </Button>
               </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-4xl h-[85vh] flex flex-col p-0 overflow-hidden">
-              <div className="flex h-full divide-x divide-gray-100">
+            <DialogContent className="sm:max-w-4xl h-[92vh] sm:h-[85vh] max-sm:w-full max-sm:max-w-full max-sm:rounded-b-none flex flex-col p-0 overflow-hidden">
+              <div className="flex h-full sm:divide-x sm:divide-gray-100 flex-col sm:flex-row">
 
-                {/* PANEL IZQUIERDO: DETALLES DINÁMICOS */}
-                <div className="w-80 bg-gray-50/50 p-6 flex flex-col justify-between">
-                  <div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-6">Detalle del Cliente</h2>
-
+                {/* PANEL IZQUIERDO: solo visible en sm+ */}
+                <div className="hidden sm:flex w-72 bg-gray-50 border-r border-gray-100 flex-col">
+                  <div className="flex-1 overflow-y-auto p-5">
                     {selectedCustomer ? (
-                      <div className="space-y-6 animate-in fade-in slide-in-from-left-2 duration-300">
-                        <div className="flex flex-col items-center text-center">
-                          <Avvvatars size={80} value={selectedCustomer.cardName} style="character" />
-                          <h3 className="mt-4 font-bold text-gray-900 leading-tight">
+                      <div className="animate-in fade-in slide-in-from-left-2 duration-200">
+                        {/* Avatar + nombre */}
+                        <div className="flex flex-col items-center text-center mb-5">
+                          <Avvvatars size={72} value={selectedCustomer.cardName} style="character" />
+                          <h3 className="mt-3 font-bold text-gray-900 text-base leading-snug px-2">
                             {selectedCustomer.cardName}
                           </h3>
-                          <span className="text-xs font-medium bg-blue-100 text-blue-700 px-2 py-1 rounded mt-2 uppercase">
+                          <span className="mt-1.5 text-xs font-bold tracking-widest bg-brand-primary/10 text-brand-primary px-2.5 py-1 rounded-full uppercase">
                             {selectedCustomer.cardCode}
                           </span>
                         </div>
 
-                        <div className="space-y-4 pt-6 border-t border-gray-200">
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Identificación / RTN</p>
-                            <p className="text-sm font-medium text-gray-700">{selectedCustomer.federalTaxID || 'N/A'}</p>
+                        {/* Info */}
+                        <div className="space-y-3 mb-5">
+                          <div className="bg-white rounded-xl border border-gray-100 px-3 py-2.5">
+                            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">RTN</p>
+                            <p className="text-sm font-semibold text-gray-700 truncate">{selectedCustomer.federalTaxID || '—'}</p>
                           </div>
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Dirección</p>
-                            <p className="text-sm font-medium text-gray-700 line-clamp-3">{selectedAddress?.street || 'Sin dirección registrada'}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Lista de Precios</p>
-                            <p className="text-sm font-medium text-gray-700">Lista #{selectedCustomer.priceListNum}</p>
+                          <div className="bg-white rounded-xl border border-gray-100 px-3 py-2.5">
+                            <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Lista de Precios</p>
+                            <p className="text-sm font-semibold text-gray-700">Lista #{selectedCustomer.priceListNum}</p>
                           </div>
                         </div>
 
-                        <div className="space-y-3 pt-6 border-t border-gray-200">
-                          <h4 className="text-xs uppercase tracking-wider text-gray-400 font-bold">
-                            Direcciones de Entrega
-                          </h4>
+                        {/* Direcciones */}
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">
+                            Direcciones de entrega
+                          </p>
                           {isLoadingAddresses ? (
-                            <div className="flex items-center gap-2 text-gray-500">
-                              <Loader2 size={16} className="animate-spin" />
-                              <span className="text-sm">Cargando...</span>
+                            <div className="space-y-2">
+                              {[1, 2].map(i => (
+                                <div key={i} className="h-12 bg-gray-200 rounded-xl animate-pulse" />
+                              ))}
                             </div>
-                          ) : (
-                            <div className="max-h-32 overflow-y-auto space-y-2 pr-2">
+                          ) : addresses.length > 0 ? (
+                            <div className="space-y-1.5">
                               {addresses.map((addr) => (
-                                <div
+                                <button
                                   key={addr.rowNum}
+                                  type="button"
                                   onClick={() => setSelectedAddress(addr)}
-                                  className={`p-2.5 rounded-lg border cursor-pointer transition-all ${selectedAddress?.rowNum === addr.rowNum
-                                    ? 'bg-blue-50 border-brand-primary'
-                                    : 'bg-white hover:bg-gray-100 border-gray-200'
+                                  className={`w-full text-left p-2.5 rounded-xl border transition-all ${selectedAddress?.rowNum === addr.rowNum
+                                    ? 'bg-brand-primary/5 border-brand-primary'
+                                    : 'bg-white hover:bg-gray-50 border-gray-100'
                                     }`}
                                 >
-                                  <div className="flex items-start gap-2.5">
-                                    <MapPin size={16} className="text-gray-400 mt-0.5 shrink-0" />
-                                    <div>
-                                      <p className="text-xs font-bold text-gray-800 leading-tight">
-                                        {addr.addressName}
-                                      </p>
-                                      <p className="text-[11px] text-gray-500">{addr.street}</p>
+                                  <div className="flex items-start gap-2">
+                                    <MapPin size={14} className={`mt-0.5 shrink-0 ${selectedAddress?.rowNum === addr.rowNum ? 'text-brand-primary' : 'text-gray-400'}`} />
+                                    <div className="overflow-hidden">
+                                      <p className="text-xs font-bold text-gray-800 truncate">{addr.addressName}</p>
+                                      <p className="text-[11px] text-gray-500 truncate">{addr.street}</p>
                                     </div>
                                   </div>
-                                </div>
+                                </button>
                               ))}
-                              {addresses.length === 0 && (
-                                <p className="text-xs text-gray-500 italic">
-                                  No hay direcciones de entrega.
-                                </p>
-                              )}
                             </div>
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">Sin direcciones registradas.</p>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center justify-center h-64 text-center opacity-50">
-                        <div className="bg-gray-200 p-4 rounded-full mb-4">
-                          <User size={32} className="text-gray-400" />
+                      <div className="flex flex-col items-center justify-center h-full min-h-50 text-center gap-3 opacity-40">
+                        <div className="w-14 h-14 bg-gray-200 rounded-2xl flex items-center justify-center">
+                          <Search size={24} className="text-gray-400" />
                         </div>
-                        <p className="text-sm text-gray-500 italic">Selecciona un cliente de la lista</p>
+                        <p className="text-xs text-gray-500">Selecciona un cliente</p>
                       </div>
                     )}
                   </div>
 
+                  {/* CTA */}
                   {selectedCustomer && (
-                    <button
-                      onClick={() => {
-                        setIsDialogOpen(false);
-                        router.push('/dashboard/orders/shop');
-                      }}
-                      className="w-full bg-brand-primary cursor-pointer text-white font-semibold h-12 py-2 rounded-full transition-all flex items-center justify-center gap-2"
-                    >
-                      {addresses.length > 0 ? 'Realizar una Cotizacion' : 'Continuar sin Ubicación'}
-                      <ArrowRight size={18} />
-                    </button>
+                    <div className="p-4 border-t border-gray-100">
+                      <button
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          router.push('/dashboard/orders/shop');
+                        }}
+                        className="w-full bg-brand-primary cursor-pointer text-white text-sm font-semibold h-11 rounded-full transition-all hover:bg-brand-primary/90 flex items-center justify-center gap-2"
+                      >
+                        {addresses.length > 0 ? 'Realizar Cotización' : 'Continuar sin Ubicación'}
+                        <ArrowRight size={16} />
+                      </button>
+                    </div>
                   )}
                 </div>
 
                 {/* PANEL DERECHO: BUSCADOR Y LISTA */}
-                <div className="flex-1 flex flex-col bg-white">
-                  <DialogHeader className="p-6 pb-2">
-                    <DialogTitle className="text-2xl font-bold">Clientes</DialogTitle>
-                    <DialogDescription>
-                      Busca y selecciona un cliente para ver su perfil.
+                <div className="flex-1 flex flex-col bg-white overflow-hidden min-h-0">
+                  <DialogHeader className="px-6 pt-5 pb-3">
+                    <DialogTitle className="text-2xl font-bold">Seleccionar Cliente</DialogTitle>
+                    <DialogDescription className="text-sm">
+                      Busca por nombre o código SAP
                     </DialogDescription>
                   </DialogHeader>
 
-                  <div className="px-6 py-2">
+                  <div className="px-6 pb-3">
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={17} />
                       <Input
-                        placeholder="Buscar por nombre o código SAP..."
-                        className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+                        placeholder="Nombre o código SAP..."
+                        className="pl-9 h-11 bg-gray-50 border-gray-200 focus:bg-white text-sm transition-all"
                         value={customerSearch}
                         onChange={(e) => setCustomerSearch(e.target.value)}
+                        autoFocus
                       />
                     </div>
                   </div>
 
-                  <div id="customer-list-container" className="flex-1 pt-2 overflow-y-auto px-6 pb-6">
-                    {isLoadingCustomers ? (
-                      <div className="flex flex-col items-center justify-center py-10 gap-3">
-                        <Loader2 size={30} className="text-brand-primary animate-spin" />
-                        <p className="text-gray-500 text-sm font-medium">Cargando maestros...</p>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 gap-2">
-                        {filteredCustomers.map((customer) => (
-                          <div
-                            key={customer.cardCode}
-                            onClick={() => {
-                              if (selectedCustomer?.cardCode !== customer.cardCode) {
-                                // Verificar si el vendedor asignado al cliente es diferente del vendedor logueado
-                                if (salesPersonCode && customer.slpCode && salesPersonCode !== customer.slpCode) {
-                                  setPendingCustomer(customer);
-                                  setAlertInfo({
-                                    title: 'Vendedor asignado diferente',
-                                    description: `Este cliente está asignado a ${customer.slpName}, pero tú estás logueado como ${fullName}.\n\n¿Con cuál vendedor deseas realizar la cotizacion?`,
-                                    showCancel: true,
-                                    onConfirm: () => {
-                                      // Usar el vendedor del cliente
-                                      setSellerDifferent(true);
-                                      setSelectedSlpCode(customer.slpCode ?? null);
-                                      setSelectedCustomer(customer);
-                                      logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado con vendedor diferente: ${customer.cardName}`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
-                                      setPendingCustomer(null);
-                                    }
-                                  });
-                                } else {
-                                  setSelectedCustomer(customer);
-                                  logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado: ${customer.cardName} (${customer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
-                                }
-                              }
-                            }}
-                            className={`p-4 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${selectedCustomer?.cardCode === customer.cardCode
-                              ? 'border-brand-primary bg-blue-50 ring-1 ring-brand-primary'
-                              : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'
-                              }`}
-                          >
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <div className={`${selectedCustomer?.cardCode === customer.cardCode
-                                ? 'bg-brand-primary'
-                                : 'bg-gray-100'
-                                } p-2 rounded-full transition-colors shrink-0`}>
-                                <User size={18} className={selectedCustomer?.cardCode === customer.cardCode ? "text-white" : "text-gray-500"} />
-                              </div>
-                              <div className="overflow-hidden">
-                                <h3 className="font-semibold text-gray-900 text-sm truncate">
-                                  {customer.cardName}
-                                </h3>
-                                <p className="text-[11px] text-gray-500 font-mono">{customer.cardCode}</p>
-                              </div>
+                  <div id="customer-list-container" className="flex-1 overflow-y-auto px-6 pb-6">
+                    {isLoadingCustomers && customers.length === 0 ? (
+                      <div className="space-y-2 pt-1">
+                        {Array.from({ length: 8 }).map((_, i) => (
+                          <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 animate-pulse">
+                            <div className="w-9 h-9 rounded-full bg-gray-200 shrink-0" />
+                            <div className="flex-1 space-y-1.5">
+                              <div className="h-3 bg-gray-200 rounded-full w-2/3" />
+                              <div className="h-2.5 bg-gray-100 rounded-full w-1/3" />
                             </div>
-                            {selectedCustomer?.cardCode === customer.cardCode && (
-                              <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse shrink-0" />
-                            )}
                           </div>
                         ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-1 pt-1">
+                        {customers.map((customer) => {
+                          const isSelected = selectedCustomer?.cardCode === customer.cardCode;
+                          return (
+                            <button
+                              key={customer.cardCode}
+                              type="button"
+                              onClick={() => {
+                                if (!isSelected) {
+                                  if (salesPersonCode && customer.slpCode && salesPersonCode !== customer.slpCode) {
+                                    setPendingCustomer(customer);
+                                  } else {
+                                    setSelectedCustomer(customer);
+                                    logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado: ${customer.cardName} (${customer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
+                                  }
+                                }
+                              }}
+                              className={`w-full text-left p-3 rounded-xl border transition-all flex items-center gap-3 ${isSelected
+                                ? 'border-brand-primary bg-brand-primary/5 ring-1 ring-brand-primary/30'
+                                : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50'
+                                }`}
+                            >
+                              <Avvvatars size={40} value={customer.cardName} style="character" />
+                              <div className="flex-1 min-w-0">
+                                <p className={`text-sm font-semibold truncate ${isSelected ? 'text-brand-primary' : 'text-gray-900'}`}>
+                                  {customer.cardName}
+                                </p>
+                                <p className="text-xs text-gray-400 font-mono">{customer.cardCode}</p>
+                              </div>
+                              {isSelected && (
+                                <div className="shrink-0 w-5 h-5 rounded-full bg-brand-primary flex items-center justify-center">
+                                  <Check size={11} className="text-white" strokeWidth={3} />
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
 
-                        {filteredCustomers.length === 0 && !isLoadingCustomers && (
-                          <div className="text-center py-10 text-gray-500">
-                            No se encontraron resultados para "{customerSearch}"
+                        {customers.length === 0 && !isLoadingCustomers && (
+                          <div className="text-center py-12">
+                            <p className="text-sm text-gray-400">Sin resultados para <span className="font-semibold">"{customerSearch}"</span></p>
                           </div>
                         )}
 
                         <div id="customer-scroll-sentinel" className="h-4" />
 
                         {isLoadingCustomers && customers.length > 0 && (
-                          <div className="flex items-center justify-center py-4 gap-2">
-                            <Loader2 size={16} className="text-brand-primary animate-spin" />
-                            <span className="text-xs text-gray-500">Cargando más...</span>
+                          <div className="flex items-center justify-center py-3 gap-2">
+                            <Loader2 size={14} className="text-brand-primary animate-spin" />
+                            <span className="text-xs text-gray-400">Cargando más...</span>
                           </div>
                         )}
                       </div>
                     )}
                   </div>
                 </div>
+
+                {/* BARRA INFERIOR MOBILE: cliente seleccionado + CTA */}
+                {selectedCustomer && (
+                  <div className="sm:hidden shrink-0 border-t border-gray-100 bg-white px-4 py-3 animate-in slide-in-from-bottom-2 duration-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avvvatars size={38} value={selectedCustomer.cardName} style="character" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-gray-900 truncate">{selectedCustomer.cardName}</p>
+                        <p className="text-xs text-gray-400 font-mono">{selectedCustomer.cardCode}</p>
+                      </div>
+                      {isLoadingAddresses && <Loader2 size={15} className="text-brand-primary animate-spin shrink-0" />}
+                    </div>
+                    <button
+                      onClick={() => {
+                        setIsDialogOpen(false);
+                        router.push('/dashboard/orders/shop');
+                      }}
+                      className="w-full bg-brand-primary text-white text-sm font-semibold h-11 rounded-full flex items-center justify-center gap-2"
+                    >
+                      {addresses.length > 0 ? 'Realizar Cotización' : 'Continuar sin Ubicación'}
+                      <ArrowRight size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
             </DialogContent>
           </Dialog>
@@ -698,19 +675,23 @@ export default function OrdersPage() {
         )}
       </div>
 
-      <AlertDialog open={!!alertInfo} onOpenChange={(isOpen) => !isOpen && setAlertInfo(null)}>
+      <AlertDialog open={!!pendingCustomer} onOpenChange={(isOpen) => !isOpen && setPendingCustomer(null)}>
         <AlertDialogContent className='min-w-fit'>
           <AlertDialogHeader>
-            <AlertDialogTitle>{alertInfo?.title}</AlertDialogTitle>
+            <AlertDialogTitle>Vendedor asignado diferente</AlertDialogTitle>
             <AlertDialogDescription className="whitespace-pre-line">
-              {alertInfo?.description}
+              {`Este cliente está asignado a ${pendingCustomer?.slpName}, pero tú estás logueado como ${fullName}.\n\n¿Con cuál vendedor deseas realizar la cotización?`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogAction
               onClick={() => {
-                alertInfo?.onConfirm?.();
-                setAlertInfo(null);
+                if (!pendingCustomer) return;
+                setSellerDifferent(true);
+                setSelectedSlpCode(pendingCustomer.slpCode ?? null);
+                setSelectedCustomer(pendingCustomer);
+                logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado con vendedor diferente: ${pendingCustomer.cardName}`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
+                setPendingCustomer(null);
               }}
             >
               Con {pendingCustomer?.slpName}
@@ -718,14 +699,12 @@ export default function OrdersPage() {
 
             <AlertDialogCancel
               onClick={() => {
-                if (pendingCustomer) {
-                  setSellerDifferent(false);
-                  setSelectedSlpCode(salesPersonCode);
-                  setSelectedCustomer(pendingCustomer);
-                  logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado (vendedor propio): ${pendingCustomer.cardName} (${pendingCustomer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
-                  setPendingCustomer(null);
-                }
-                setAlertInfo(null);
+                if (!pendingCustomer) return;
+                setSellerDifferent(false);
+                setSelectedSlpCode(salesPersonCode);
+                setSelectedCustomer(pendingCustomer);
+                logClient({ level: 'INFO', category: 'CLIENTES', message: `Cliente seleccionado (vendedor propio): ${pendingCustomer.cardName} (${pendingCustomer.cardCode})`, pageUrl: '/dashboard/orders', userId: fullName ?? undefined });
+                setPendingCustomer(null);
               }}
             >
               Con {fullName}

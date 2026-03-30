@@ -27,8 +27,8 @@ export default function LoginForm() {
   return (
     <div className="w-full mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Inicia sesión</h2>
-        <p className="text-gray-500">Ahora accede a tu cuenta iSycn mas facil</p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Inicia sesión</h2>
+        <p className="text-sm text-gray-500">Accede a tu cuenta iSync</p>
       </div>
 
       <form action={dispatch} className="space-y-6">

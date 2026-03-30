@@ -3,11 +3,11 @@ import Image from "next/image"
 
 export default function LoginPage() {
   return (
-    <main className="flex items-center justify-center h-dvh bg-gray-50 font-sans p-2">
+    <main className="flex items-center justify-center h-dvh bg-gray-50 font-sans">
       <div className="w-full bg-white overflow-hidden flex h-full">
 
-        {/* Lado Izquierdo: Visual / Branding */}
-        <div className="hiddenw rounded-2xl lg:flex w-full bg-linear-to-br from-[#1e517b] via-brand-primary to-[#16334b] p-16 flex-col justify-between text-white relative">
+        {/* Lado Izquierdo: Visual / Branding — oculto en mobile/tablet */}
+        <div className="hidden lg:flex w-full bg-linear-to-br from-[#1e517b] via-brand-primary to-[#16334b] p-16 flex-col justify-between text-white relative">
 
           {/* Logo */}
           <div className="size-9">
@@ -28,14 +28,29 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          {/* Decoración: Círculos o blur */}
+          {/* Decoración */}
           <div className="absolute top-0 right-0 w-96 h-96 bg-white opacity-10 rounded-full blur-[100px] transform translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-400 opacity-20 rounded-full blur-[80px]"></div>
         </div>
 
         {/* Lado Derecho: Formulario */}
-        <div className="w-[60vw] p-12 md:p-16 flex flex-col justify-center">
-          <LoginForm />
+        <div className="w-full lg:w-[60vw] flex flex-col justify-center px-6 py-10 sm:px-16 sm:py-12 lg:p-16">
+
+          {/* Logo visible solo en mobile/tablet */}
+          <div className="flex items-center gap-2.5 mb-8 lg:hidden">
+            <Image
+              alt="logo isync"
+              src="/assets/iSync_logo.png"
+              height={36}
+              width={36}
+              className="object-contain"
+            />
+            <span className="text-base font-bold text-gray-800">iSync</span>
+          </div>
+
+          <div className="w-full max-w-sm mx-auto lg:max-w-none">
+            <LoginForm />
+          </div>
         </div>
 
       </div>
