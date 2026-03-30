@@ -71,6 +71,8 @@ export default function OrdersPage() {
   const customerSearchRef = useRef(customerSearch);
 
   const PAGE_SIZE = 20;
+  const isLoadingRef = useRef(false);
+  const isLastPageRef = useRef(false);
   const { salesPersonCode, token, fullName } = useAuthStore();
   const {
     setSelectedCustomer,
@@ -95,8 +97,10 @@ export default function OrdersPage() {
       return;
     }
 
-    if ((!isRefresh && isLastPage) || isLoading) return;
+    if (!isRefresh && isLastPageRef.current) return;
+    if (isLoadingRef.current) return;
 
+    isLoadingRef.current = true;
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
@@ -125,7 +129,9 @@ export default function OrdersPage() {
         setPage(pageToFetch + 1);
       }
 
-      setIsLastPage(newOrders.length < PAGE_SIZE);
+      const lastPage = newOrders.length < PAGE_SIZE;
+      isLastPageRef.current = lastPage;
+      setIsLastPage(lastPage);
     } catch (err: any) {
       const message = err.response?.data?.message || err.response?.data?.error || 'No se pudieron obtener las órdenes.';
       setError(message);
@@ -140,13 +146,14 @@ export default function OrdersPage() {
         userId: fullName ?? undefined,
       });
     } finally {
+      isLoadingRef.current = false;
       if (isRefresh) {
         setIsRefreshing(false);
       } else {
         setIsLoading(false);
       }
     }
-  }, [FETCH_URL, token, isLastPage, isLoading, salesPersonCode]);
+  }, [FETCH_URL, token, salesPersonCode, fullName]);
 
   const fetchCustomers = useCallback(async (pageToFetch = 1, isRefresh = false) => {
     if (!salesPersonCode || !token) return;
@@ -240,15 +247,16 @@ export default function OrdersPage() {
 
   const handleRefresh = useCallback(() => {
     setPage(1);
+    isLastPageRef.current = false;
     setIsLastPage(false);
     fetchOrders(1, true);
   }, [fetchOrders]);
 
   const handleLoadMore = useCallback(() => {
-    if (!isRefreshing && !isLoading && !isLastPage) {
+    if (!isLastPage) {
       fetchOrders(page, false);
     }
-  }, [fetchOrders, page, isRefreshing, isLoading, isLastPage]);
+  }, [fetchOrders, page, isLastPage]);
 
   useEffect(() => {
     if (isDialogOpen && customers.length === 0) {
@@ -316,35 +324,33 @@ export default function OrdersPage() {
   );
 
   return (
-    <div className="flex-1 min-h-screen p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex-1 min-h-screen p-4 sm:p-6 bg-gray-50/50">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Cotizaciones
-          </h2>
-          <p className="text-sm text-gray-500">
-            Historial reciente de Cotizaciones
+          <h2 className="text-xl font-bold text-gray-900">Cotizaciones</h2>
+          <p className="text-sm text-gray-500 mt-0.5">
+            {orderData.length > 0 ? `${orderData.length} cotizaciones cargadas` : 'Historial reciente de cotizaciones'}
           </p>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            className="gap-2"
+            className="gap-2 rounded-full border-gray-200"
             onClick={handleRefresh}
             disabled={isRefreshing}
           >
-            <ArrowClockwise size={16} />
+            <ArrowClockwise size={15} className={isRefreshing ? 'animate-spin' : ''} />
             Actualizar
           </Button>
 
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             {productsInCart.length === 0 && (
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Plus size={16} />
-                  Realizar Cotizacion
+                <Button size="sm" className="gap-2 rounded-full bg-brand-primary hover:bg-brand-primary/90 text-white">
+                  <Plus size={15} />
+                  Nueva Cotización
                 </Button>
               </DialogTrigger>
             )}
@@ -553,119 +559,142 @@ export default function OrdersPage() {
       </div>
 
       {/* Grid de Órdenes */}
-      <div className="py-4">
+      <div>
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-            <AlertCircle size={20} className="text-red-600 shrink-0 mt-0.5" />
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start gap-3">
+            <AlertCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
             <div>
-              <p className="text-red-800 font-medium">Error</p>
-              <p className="text-red-700 text-sm">{error}</p>
+              <p className="text-red-800 text-sm font-semibold">Error al cargar</p>
+              <p className="text-red-700 text-xs mt-0.5">{error}</p>
             </div>
           </div>
         )}
 
         {isRefreshing && orderData.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 size={40} className="text-gray-400 animate-spin" />
-            <p className="text-lg text-gray-600 font-medium">Cargando Pedidos...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-2xl p-5 border border-gray-200 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-28 bg-gray-200 rounded-full animate-pulse" />
+                  <div className="h-5 w-20 bg-gray-100 rounded-full animate-pulse" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse shrink-0" />
+                  <div className="flex-1 space-y-1.5">
+                    <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+                    <div className="h-4 w-40 bg-gray-200 rounded animate-pulse" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                  <div className="h-12 bg-gray-100 rounded-xl animate-pulse" />
+                </div>
+                <div className="h-9 bg-gray-200 rounded-full animate-pulse" />
+              </div>
+            ))}
           </div>
         ) : orderData.length > 0 ? (
           <div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {orderData.map((item) => (
                 <div
                   key={item.docEntry}
-                  className="bg-white rounded-2xl p-5 border border-gray-200"
+                  className="bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-gray-300 hover:shadow-sm transition-all"
                 >
-                  <div className="flex items-center justify-between mb-4">
+                  {/* Header de la card */}
+                  <div className="px-5 pt-5 pb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <TrendingUp size={22} className="text-gray-700" />
-                      <p className="text-sm text-gray-600">
-                        Cotizacion <span className="font-semibold text-gray-900">#{item.docNum}</span>
+                      <div className="w-8 h-8 rounded-xl bg-brand-primary/10 flex items-center justify-center">
+                        <TrendingUp size={15} className="text-brand-primary" />
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        Cotización <span className="font-bold text-gray-900">#{item.docNum}</span>
                       </p>
                     </div>
-                    <span className="text-xs font-medium bg-orange-100 text-orange-700 px-3 py-1 rounded-full">
+                    <span className="text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
                       En Proceso
                     </span>
                   </div>
 
-                  <div className="flex items-start gap-3 mb-4">
-                    <div className="bg-white size-10 rounded-full shrink-0">
-                      <Avvvatars size={40} value={item.cardName} style="character" />
-                    </div>
-                    <div className="flex-1 overflow-hidden">
-                      <p className="text-xs text-gray-500">Cliente</p>
-                      <p className="text-base font-semibold text-gray-900 truncate">{item.cardName}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-start gap-2">
-                      <div className="bg-gray-100 p-1.5 rounded-full">
-                        <CalendarDots size={18} color="#6a7282" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-500 leading-none">Fecha</p>
-                        <p className="text-sm font-semibold text-gray-900">
-                          {new Date(item.docDate).toLocaleDateString('es-HN')}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="bg-gray-100 p-1.5 rounded-full">
-                        <Coins size={18} color="#6a7282" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-gray-500 leading-none">Total</p>
-                        <p className="text-sm font-bold text-gray-900">
-                          L. {item.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
-                        </p>
-                      </div>
+                  {/* Cliente */}
+                  <div className="px-5 pb-4 flex items-center gap-3">
+                    <Avvvatars size={38} value={item.cardName} style="character" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider">Cliente</p>
+                      <p className="text-sm font-semibold text-gray-900 truncate leading-tight">{item.cardName}</p>
+                      <p className="text-[11px] text-gray-400 font-mono">{item.cardCode}</p>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => router.push(`/dashboard/orders/${item.docEntry}`)}
-                    className="w-full bg-brand-primary text-white font-semibold py-2.5 rounded-full cursor-pointer hover:bg-brand-primary/90 transition-colors"
-                  >
-                    Ver detalles
-                  </button>
+                  {/* Stats */}
+                  <div className="mx-5 mb-4 grid grid-cols-2 gap-2">
+                    <div className="bg-gray-50 rounded-xl px-3 py-2">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                        <CalendarDots size={11} /> Fecha
+                      </p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">
+                        {new Date(item.docDate).toLocaleDateString('es-HN')}
+                      </p>
+                    </div>
+                    <div className="bg-gray-50 rounded-xl px-3 py-2">
+                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                        <Coins size={11} /> Total
+                      </p>
+                      <p className="text-sm font-bold text-gray-800 mt-0.5">
+                        L.{item.docTotal.toLocaleString('es-HN', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-5 pb-5">
+                    <button
+                      onClick={() => router.push(`/dashboard/orders/${item.docEntry}`)}
+                      className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-semibold py-2.5 rounded-full cursor-pointer transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      Ver detalles
+                      <ArrowRight size={14} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
 
             {!isLastPage && (
-              <div className="flex justify-center">
+              <div className="flex justify-center pb-4">
                 <button
                   onClick={handleLoadMore}
                   disabled={isLoading}
-                  className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-lg transition-colors flex items-center gap-2"
+                  className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 text-sm font-semibold border border-gray-200 rounded-full transition-colors flex items-center gap-2 disabled:opacity-60"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 size={18} className="animate-spin" />
+                      <Loader2 size={15} className="animate-spin" />
                       Cargando...
                     </>
                   ) : (
-                    'Cargar más'
+                    'Cargar más cotizaciones'
                   )}
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <div className="bg-gray-100 p-6 rounded-full">
-              <TrendingUp size={48} className="text-gray-300" />
+          !error && (
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-20 h-20 bg-gray-100 rounded-3xl flex items-center justify-center">
+                <TrendingUp size={36} className="text-gray-300" />
+              </div>
+              <div className="text-center">
+                <p className="text-base font-semibold text-gray-700">Sin cotizaciones</p>
+                <p className="text-sm text-gray-400 mt-1">No hay cotizaciones registradas aún.</p>
+              </div>
+              <Button variant="outline" size="sm" className="rounded-full gap-2 border-gray-200" onClick={handleRefresh}>
+                <RefreshCw size={14} />
+                Intentar nuevamente
+              </Button>
             </div>
-            <p className="text-lg text-gray-500 font-medium">No hay pedidos cargados.</p>
-            <button
-              onClick={handleRefresh}
-              className="mt-2 px-4 py-2 bg-brand-primary text-white font-medium rounded-lg transition-colors"
-            >
-              Intentar nuevamente
-            </button>
-          </div>
+          )
         )}
       </div>
 
