@@ -305,7 +305,7 @@ function SearchedProducts({ searchTerm, filters }: { searchTerm: string, filters
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3 lg:grid-cols-3 md:gap-5">
         {filteredProducts.map((product, i) => {
           const isLast = i === filteredProducts.length - 1
 
