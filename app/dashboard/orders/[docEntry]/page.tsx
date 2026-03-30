@@ -161,7 +161,7 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="min-h-fit p-8">
+    <div className="min-h-fit md:p-8">
       {/* Header sin sombras, con borde sutil */}
       <div className="sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">

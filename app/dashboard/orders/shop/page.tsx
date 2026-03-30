@@ -157,7 +157,7 @@ function ProductList({ endpoint, groupCode = 0, filters }: { endpoint: string, g
 
   return (
     <div className="py-4">
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-2 md:gap-5">
         {filteredProducts.map((product, i) => {
           const isLast = i === filteredProducts.length - 1
 
@@ -648,10 +648,10 @@ function ProductCard({ product }: { product: Product }) {
           </section>
         </DialogTrigger>
 
-        <DialogContent className="sm:max-w-[96vw] p-0 overflow-hidden flex flex-col max-h-[96vh]">
-          <DialogHeader className="px-6 pt-4 pb-0">
-            <DialogTitle className="text-xl font-bold">{product.itemName}</DialogTitle>
-            <section className='flex gap-12'>
+        <DialogContent className="w-full max-w-full sm:max-w-[96vw] p-0 overflow-hidden flex flex-col h-dvh sm:h-auto sm:max-h-[96vh] rounded-none sm:rounded-lg">
+          <DialogHeader className="px-4 sm:px-6 pt-4 pb-0">
+            <DialogTitle className="text-base sm:text-xl font-bold leading-snug">{product.itemName}</DialogTitle>
+            <section className='flex flex-wrap gap-x-6 gap-y-1'>
               <div className='flex flex-row items-center gap-2'>
                 <p className="text-xs font-bold text-muted-foreground uppercase">Código: </p>
                 <p className="text-sm font-medium">{product.itemCode}</p>
@@ -669,10 +669,10 @@ function ProductCard({ product }: { product: Product }) {
             </section>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-6">
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6">
             <div className="flex flex-col lg:flex-row gap-6">
               {/* Columna Izquierda: Imagen */}
-              <div className="lg:w-100 shrink-0">
+              <div className="lg:w-100 shrink-0 hidden sm:block">
                 <div className="aspect-square bg-white rounded-lg flex items-center justify-center overflow-hidden border">
                   <Image
                     src={`https://pub-266f56f2e24d4d3b8e8abdb612029f2f.r2.dev/100000.jpg`}
@@ -688,7 +688,7 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               {/* Columna Central: Datos del Producto */}
-              <div className="flex-1 overflow-y-auto max-h-[calc(90vh-220px)]">
+              <div className="flex-1 lg:overflow-y-auto lg:max-h-[calc(90vh-220px)]">
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -704,7 +704,7 @@ function ProductCard({ product }: { product: Product }) {
                     </div>
                   </div>
 
-                  <section className="pt-4 border-t flex flex-row justify-between">
+                  <section className="pt-4 border-t flex flex-wrap gap-4 justify-between">
                     <div>
                       <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Precio de Venta</p>
                       <div className="flex flex-col gap-1">
@@ -867,7 +867,7 @@ function ProductCard({ product }: { product: Product }) {
               </div>
 
               {/* Columna Derecha: Analíticas - Fija con scroll interno */}
-              <div className="lg:w-90 shrink-0 border-l pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
+              <div className="lg:w-90 shrink-0 border-t pt-4 lg:border-t-0 lg:pt-0 lg:border-l lg:pl-6 lg:sticky lg:top-0 lg:h-[calc(90vh-180px)] lg:flex lg:flex-col">
                 <div className="flex items-center gap-2 mb-4 shrink-0">
                   <ChartPieSliceIcon size={20} className="text-brand-primary" weight="fill" />
                   <h3 className="font-bold text-md">Historial de Movimientos</h3>
@@ -945,11 +945,11 @@ function ProductCard({ product }: { product: Product }) {
             </div>
           </div>
 
-          <DialogFooter className="p-6 border-t bg-background flex flex-row items-center justify-between sm:justify-between gap-4">
+          <DialogFooter className="px-4 py-4 sm:px-6 border-t bg-background flex flex-row items-center justify-between gap-4 shrink-0">
             <div className="flex flex-col">
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total estimado</span>
               <div className="flex items-baseline gap-0">
-                <span className="text-3xl font-black text-brand-primary">L.{formatPrice(editablePrice * quantity).intPart}</span>
+                <span className="text-2xl sm:text-3xl font-black text-brand-primary">L.{formatPrice(editablePrice * quantity).intPart}</span>
                 <span className="text-sm font-bold text-brand-primary">.{formatPrice(editablePrice * quantity).decPart}</span>
               </div>
             </div>
@@ -1097,17 +1097,16 @@ export default function Page() {
 
         <div className="flex-1">
           {/* Mobile: Categorías horizontales */}
-          <div className="lg:hidden -mx-4 -mt-4 px-4 pb-2 mb-2 border-b overflow-x-auto flex gap-2 bg-background">
+          <div className="lg:hidden -mx-4 -mt-4 px-4 py-2 mb-2 border-b overflow-x-auto flex gap-2">
             <button
               onClick={() => {
                 setActiveCategory('ofertas')
                 setSearchTerm('')
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-                activeCategory === 'ofertas'
+              className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${activeCategory === 'ofertas'
                   ? 'bg-brand-primary text-white'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
-              }`}
+                }`}
             >
               <Tag size={14} weight="fill" />
               Ofertas
@@ -1119,11 +1118,10 @@ export default function Page() {
                   setActiveCategory(cat.code)
                   setSearchTerm('')
                 }}
-                className={`px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
-                  activeCategory === cat.code
+                className={`px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${activeCategory === cat.code
                     ? 'bg-brand-primary text-white'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
+                  }`}
               >
                 {cat.name}
               </button>
@@ -1132,18 +1130,17 @@ export default function Page() {
 
           {/* Subcategorías como tabs - solo móvil y tablet */}
           {subCategories.length > 0 && (
-            <div className="lg:hidden mb-4 -mx-4 px-4 overflow-x-auto flex gap-2 pb-2">
+            <div className="lg:hidden hidden mb-4 -mx-4 px-4 overflow-x-auto gap-2 pb-2">
               <button
                 onClick={() => {
                   setActiveSubCategory(null)
                   setFilters(prev => ({ ...prev, subCategory: null }))
                   setSearchTerm('')
                 }}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
-                  activeSubCategory === null
+                className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${activeSubCategory === null
                     ? 'bg-brand-primary text-white'
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                }`}
+                  }`}
               >
                 Todas
               </button>
@@ -1155,11 +1152,10 @@ export default function Page() {
                     setFilters(prev => ({ ...prev, subCategory: sub.name }))
                     setSearchTerm(sub.name)
                   }}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${
-                    activeSubCategory === sub.name
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${activeSubCategory === sub.name
                       ? 'bg-brand-primary text-white'
                       : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
+                    }`}
                 >
                   {sub.name}
                 </button>
@@ -1237,7 +1233,7 @@ export default function Page() {
             </div>
           </div>
 
-          <main className="flex-1 min-w-0 pl-4">
+          <main className="flex-1 min-w-0 ">
             {debouncedSearchTerm ? (
               <SearchedProducts searchTerm={debouncedSearchTerm} />
             ) : activeCategory === 'ofertas' ? (

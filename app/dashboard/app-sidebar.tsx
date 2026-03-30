@@ -6,7 +6,7 @@ import Image from "next/image"
 import Link from "next/link"
 import Avvvatars from "avvvatars-react"
 import { Cardholder, ChartLineUp, GearSix, ShoppingCart, CaretUpDown, SignOut, Users, MapTrifoldIcon, Calendar, MapPin, Path, List, Clock, Books } from "@phosphor-icons/react"
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "@/components/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar } from "@/components/ui/sidebar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from "@/components/ui/dropdown-menu"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger, } from "@/components/ui/collapsible"
 
@@ -72,6 +72,7 @@ const items = [
 export function AppSidebar() {
   const { data: session } = useSession()
   const router = useRouter()
+  const { setOpenMobile, isMobile } = useSidebar()
 
   const handleSignOut = async () => {
     await signOut({ redirect: false })
@@ -125,7 +126,7 @@ export function AppSidebar() {
                 'items' in group && group.items?.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild tooltip={item.title}>
-                      <Link href={item.url}>
+                      <Link href={item.url} onClick={() => isMobile && setOpenMobile(false)}>
                         <item.icon size={20} />
                         <span>{item.title}</span>
                       </Link>
