@@ -49,9 +49,10 @@ export const useCartStore = create<CartState>()(
         set((state) => ({
           productsInCart: state.productsInCart.map((p) =>
             p.itemCode === itemCode
-              ? { 
-                  ...p, 
-                  quantity, 
+              ? {
+                  ...p,
+                  quantity,
+                  unitPriceNoVAT: unitPrice,
                   unitPrice,
                   priceAfterVAT: unitPrice,
                   priceList: unitPrice,
