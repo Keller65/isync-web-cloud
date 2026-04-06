@@ -847,10 +847,10 @@ function ProductCard({ product }: { product: Product }) {
                           {product.tiers.map((t, idx) => (
                             <TableRow key={idx}>
                               <TableCell className="py-2 text-sm">
-                                <div>Desde {formatNumber(t.qty)} und. - <span className='font-semibold bg-green-200 size-fit py-0 px-2 rounded-full text-sm text-green-500'>{t.percent}%</span></div>
-                                <div>Expira: <span className='font-semibold'>{t.expiry}</span></div>
+                                <div className='font-semibold '>Desde {formatNumber(t.qty)} und. - <span className='font-semibold bg-green-200 size-fit py-0 px-2 rounded-full text-sm text-green-500'>{t.percent}%</span></div>
+                                <div className='text-red-400 text-xs'>Expira: <span className='font-regular'>{t.expiry}</span></div>
                               </TableCell>
-                              <TableCell className="py-2 text-sm font-bold text-right text-primary">
+                              <TableCell className="py-2 font-regular text-sm text-right text-primary">
                                 L.{formatPrice(t.price).intPart}
                                 <span className="text-[10px] font-normal">.{formatPrice(t.price).decPart}</span>
                               </TableCell>
