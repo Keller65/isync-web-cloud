@@ -846,7 +846,10 @@ function ProductCard({ product }: { product: Product }) {
                         <TableBody>
                           {product.tiers.map((t, idx) => (
                             <TableRow key={idx}>
-                              <TableCell className="py-2 text-sm">Desde {formatNumber(t.qty)} un.</TableCell>
+                              <TableCell className="py-2 text-sm">
+                                <div>Desde {formatNumber(t.qty)} und. - <span className='font-semibold bg-green-200 size-fit py-0 px-2 rounded-full text-sm text-green-500'>{t.percent}%</span></div>
+                                <div>Expira: <span className='font-semibold'>{t.expiry}</span></div>
+                              </TableCell>
                               <TableCell className="py-2 text-sm font-bold text-right text-primary">
                                 L.{formatPrice(t.price).intPart}
                                 <span className="text-[10px] font-normal">.{formatPrice(t.price).decPart}</span>
@@ -1104,8 +1107,8 @@ export default function Page() {
                 setSearchTerm('')
               }}
               className={`flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${activeCategory === 'ofertas'
-                  ? 'bg-brand-primary text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                ? 'bg-brand-primary text-white'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
             >
               <Tag size={14} weight="fill" />
@@ -1119,8 +1122,8 @@ export default function Page() {
                   setSearchTerm('')
                 }}
                 className={`px-3 py-2 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${activeCategory === cat.code
-                    ? 'bg-brand-primary text-white'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 {cat.name}
@@ -1138,8 +1141,8 @@ export default function Page() {
                   setSearchTerm('')
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${activeSubCategory === null
-                    ? 'bg-brand-primary text-white'
-                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-brand-primary text-white'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
               >
                 Todas
@@ -1153,8 +1156,8 @@ export default function Page() {
                     setSearchTerm(sub.name)
                   }}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md whitespace-nowrap transition-colors ${activeSubCategory === sub.name
-                      ? 'bg-brand-primary text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    ? 'bg-brand-primary text-white'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                 >
                   {sub.name}
