@@ -10,7 +10,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Credentials({
       name: "Credenciales",
       credentials: {
-        employeeCode: { label: "Código de Empleado", type: "number" },
+        employeeCode: { label: "Código de Vendedor", type: "number" },
         password: { label: "Contraseña", type: "password" },
       },
       authorize: async (credentials) => {
@@ -73,6 +73,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.fullName = user.fullName
         token.u_WhsCode = user.u_WhsCode
         token.u_SerieCot = user.u_SerieCot
+        token.expiresAt = Date.now() + 8 * 60 * 60 * 1000 // 8 horas
       }
       return token
     },
@@ -85,6 +86,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.name = token.fullName
         session.user.u_WhsCode = token.u_WhsCode
         session.user.u_SerieCot = token.u_SerieCot
+        // Pasar expiration al cliente para validar
+        session.user.expiresAt = token.expiresAt
       }
       return session
     },

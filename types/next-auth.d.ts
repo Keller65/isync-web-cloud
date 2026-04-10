@@ -9,6 +9,7 @@ declare module "next-auth" {
       fullName: string
       u_WhsCode: string,
       u_SerieCot: string
+      expiresAt?: number
     } & DefaultSession["user"]
   }
 
@@ -28,5 +29,6 @@ declare module "next-auth/jwt" {
     fullName: string,
     u_WhsCode: string,
     u_SerieCot: string
+    expiresAt?: number
   }
 }
