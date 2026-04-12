@@ -101,11 +101,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
-  thCode: { width: '12%' },
-  thDesc: { width: '38%' },
-  thCant: { width: '10%', textAlign: 'center' },
+  thCode: { width: '10%' },
+  thDesc: { width: '25%' },
+  thCant: { width: '8%', textAlign: 'center' },
   thPU: { width: '12%', textAlign: 'right' },
-  thISV: { width: '13%', textAlign: 'right' },
+  thImporte: { width: '12%', textAlign: 'right' },
+  thISV: { width: '10%', textAlign: 'right' },
+  thTaxCode: { width: '8%', textAlign: 'center' },
   thTotal: { width: '15%', textAlign: 'right' },
 
   tableRow: {
@@ -124,12 +126,14 @@ const styles = StyleSheet.create({
     height: 24,
   },
 
-  tdCode: { width: '12%', fontSize: 10 },
-  tdDesc: { width: '38%', fontSize: 10 },
-  tdCant: { width: '10%', fontSize: 10, textAlign: 'center' },
-  tdPU: { width: '12%', fontSize: 10, textAlign: 'right' },
-  tdISV: { width: '13%', fontSize: 10, textAlign: 'right' },
-  tdTotal: { width: '15%', fontSize: 10, textAlign: 'right' },
+  tdCode: { width: '10%', fontSize: 9 },
+  tdDesc: { width: '25%', fontSize: 9 },
+  tdCant: { width: '8%', fontSize: 9, textAlign: 'center' },
+  tdPU: { width: '12%', fontSize: 9, textAlign: 'right' },
+  tdImporte: { width: '12%', fontSize: 9, textAlign: 'right' },
+  tdISV: { width: '10%', fontSize: 9, textAlign: 'right' },
+  tdTaxCode: { width: '8%', fontSize: 9, textAlign: 'center' },
+  tdTotal: { width: '15%', fontSize: 9, textAlign: 'right' },
 
   footerSection: {
     flexDirection: 'row',
@@ -190,19 +194,74 @@ const styles = StyleSheet.create({
 });
 
 interface OrderPDFProps {
-  order: OrderDetailType;
+  order?: OrderDetailType | null;
   sellerName?: string;
 }
 
 const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
-  const docDate = new Date(order.docDate ?? '').toLocaleDateString('es-HN');
+  // Validación inicial
+  if (!order) {
+    return (
+      <Document>
+        <Page style={styles.page}>
+          <Text>No hay datos del pedido para generar el PDF.</Text>
+        </Page>
+      </Document>
+    );
+  }
 
-  const subtotal = order.docTotal - order.vatSum;
+  // Extracción de variables con valores por defecto
+  const docDate = new Date(order.docDate ?? "").toLocaleDateString("es-HN");
+  const cardName = order.cardName ?? "";
+  const federalTaxID = order.federalTaxID ?? "";
+  const docNum = order.docNum ?? "";
+  const comments = order.comments ?? "";
   const lines = order.lines ?? [];
-  const minRows = 8;
 
-  // ✅ corregido
-  const getISVPerUnit = (priceNoVAT: number) => priceNoVAT * 0.15;
+  // Cálculos
+  let productsViews: React.ReactNode[] = [];
+  let subtotalCalculated = 0;
+  let totalISVCalculated = 0;
+
+  lines.forEach((item, index) => {
+    const itemTaxCode = (item as any).taxCode ?? "";
+    const unitPriceNoVAT = item.unitPriceNoVAT ?? 0;
+    const quantity = item.quantity ?? 0;
+
+    const isISV = itemTaxCode === "ISV";
+    const isvPerUnit = isISV ? unitPriceNoVAT * 0.15 : 0;
+    const lineISVTotal = quantity * isvPerUnit;
+    const lineTotalWithISV = quantity * (unitPriceNoVAT + isvPerUnit);
+    const lineNetTotal = quantity * unitPriceNoVAT;
+
+    subtotalCalculated += lineNetTotal;
+    totalISVCalculated += lineISVTotal;
+
+    productsViews.push(
+      <View key={item.itemCode || index} style={styles.tableRow}>
+        <Text style={styles.tdCode}>{item.itemCode ?? ""}</Text>
+        <Text style={styles.tdDesc}>{item.itemName ?? ""}</Text>
+        <Text style={styles.tdCant}>{quantity.toFixed(2)}</Text>
+        <Text style={styles.tdPU}>L{formatMoney(unitPriceNoVAT)}</Text>
+        <Text style={styles.tdImporte}>L{formatMoney(lineNetTotal)}</Text>
+        <Text style={styles.tdISV}>L{formatMoney(lineISVTotal)}</Text>
+        <Text style={styles.tdTaxCode}>{itemTaxCode}</Text>
+        <Text style={styles.tdTotal}>L{formatMoney(lineTotalWithISV)}</Text>
+      </View>
+    );
+  });
+
+  // Filas vacías mínimas
+  const minRows = 8;
+  if (lines.length < minRows) {
+    for (let i = lines.length; i < minRows; i++) {
+      productsViews.push(
+        <View key={`empty-${i}`} style={styles.emptyRow} />
+      );
+    }
+  }
+
+  const isvCalculated = totalISVCalculated;
 
   return (
     <Document>
@@ -242,7 +301,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           </View>
         </View>
 
-        <Text style={styles.docTitle}>Cotización</Text>
+        <Text style={styles.docTitle}>Cotización - {docNum || 'SN'}</Text>
 
         {/* INFO */}
         <View style={styles.infoTable}>
@@ -259,23 +318,14 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           <View style={styles.infoRow}>
             <Text style={[styles.infoLabel, styles.labelCol]}>Cliente:</Text>
             <Text style={[styles.infoValue, styles.valueCol]}>
-              {order.cardName}
+              {cardName}
             </Text>
 
             <Text style={[styles.infoLabel, styles.labelCol2]}>
               RTN Cliente:
             </Text>
             <Text style={[styles.infoValue, styles.valueCol2]}>
-              {order.federalTaxID}
-            </Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={[styles.infoLabel, styles.labelCol]}>
-              N. de Cotización:
-            </Text>
-            <Text style={[styles.infoValue, styles.valueCol]}>
-              {order.docNum}
+              {federalTaxID}
             </Text>
           </View>
         </View>
@@ -287,37 +337,13 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
             <Text style={[styles.tableHeaderCell, styles.thDesc]}>Descripción</Text>
             <Text style={[styles.tableHeaderCell, styles.thCant]}>Cant</Text>
             <Text style={[styles.tableHeaderCell, styles.thPU]}>P/U</Text>
-            <Text style={[styles.tableHeaderCell, styles.thISV]}>ISV/U</Text>
+            <Text style={[styles.tableHeaderCell, styles.thImporte]}>Importe</Text>
+            <Text style={[styles.tableHeaderCell, styles.thISV]}>ISV</Text>
+            <Text style={[styles.tableHeaderCell, styles.thTaxCode]}></Text>
             <Text style={[styles.tableHeaderCell, styles.thTotal]}>Total</Text>
           </View>
 
-          {lines.map((line, index) => {
-            const qty = line.quantity ?? 0;
-            const priceNoVAT =
-              line.unitPriceNoVAT ??
-              line.basePriceNoVAT ??
-              line.price ??
-              0;
-
-            const isvPerUnit = getISVPerUnit(priceNoVAT);
-            const lineTotal = qty * (priceNoVAT * 1.15);
-
-            return (
-              <View key={line.itemCode || index} style={styles.tableRow}>
-                <Text style={styles.tdCode}>{line.itemCode}</Text>
-                <Text style={styles.tdDesc}>{line.itemName}</Text>
-                <Text style={styles.tdCant}>{qty.toFixed(2)}</Text>
-                <Text style={styles.tdPU}>L{formatMoney(priceNoVAT)}</Text>
-                <Text style={styles.tdISV}>L{formatMoney(isvPerUnit)}</Text>
-                <Text style={styles.tdTotal}>L{formatMoney(lineTotal)}</Text>
-              </View>
-            );
-          })}
-
-          {lines.length < minRows &&
-            Array.from({ length: minRows - lines.length }).map((_, index) => (
-              <View key={`empty-${index}`} style={styles.emptyRow} />
-            ))}
+          {productsViews}
         </View>
 
         {/* FOOTER */}
@@ -325,7 +351,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           <View style={styles.notesSection}>
             <Text>
               <Text style={{ fontWeight: 'bold' }}>
-                Nota: Vigencia 15 días
+                Nota: La cotización tiene vigencia por 15 días
               </Text>
             </Text>
 
@@ -333,7 +359,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
               <Text style={{ fontWeight: 'bold' }}>Observaciones:</Text>
             </Text>
 
-            <Text>{order.comments}</Text>
+            <Text>{comments}</Text>
           </View>
 
           <View style={styles.totalsBox}>
@@ -341,28 +367,28 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Total Neto:</Text>
                 <Text style={styles.totalsValue}>
-                  L{formatMoney(subtotal)}
+                  L{formatMoney(subtotalCalculated)}
                 </Text>
               </View>
 
               <View style={styles.totalsRow}>
                 <Text style={styles.totalsLabel}>Impuesto:</Text>
                 <Text style={styles.totalsValue}>
-                  L{formatMoney(order.vatSum)}
+                  L{formatMoney(isvCalculated)}
                 </Text>
               </View>
 
               <View style={styles.totalFinalRow}>
                 <Text style={styles.totalFinalLabel}>Total General:</Text>
                 <Text style={styles.totalFinalValue}>
-                  L{formatMoney(order.docTotal)}
+                  L{formatMoney(order.docTotal ?? 0)}
                 </Text>
               </View>
             </View>
           </View>
         </View>
 
-        <Text style={styles.poweredBy}>Powered by iSync Web</Text>
+        <Text style={styles.poweredBy}>Powered by iSync</Text>
       </Page>
     </Document>
   );
