@@ -388,7 +388,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
           </View>
         </View>
 
-        <Text style={styles.poweredBy}>Powered by iSync</Text>
+        <Text style={styles.poweredBy}>Powered by iSync Web</Text>
       </Page>
     </Document>
   );

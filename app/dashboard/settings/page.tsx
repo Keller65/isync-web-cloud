@@ -30,9 +30,7 @@ export default function SettingsPage() {
     biometricEnabled, setBiometricEnabled,
     pushEnabled, setPushEnabled,
     soundEnabled, setSoundEnabled,
-    showTraffic, setShowTraffic,
     productsWithImage, setProductsWithImage,
-    mapStyle, setMapStyle,
   } = useSettingsStore()
 
   const [activeSection, setActiveSection] = useState("notifications")
@@ -41,8 +39,22 @@ export default function SettingsPage() {
   const [logCategory, setLogCategory]     = useState<string>('ALL')
   const [cacheSize, setCacheSize]         = useState("0 MB")
   const [ipAddress]                       = useState("192.168.1.1")
+  const [appVersion, setAppVersion]       = useState("1.0.0")
 
-  useEffect(() => { calculateCacheSize() }, [])
+  useEffect(() => {
+    calculateCacheSize()
+    fetchVersion()
+  }, [])
+
+  const fetchVersion = async () => {
+    try {
+      const res = await fetch('/api/version')
+      const data = await res.json()
+      setAppVersion(data.version)
+    } catch (error) {
+      console.error('Error fetching version:', error)
+    }
+  }
 
   const calculateCacheSize = () => {
     let total = 0
@@ -168,7 +180,7 @@ export default function SettingsPage() {
         <Section title="Sistema y Datos" description="Información técnica y herramientas de mantenimiento.">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <StatCard icon={<Wifi />} label="Dirección IP" value={ipAddress} pulse />
-            <StatCard icon={<Smartphone />} label="Build Versión" value="1.2303.26-WEB" />
+            <StatCard icon={<Smartphone />} label="Build Versión" value={appVersion} />
             <StatCard icon={<Database />} label="Caché Utilizada" value={cacheSize} />
           </div>
 

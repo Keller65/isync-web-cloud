@@ -6,6 +6,21 @@ import { LoginRequest, LoginResponse } from "@/types/api-types"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.AUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 8 * 60 * 60, // 8 horas en segundos
+  },
+  cookies: {
+    sessionToken: {
+      name: "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 8 * 60 * 60, // 8 horas en segundos
+      },
+    },
+  },
   providers: [
     Credentials({
       name: "Credenciales",

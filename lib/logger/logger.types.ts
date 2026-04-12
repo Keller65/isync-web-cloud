@@ -14,6 +14,8 @@ export interface LogEntry {
   errorCode?: number | string;
   message: string;
   stackTrace?: string;
+  documentId?: string;
+  isEditing?: boolean;
 }
 
 export interface LoggerOptions {

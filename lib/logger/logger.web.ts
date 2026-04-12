@@ -2,32 +2,47 @@ import fs from 'fs';
 import path from 'path';
 import type { LogEntry, LogCategory, LoggerOptions } from './logger.types';
 
-const SEPARATOR = '═'.repeat(60);
+const SEPARATOR = '─'.repeat(52);
 
 export function formatEntry(entry: LogEntry): string {
-  const lines: string[] = [SEPARATOR];
+  // Formato del header: DD/MM/YYYY HH:MM AM/PM | CATEGORY | MESSAGE
+  const date = new Date(entry.timestamp);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+  const displayHours = date.getHours() % 12 || 12;
 
-  lines.push(`📅 Timestamp : ${entry.timestamp}`);
-  lines.push(`🔖 Level     : ${entry.level}`);
-  lines.push(`📂 Category  : ${entry.category}`);
+  const headerTime = `${day}/${month}/${year} ${String(displayHours).padStart(2, '0')}:${minutes} ${ampm}`;
+  const header = `${headerTime} | ${entry.category} | ${entry.message}`;
 
-  if (entry.userId)   lines.push(`👤 User      : ${entry.userId}`);
-  if (entry.pageUrl)  lines.push(`🌐 Page URL  : ${entry.pageUrl}`);
-  if (entry.endpoint) lines.push(`🔗 Endpoint  : ${entry.endpoint}`);
+  const lines: string[] = [header];
+
+  if (entry.endpoint) lines.push(`  URL         : ${entry.endpoint}`);
+  if (entry.isEditing !== undefined) lines.push(`  isEditing   : ${entry.isEditing}`);
+  if (entry.documentId !== undefined) lines.push(`  documentId  : ${entry.documentId}`);
+  lines.push(`  date        : ${entry.timestamp}`);
+  if (entry.userId) lines.push(`  userId      : ${entry.userId}`);
+  if (entry.pageUrl) lines.push(`  pageUrl     : ${entry.pageUrl}`);
 
   if (entry.payload !== undefined) {
-    lines.push(`📦 Payload   :\n${JSON.stringify(entry.payload, null, 2)}`);
+    const payloadStr = JSON.stringify(entry.payload, null, 2);
+    const payloadLines = payloadStr.split('\n').map(l => '    ' + l);
+    lines.push(`  payload:`);
+    lines.push(payloadLines.join('\n'));
   }
 
   if (entry.responseBody !== undefined) {
-    lines.push(`📨 Response  :\n${JSON.stringify(entry.responseBody, null, 2)}`);
+    const responseStr = JSON.stringify(entry.responseBody, null, 2);
+    const responseLines = responseStr.split('\n').map(l => '    ' + l);
+    lines.push(`  response:`);
+    lines.push(responseLines.join('\n'));
   }
 
-  if (entry.errorCode !== undefined) lines.push(`🚨 ErrorCode : ${entry.errorCode}`);
-
-  lines.push(`💬 Message   : ${entry.message}`);
-
-  if (entry.stackTrace) lines.push(`🔍 StackTrace:\n${entry.stackTrace}`);
+  if (entry.errorCode !== undefined) lines.push(`  errorCode   : ${entry.errorCode}`);
+  if (entry.stackTrace) lines.push(`  stackTrace  :\n${entry.stackTrace}`);
 
   lines.push(SEPARATOR);
 
@@ -74,26 +89,30 @@ export class ISyncWebLogger {
     };
   }
 
-  logQuotation({ endpoint, payload, message = 'Cotización procesada' }: {
+  logQuotation({ endpoint, payload, message = 'Cotización procesada', documentId, isEditing }: {
     endpoint: string;
     payload?: unknown;
     message?: string;
+    documentId?: string;
+    isEditing?: boolean;
   }): void {
-    const entry = this.buildEntry({ level: 'INFO', category: 'PEDIDO', endpoint, payload, message });
+    const entry = this.buildEntry({ level: 'INFO', category: 'PEDIDO', endpoint, payload, message, documentId, isEditing });
     writeLog(entry, this.options);
   }
 
-  logQuotationError({ endpoint, payload, errorCode, message, responseBody, stackTrace }: {
+  logQuotationError({ endpoint, payload, errorCode, message, responseBody, stackTrace, documentId, isEditing }: {
     endpoint: string;
     payload?: unknown;
     errorCode: number | string;
     message: string;
     responseBody?: unknown;
     stackTrace?: string;
+    documentId?: string;
+    isEditing?: boolean;
   }): void {
     const entry = this.buildEntry({
       level: 'ERROR', category: 'PEDIDO',
-      endpoint, payload, errorCode, message, responseBody, stackTrace,
+      endpoint, payload, errorCode, message, responseBody, stackTrace, documentId, isEditing,
     });
     writeLog(entry, this.options);
   }

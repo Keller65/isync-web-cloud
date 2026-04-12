@@ -14,7 +14,8 @@ export default function SessionSync() {
     if (session?.user) {
       // Verificar si token ha expirado
       if (session.user.expiresAt && Date.now() > session.user.expiresAt) {
-        // Token expiró - limpiar credenciales y redirigir a login
+        // Token expiró - cerrar sesión automáticamente
+        signOut({ redirect: false })
         setAuth({
           token: null,
           salesPersonCode: null,
@@ -33,6 +34,26 @@ export default function SessionSync() {
         })
       }
     }
+  }, [session, setAuth, router])
+
+  // Verificar expiración periódicamente (cada minuto)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (session?.user?.expiresAt && Date.now() > session.user.expiresAt) {
+        // Token expiró - cerrar sesión automáticamente
+        signOut({ redirect: false })
+        setAuth({
+          token: null,
+          salesPersonCode: null,
+          fullName: null,
+          u_WhsCode: null,
+          u_SerieCot: null,
+        })
+        router.push("/")
+      }
+    }, 60000) // Verificar cada minuto
+
+    return () => clearInterval(interval)
   }, [session, setAuth, router])
 
   return null // Este componente no renderiza nada visual
