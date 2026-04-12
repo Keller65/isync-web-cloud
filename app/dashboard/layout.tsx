@@ -2,11 +2,11 @@
 
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/app/dashboard/app-sidebar"
-import AuthProvider from "@/app/ui/auth-provider"
-import SessionSync from "@/app/ui/session-sync"
+import AuthProvider from "@/components/auth/auth-provider"
+import SessionSync from "@/components/auth/session-sync"
 import CartISync from "@/components/Cart/page"
-import { useCustomerStore } from "../lib/store.customer"
-import { useCartStore } from "../lib/store.cart"
+import { useCustomerStore } from "@/lib/store/store.customer"
+import { useCartStore } from "@/lib/store/store.cart"
 
 export default function DashboardLayout({
   children,

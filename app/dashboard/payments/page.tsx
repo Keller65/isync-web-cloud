@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import axios from "axios"
-import { useAuthStore } from "@/app/lib/store"
-import { Payment } from "@/types/general"
+import { useAuthStore } from '@/lib/store'
+import { Payment } from '@/types/payments'
 import {
   FileText,
   CalendarDots,

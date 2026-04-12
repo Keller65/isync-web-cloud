@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import axios from "axios"
 import Link from "next/link"
-import { useAuthStore } from "@/app/lib/store"
-import { Payment } from "@/types/general"
+import { useAuthStore } from '@/lib/store'
+import { Payment } from '@/types/payments'
 import { ArrowLeft, CalendarDots, Coins, CreditCard, FileText, Receipt, Bank, Hash, Info, } from "@phosphor-icons/react"
 import Avvvatars from "avvvatars-react"
 import { Skeleton } from "@/components/ui/skeleton"

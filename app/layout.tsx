@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner"
 import "./globals.css";
 import { SessionProvider } from "next-auth/react"
-import SessionSync from "./ui/session-sync"
+import SessionSync from "@/components/auth/session-sync"
 
 export const metadata: Metadata = {
   title: "iSync Web - Todo Sincronizado",

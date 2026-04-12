@@ -17,9 +17,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Input } from '@/components/ui/input'
-import { useAuthStore } from '@/app/lib/store'
-import { useCustomerStore } from '@/app/lib/store.customer'
-import { useCartStore } from '@/app/lib/store.cart'
+import { useAuthStore } from '@/lib/store'
+import { useCustomerStore } from '@/lib/store/store.customer'
+import { useCartStore } from '@/lib/store/store.cart'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, } from '@/components/ui/table'
 import { Product } from '@/types/products'
@@ -28,7 +28,7 @@ import { BackButton } from '@/components/ui/back-button'
 import { MagnifyingGlass, SealPercent, Tag, Funnel, ChartPieSliceIcon, CircleNotch, FileText, Hash, Calendar, Cube, TagSimple, Money, Receipt, ShoppingCart } from '@phosphor-icons/react'
 import { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription } from '@/components/ui/popover'
 import { Badge } from '@/components/ui/badge'
-import { useSettingsStore } from '@/app/lib/store.general'
+import { useSettingsStore } from '@/lib/store/store.general'
 import { logClient } from '@/lib/logger/logger.client'
 
 interface SubCategory {

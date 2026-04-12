@@ -4,15 +4,15 @@ import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { AlertCircle, Loader2, RefreshCw, TrendingUp, Plus, Search, ArrowRight, MapPin, Check } from 'lucide-react';
-import { useAuthStore } from '@/app/lib/store';
-import { useCustomerStore } from '@/app/lib/store.customer';
+import { useAuthStore } from '@/lib/store';
+import { useCustomerStore } from '@/lib/store/store.customer';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, } from "@/components/ui/alert-dialog";
 import { CustomerType, CustomerResponseType, CustomerAddress } from '@/types/customers';
 import { Input } from "@/components/ui/input";
 import { ArrowClockwise, CalendarDots, Coins } from '@phosphor-icons/react';
 import Avvvatars from 'avvvatars-react';
-import { useCartStore } from '@/app/lib/store.cart';
+import { useCartStore } from '@/lib/store/store.cart';
 import { Button } from '@/components/ui/button';
 import { logClient } from '@/lib/logger/logger.client';
 

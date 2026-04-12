@@ -13,8 +13,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/app/lib/store"
-import { useSettingsStore } from "@/app/lib/store.general"
+import { useAuthStore } from '@/lib/store'
+import { useSettingsStore } from '@/lib/store/store.general'
 import { cn } from "@/lib/utils"
 
 const navItems = [

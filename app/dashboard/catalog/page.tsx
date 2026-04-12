@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import axios, { isAxiosError } from "axios"
-import { useAuthStore } from "@/app/lib/store"
+import { useAuthStore } from '@/lib/store'
 import CatalogPdf from "@/components/CatalogPdf"
 
 const PDFDownloadLink = dynamic(

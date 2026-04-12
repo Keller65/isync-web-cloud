@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react"
 import { useEffect } from "react"
-import { useAuthStore } from "@/app/lib/store"
+import { useAuthStore } from '@/lib/store'
 import { useRouter } from "next/navigation"
 
 export default function SessionSync() {

@@ -1,11 +1,11 @@
 "use client"
 
 import { useActionState, useState, useEffect } from "react"
-import { authenticate } from "@/app/lib/actions"
+import { authenticate } from '@/lib/actions'
 import { Drawer, DrawerClose, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, DrawerTitle, DrawerTrigger } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { useCustomerStore } from "@/app/lib/store.customer"
+import { useCustomerStore } from '@/lib/store/store.customer'
 import { Eye, EyeOff } from "lucide-react"
 
 export default function LoginForm() {

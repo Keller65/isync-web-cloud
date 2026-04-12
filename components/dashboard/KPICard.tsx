@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowDown, ArrowUp } from "lucide-react"
-import { useAuthStore } from "@/app/lib/store"
+import { useAuthStore } from '@/lib/store'
 import { useEffect, useState } from "react"
 import axios from "axios"
 

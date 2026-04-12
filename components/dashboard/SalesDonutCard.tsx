@@ -3,7 +3,7 @@
 import { useMemo, useEffect, useState, useRef } from "react"
 import { Doughnut } from "react-chartjs-2"
 import { Chart as ChartJS, ArcElement, Tooltip } from "chart.js"
-import { useAuthStore } from "@/app/lib/store"
+import { useAuthStore } from '@/lib/store'
 import { SalesDonutTypes } from "@/types/dashboar"
 import axios from "axios"
 

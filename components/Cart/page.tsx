@@ -8,9 +8,9 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { useCustomerStore } from "@/app/lib/store.customer"
-import { useCartStore } from "@/app/lib/store.cart"
-import { useAuthStore } from "@/app/lib/store"
+import { useCustomerStore } from '@/lib/store/store.customer'
+import { useCartStore } from '@/lib/store/store.cart'
+import { useAuthStore } from '@/lib/store'
 import { X, Plus, Edit3, AlertCircle, Trash } from "lucide-react"
 import { Pen, ShoppingCart, MapPinLine } from "@phosphor-icons/react"
 import Image from "next/image"
