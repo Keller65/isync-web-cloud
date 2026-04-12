@@ -88,7 +88,7 @@ export function AppSidebar() {
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-brand-primary">
                 <Image
                   alt="logo isync"
-                  src="/assets/iSync_logo.png"
+                  src="/assets/iSync.png"
                   height={24}
                   width={24}
                   priority
@@ -96,7 +96,7 @@ export function AppSidebar() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">iSync Web</span>
-                <span className="truncate text-xs text-muted-foreground">Agrinsa</span>
+                <span className="truncate text-xs text-muted-foreground">iSync</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -148,7 +148,7 @@ export function AppSidebar() {
                   <Avvvatars value={session?.user?.email ?? ''} style="shape" size={32} />
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">{session?.user?.fullName}</span>
-                    <span className="truncate text-xs text-muted-foreground">Vendedor Agrinsa</span>
+                    <span className="truncate text-xs text-muted-foreground">Vendedor iSync</span>
                   </div>
                   <CaretUpDown size={16} className="ml-auto" />
                 </SidebarMenuButton>

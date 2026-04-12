@@ -615,7 +615,7 @@ function ProductCard({ product }: { product: Product }) {
 
               <div className="flex flex-row items-start justify-between text-xs">
                 <div className='flex flex-col gap-2'>
-                  <p className="text-gray-500 font-medium">SKU: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.suppCatNum}</span></p>
+                  <p className="text-gray-500 font-medium">SKU: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.itemCode}</span></p>
                   <p className="text-gray-500 font-medium">Código: <span className='bg-gray-200 text-gray-500 px-2 py-0.5 rounded-full'>{product.itemCode}</span></p>
                 </div>
                 <span className="bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md font-medium text-[10px]">

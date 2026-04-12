@@ -10,7 +10,7 @@ import {
   Image
 } from '@react-pdf/renderer';
 import { OrderDetailType } from '@/types/orders';
-import LogoImage from "@/public/assets/Agrinsa.png";
+import LogoImage from "@/public/assets/iSync.png";
 
 const formatMoney = (amount: number) => {
   return amount.toLocaleString('es-HN', {
@@ -225,27 +225,27 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
 
   lines.forEach((item, index) => {
     const itemTaxCode = (item as any).taxCode ?? "";
-    const unitPriceNoVAT = item.unitPriceNoVAT ?? 0;
+    const priceAfterVAT = item.priceAfterVAT ?? 0;
     const quantity = item.quantity ?? 0;
 
     const isISV = itemTaxCode === "ISV";
-    const isvPerUnit = isISV ? unitPriceNoVAT * 0.15 : 0;
+    const isvPerUnit = isISV ? priceAfterVAT * 0.15 : 0;
     const lineISVTotal = quantity * isvPerUnit;
-    const lineTotalWithISV = quantity * (unitPriceNoVAT + isvPerUnit);
-    const lineNetTotal = quantity * unitPriceNoVAT;
+    const lineTotalWithISV = quantity * (priceAfterVAT + isvPerUnit);
+    const lineNetTotal = quantity * priceAfterVAT;
 
     subtotalCalculated += lineNetTotal;
-    totalISVCalculated += lineISVTotal;
+    totalISVCalculated += item.taxCode === "ISV" ? lineISVTotal : 0;
 
     productsViews.push(
       <View key={item.itemCode || index} style={styles.tableRow}>
         <Text style={styles.tdCode}>{item.itemCode ?? ""}</Text>
-        <Text style={styles.tdDesc}>{item.itemName ?? ""}</Text>
+        <Text style={styles.tdDesc}>{item.itemDescription ?? ""}</Text>
         <Text style={styles.tdCant}>{quantity.toFixed(2)}</Text>
-        <Text style={styles.tdPU}>L{formatMoney(unitPriceNoVAT)}</Text>
+        <Text style={styles.tdPU}>L{formatMoney(priceAfterVAT)}</Text>
         <Text style={styles.tdImporte}>L{formatMoney(lineNetTotal)}</Text>
-        <Text style={styles.tdISV}>L{formatMoney(lineISVTotal)}</Text>
-        <Text style={styles.tdTaxCode}>{itemTaxCode}</Text>
+        <Text style={styles.tdISV}>L{formatMoney(totalISVCalculated)}</Text>
+        {/* <Text style={styles.tdTaxCode}>{itemTaxCode}</Text> */}
         <Text style={styles.tdTotal}>L{formatMoney(lineTotalWithISV)}</Text>
       </View>
     );
@@ -277,25 +277,19 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
         {/* HEADER */}
         <View style={styles.headerContainer}>
           <View style={styles.companyInfo}>
-            <Text style={styles.companyName}>AGRINSA</Text>
+            <Text style={styles.companyName}>iSync Web</Text>
             <Text style={styles.companySubtitle}>
-              MOTORES AGRO INDUSTRIALES SA DE CV
+              Nombre de Tu empresa S.A. de C.V.
             </Text>
             <Text style={styles.companyDetail}>
-              Principal: Bo. La Guardia, San Pedro Sula, Cortes, 23 Calle, 1 Ave.
+              Principal: Barrio Suyapa 15 avnida Calle #1, San Pedro Sula, Honduras, C.A.
             </Text>
             <Text style={styles.companyDetail}>
-              Bloque #1 De Los Juzgados De Avenida New Orleans
-            </Text>
-            <Text style={styles.companyDetail}>
-              2 Cuadras Hacia Abajo Izquierda. Honduras, C.A. Tel: (504) 2544-2476
-            </Text>
-            <Text style={styles.companyDetail}>
-              E-mail: contabilidad@agrinsahn.com
+              E-mail: desarrollo@solteci.com
             </Text>
             <Text style={styles.companyDetail}>
               <Text style={{ fontWeight: 'bold' }}>
-                RTN: 05019995093760
+                RTN: 0501-0000-000000
               </Text>
             </Text>
           </View>
@@ -339,7 +333,7 @@ const OrderPDF: React.FC<OrderPDFProps> = ({ order, sellerName = '' }) => {
             <Text style={[styles.tableHeaderCell, styles.thPU]}>P/U</Text>
             <Text style={[styles.tableHeaderCell, styles.thImporte]}>Importe</Text>
             <Text style={[styles.tableHeaderCell, styles.thISV]}>ISV</Text>
-            <Text style={[styles.tableHeaderCell, styles.thTaxCode]}></Text>
+            {/* <Text style={[styles.tableHeaderCell, styles.thTaxCode]}></Text> */}
             <Text style={[styles.tableHeaderCell, styles.thTotal]}>Total</Text>
           </View>
 
