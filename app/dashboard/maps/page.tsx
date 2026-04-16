@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
-import TrackerMap from "@/components/TrackerMap";
 
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
@@ -151,6 +149,6 @@ export default function Page() {
   }, []);
 
   return (
-    <TrackerMap />
+    null
   );
 }
