@@ -6,21 +6,12 @@ import { LoginRequest, LoginResponse } from "@/types/api-types"
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.AUTH_SECRET,
+
   session: {
     strategy: "jwt",
-    maxAge: 8 * 60 * 60, // 8 horas en segundos
+    maxAge: 8 * 60 * 60, // 8 horas
   },
-  cookies: {
-    sessionToken: {
-      name: "next-auth.session-token",
-      options: {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: 8 * 60 * 60, // 8 horas en segundos
-      },
-    },
-  },
+
   providers: [
     Credentials({
       name: "Credenciales",
@@ -28,6 +19,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         employeeCode: { label: "Código de Vendedor", type: "number" },
         password: { label: "Contraseña", type: "password" },
       },
+
       authorize: async (credentials) => {
         if (!credentials?.employeeCode || !credentials?.password) {
           return null
@@ -40,10 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           }
 
           const apiHost = process.env.NEXT_PUBLIC_API_HOST
-          if (!apiHost) {
-            console.error("NEXT_PUBLIC_API_HOST no está definido")
-            return null
-          }
+          if (!apiHost) return null
 
           const response = await axios.post<LoginResponse>(
             `${apiHost}/auth/employee`,
@@ -60,15 +49,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               fullName: apiData.fullName,
               u_WhsCode: apiData.u_WhsCode,
               u_SerieCot: apiData.u_SerieCot,
-              email: `${apiData.salesPersonCode}@isync.local`
+              email: `${apiData.salesPersonCode}@isync.local`,
             }
           }
         } catch (error) {
-          if (axios.isAxiosError(error)) {
-            console.error("Error API Login:", error.response?.data || error.message)
-          } else {
-            console.error("Error desconocido en login:", error)
-          }
+          return null
         }
 
         return null
@@ -82,14 +67,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async jwt({ token, user }) {
+      // Solo en login
       if (user) {
         token.salesPersonCode = user.salesPersonCode
         token.token = user.token
         token.fullName = user.fullName
         token.u_WhsCode = user.u_WhsCode
         token.u_SerieCot = user.u_SerieCot
-        token.expiresAt = Date.now() + 8 * 60 * 60 * 1000 // 8 horas
       }
+
       return token
     },
 
@@ -101,9 +87,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.name = token.fullName
         session.user.u_WhsCode = token.u_WhsCode
         session.user.u_SerieCot = token.u_SerieCot
-        // Pasar expiration al cliente para validar
-        session.user.expiresAt = token.expiresAt
       }
+
       return session
     },
   },
