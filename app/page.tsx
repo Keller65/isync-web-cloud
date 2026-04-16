@@ -13,7 +13,7 @@ export default function LoginPage() {
           <div className="size-9">
             <Image
               alt="logo isync web cloud"
-              src="/assets/iSync_logo.png"
+              src="/assets/iSync.png"
               height={80}
               width={80}
               className="object-contain"
@@ -40,7 +40,7 @@ export default function LoginPage() {
           <div className="flex items-center gap-2.5 mb-8 lg:hidden">
             <Image
               alt="logo isync"
-              src="/assets/iSync_logo.png"
+              src="/assets/iSync.png"
               height={36}
               width={36}
               className="object-contain"

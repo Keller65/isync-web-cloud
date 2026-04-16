@@ -16,9 +16,9 @@ import Avvvatars from 'avvvatars-react';
 import { logClient } from '@/lib/logger/logger.client';
 
 const PriceDisplay = ({ price, decimalNum }: { price: number; decimalNum: number }) => {
-  const formatted = price.toLocaleString('es-HN', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  const formatted = price.toLocaleString('es-HN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const [integer, decimal] = formatted.split('.');
-  const totalDecimals = decimalNum ?? 3;
+  const totalDecimals = decimalNum ?? 2;
   const decimalPart = decimal ? decimal.substring(0, totalDecimals) : '00';
   return (
     <span>
@@ -131,11 +131,11 @@ export default function OrderDetailPage() {
       const product: any = {
         itemCode: line.itemCode,
         itemName: line.itemName,
+        barcode: line.barCode,
+        priceList: line.priceList,
+        priceAfterVAT: line.priceAfterVAT,
         quantity: line.quantity,
-        unitPriceNoVAT: line.unitPriceNoVAT,
-        basePriceNoVAT: line.basePriceNoVAT,
         taxCode: line.taxCode,
-        warehouseCode: line.warehouseCode
       }
       if (line.barCode) product.barCode = line.barCode
       if (line.priceList) product.priceList = line.priceList
@@ -273,7 +273,7 @@ export default function OrderDetailPage() {
                       <TableRow key={idx} className="hover:bg-gray-50/30 border-gray-100">
                         <TableCell className="font-mono text-xs font-bold text-brand-primary">{line.itemCode}</TableCell>
                         <TableCell>
-                          <p className="text-sm font-bold text-gray-900 leading-none mb-1">{line.itemName}</p>
+                          <p className="text-sm font-bold text-gray-900 leading-none mb-1">{line.itemDescription}</p>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100">
@@ -281,10 +281,10 @@ export default function OrderDetailPage() {
                           </span>
                         </TableCell>
                         <TableCell className="text-right text-sm font-medium text-gray-600">
-                          <PriceDisplay decimalNum={4} price={line.unitPriceNoVAT ?? 0} />
+                          <PriceDisplay decimalNum={4} price={line.priceAfterVAT ?? 0} />
                         </TableCell>
                         <TableCell className="text-right text-sm font-bold text-gray-900">
-                          <PriceDisplay decimalNum={2} price={(line.unitPriceNoVAT ?? 0) * line.quantity} />
+                          <PriceDisplay decimalNum={2} price={(line.priceAfterVAT ?? 0) * line.quantity} />
                         </TableCell>
                       </TableRow>
                     ))}
