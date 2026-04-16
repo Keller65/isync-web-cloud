@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
                 <>
                   <PDFDownloadLink
                     document={<OrderPDF order={orderDetail} sellerName={sellerName ?? ''} />}
-                    fileName={`COTIZACION-${orderDetail.docNum}.pdf`}
+                    fileName={`COTIZACION-${orderDetail.cardName}-${orderDetail.docNum}.pdf`}
                   >
                     {({ loading }: { loading: boolean }) => (
                       <button

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "@/components/ui/sonner"
-import "./globals.css";
-import { SessionProvider } from "next-auth/react"
+import "../app/globals.css";
+import AuthProvider from "@/components/auth/auth-provider"
 import SessionSync from "@/components/auth/session-sync"
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: "iSync Web es una aplicacin de tareas que se sincroniza con iSync, permitiendo gestionar tus cotizaciones de manera eficiente y sin complicaciones.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -18,10 +18,10 @@ export default async function RootLayout({
     <html lang="en">
       <body className="antialiased">
 
-        <SessionProvider>
+        <AuthProvider>
           <SessionSync />
           <main>{children}</main>
-        </SessionProvider>
+        </AuthProvider>
         <Toaster theme="light" richColors closeButton position="top-right" />
       </body>
     </html>
