@@ -145,7 +145,7 @@ export default function OrdersPage() {
 
     const searchValue = customerSearchRef.current;
     const searchParam = searchValue.trim() ? `&search=${encodeURIComponent(searchValue.trim())}` : '';
-    const url = `${CUSTOMERS_URL}?slpCode=${salesPersonCode}&page=${pageToFetch}&pageSize=1000`;
+    const url = `${CUSTOMERS_URL}?${searchParam}&page=${pageToFetch}&pageSize=1000`;
 
     setIsLoadingCustomers(true);
     try {
