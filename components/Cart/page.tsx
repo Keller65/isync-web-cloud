@@ -190,17 +190,23 @@ function CartISync() {
         ...(editMode ? {} : { requestId: orderId }),
         cardCode: selectedCustomer.cardCode,
         cardName: selectedCustomer.editRTN && editCustomerName ? editCustomerName : selectedCustomer.cardName,
+        u_RTN: selectedCustomer.editRTN && editCustomerRTN ? editCustomerRTN : selectedCustomer.federalTaxID,
         salesPersonCode: sellerDifferent ? selectedSlpCode : salesPersonCode,
         payToCode: selectedAddress?.addressName ?? '',
         comments: comments,
+        series: u_SerieCot ?? undefined,
+        u_Referido: selectedCustomer.referidoCode,
         lines: productsInCart.map((p) => {
           const line: any = {
             itemCode: p.itemCode,
-            barcode: p.barCode,
             quantity: p.quantity,
-            priceList: p.priceList,
+            unitPriceNoVAT: p.unitPriceNoVAT,
+            basePriceNoVAT: p.basePriceNoVAT,
             taxCode: p.taxCode,
+            warehouseCode: u_WhsCode
           }
+          if (p.barCode) line.barCode = p.barCode
+          if (p.priceList) line.priceList = p.priceList
           if (p.priceAfterVAT) line.priceAfterVAT = p.priceAfterVAT
           return line
         })
@@ -212,7 +218,7 @@ function CartISync() {
 
       const response = await axios({
         method: editMode ? "PATCH" : "POST",
-        url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations/Order`,
+        url: editMode ? `/api-proxy/api/Quotations/${docEntry}` : `/api-proxy/api/Quotations`,
         data: payload,
         headers: { Authorization: `Bearer ${token}` },
         timeout: 15000
@@ -301,7 +307,7 @@ function CartISync() {
                   const unitPrice = (item.priceAfterVAT ?? item.unitPriceNoVAT ?? item.priceList ?? 0)
                   const quantity = item.quantity ?? 0
                   const totalPrice = unitPrice * quantity
-                  const sku = item.itemCode
+                  const sku = item.suppCatNum
                   const taxCode = item.taxCode
 
                   return (
